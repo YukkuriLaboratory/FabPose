@@ -6,6 +6,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.enums.BedPart;
 import net.minecraft.entity.EntityPose;
+import net.minecraft.network.packet.c2s.common.SyncedClientOptions;
 import net.minecraft.network.packet.s2c.play.BlockUpdateS2CPacket;
 import net.minecraft.network.packet.s2c.play.EntityPositionS2CPacket;
 import net.minecraft.network.packet.s2c.play.EntityTrackerUpdateS2CPacket;
@@ -34,15 +35,15 @@ public class LayingEntity extends PosingEntity {
     // teleport the poser to the correct location
     private final EntityPositionS2CPacket teleportPoserPacket;
 
-    public LayingEntity(ServerPlayerEntity player, GameProfile profile) {
-        super(player, profile);
+    public LayingEntity(ServerPlayerEntity player, GameProfile profile, SyncedClientOptions clientOptions) {
+        super(player, profile, clientOptions);
 
         // set sleeping pose; mixin is again used to access entity data
         this.getDataTracker().set(getPOSE(), EntityPose.SLEEPING);
 
         // lowest possible block to put the bed on (minimal interference)
         int worldBottom = this.getEntityWorld().getDimension().minY();
-        BlockPos bedPos = new BlockPos(this.getX(), worldBottom, this.getZ());
+        BlockPos bedPos = getBlockPos().withY(worldBottom);
         // set the sleeping position of the poser to the bed
         this.getDataTracker().set(getSLEEPING_POSITION(), Optional.of(bedPos));
 

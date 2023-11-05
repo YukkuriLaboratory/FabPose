@@ -35,7 +35,7 @@ public class PoseTest {
                 || player.isSleeping())
             throw new PoseException.StateException();
 
-        BlockState below = player.getEntityWorld().getBlockState(new BlockPos(player.getPos()).down());
+        BlockState below = player.getEntityWorld().getBlockState(BlockPos.ofFloored(player.getPos()).down());
 
         // check if in midair
         if(below.isAir() && !ConfigManager.getConfig().allow_posing_midair)

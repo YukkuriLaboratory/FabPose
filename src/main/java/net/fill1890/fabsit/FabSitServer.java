@@ -6,6 +6,7 @@ import net.fabricmc.fabric.api.networking.v1.*;
 import net.fill1890.fabsit.command.GenericSitBasedCommand;
 import net.fill1890.fabsit.config.ConfigManager;
 import net.fill1890.fabsit.event.UseStairCallback;
+import net.fill1890.fabsit.mixin.accessor.ServerLoginNetworkHandlerAccessor;
 import net.fill1890.fabsit.network.PoseRequestC2SPacket;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.MinecraftServer;
@@ -28,7 +29,10 @@ public class FabSitServer implements DedicatedServerModInitializer {
     }
 
     private static void handleCheckResponse(MinecraftServer server, ServerLoginNetworkHandler handler, boolean b, PacketByteBuf buf, ServerLoginNetworking.LoginSynchronizer synchronizer, PacketSender sender) {
-        if(b) server.execute(() -> ConfigManager.loadedPlayers.add(handler.connection.getAddress()));
+        if (b) {
+            var connection = ((ServerLoginNetworkHandlerAccessor) handler).getConnection();
+            server.execute(() -> ConfigManager.loadedPlayers.add(connection.getAddress()));
+        }
     }
 
     private static void checkLoaded(ServerLoginNetworkHandler handler, MinecraftServer server, PacketSender sender, ServerLoginNetworking.LoginSynchronizer synchronizer) {

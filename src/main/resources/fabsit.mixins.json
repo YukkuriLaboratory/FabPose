@@ -4,13 +4,16 @@
   "package": "net.fill1890.fabsit.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
-    "accessor.PlayerEntityAccessor",
     "accessor.EntityAccessor",
-    "accessor.LivingEntityAccessor",
     "accessor.EntitySpawnPacketAccessor",
-    "injector.ServerPlayNetworkHandlerMixin",
+    "accessor.LivingEntityAccessor",
+    "accessor.PlayerEntityAccessor",
+    "accessor.PlayerListS2CPacketAccessor",
+    "accessor.ServerCommonNetworkHandlerAccessor",
+    "accessor.ServerLoginNetworkHandlerAccessor",
     "injector.ServerPlayerEntityMixin",
-    "injector.RegistrySyncManagerMixin"
+    "injector.ServerPlayNetworkHandlerMixin",
+    "injector.SyncConfigurationTaskMixin"
   ],
   "injectors": {
     "defaultRequire": 1

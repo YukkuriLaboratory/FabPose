@@ -35,7 +35,7 @@ public abstract class ReloadConfigCommand {
         }
 
         // success message
-        context.getSource().sendFeedback(Messages.configLoadSuccess(context.getSource().getPlayer()), false);
+        context.getSource().sendFeedback(() -> Messages.configLoadSuccess(context.getSource().getPlayer()), false);
         return 0;
     }
 }

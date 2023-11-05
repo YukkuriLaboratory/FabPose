@@ -12,12 +12,13 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnGroup;
 import net.minecraft.entity.decoration.ArmorStandEntity;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.network.packet.c2s.common.SyncedClientOptions;
 import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.registry.Registry;
 import net.minecraft.world.World;
 
 import java.util.UUID;
@@ -75,8 +76,10 @@ public class PoseManagerEntity extends ArmorStandEntity {
             GameProfile gameProfile = new GameProfile(UUID.randomUUID(), player.getEntityName());
             gameProfile.getProperties().putAll(player.getGameProfile().getProperties());
 
-            if(pose == Pose.LAYING) this.poser = new LayingEntity(player, gameProfile);
-            if(pose == Pose.SPINNING) this.poser = new SpinningEntity(player, gameProfile);
+            if (pose == Pose.LAYING)
+                this.poser = new LayingEntity(player, gameProfile, SyncedClientOptions.createDefault());
+            if (pose == Pose.SPINNING)
+                this.poser = new SpinningEntity(player, gameProfile, SyncedClientOptions.createDefault());
         }
 
         this.pose = pose;

@@ -2,10 +2,11 @@ package net.fill1890.fabsit.command;
 
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import net.fill1890.fabsit.FabSit;
 import net.fill1890.fabsit.config.ConfigManager;
+import net.fill1890.fabsit.entity.ChairPosition;
 import net.fill1890.fabsit.entity.Pose;
 import net.fill1890.fabsit.entity.PoseManagerEntity;
-import net.fill1890.fabsit.entity.ChairPosition;
 import net.fill1890.fabsit.error.PoseException;
 import net.fill1890.fabsit.util.Messages;
 import net.fill1890.fabsit.util.PoseTest;
@@ -84,18 +85,23 @@ public abstract class GenericSitBasedCommand {
         // confirm player can pose right now
         try {
             // TODO: make this nicer (no down(2))
-            PoseTest.confirmPosable(player, new BlockPos(sitPos).down(2));
+            PoseTest.confirmPosable(player, BlockPos.ofFloored(sitPos).down(2));
         } catch (PoseException e) {
             if(ConfigManager.getConfig().enable_messages.pose_errors)
                 Messages.sendByException(player, pose, e);
             return -1;
         }
 
-        // set up the chair and register the block as occupied if config-enabled or using stair/slab
-        PoseManagerEntity chair = new PoseManagerEntity(sitPos, pose, player, chairPosition);
+        try {
+            // set up the chair and register the block as occupied if config-enabled or using stair/slab
+            PoseManagerEntity chair = new PoseManagerEntity(sitPos, pose, player, chairPosition);
 
-        player.getEntityWorld().spawnEntity(chair);
-        player.startRiding(chair, true);
+            player.getEntityWorld().spawnEntity(chair);
+            player.startRiding(chair, true);
+        } catch (Throwable throwable) {
+            FabSit.LOGGER.error("Failed to execute command", throwable);
+        }
+
 
         return 1;
     }

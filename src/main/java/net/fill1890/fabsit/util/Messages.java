@@ -3,14 +3,11 @@ package net.fill1890.fabsit.util;
 import net.fill1890.fabsit.config.ConfigManager;
 import net.fill1890.fabsit.entity.Pose;
 import net.fill1890.fabsit.error.PoseException;
+import net.fill1890.fabsit.mixin.accessor.ServerCommonNetworkHandlerAccessor;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 
-import static net.fill1890.fabsit.error.PoseException.StateException;
-import static net.fill1890.fabsit.error.PoseException.MidairException;
-import static net.fill1890.fabsit.error.PoseException.SpectatorException;
-import static net.fill1890.fabsit.error.PoseException.PoseDisabled;
-import static net.fill1890.fabsit.error.PoseException.BlockOccupied;
+import static net.fill1890.fabsit.error.PoseException.*;
 
 // this may not be the best way of doing this kind of function
 // but it works for now
@@ -29,7 +26,8 @@ public class Messages {
 
     // stop posing action message
     public static Text getPoseStopMessage(ServerPlayerEntity player, Pose pose) {
-        if(ConfigManager.loadedPlayers.contains(player.networkHandler.connection.getAddress())) {
+        var connection = ((ServerCommonNetworkHandlerAccessor) player.networkHandler).getConnection();
+        if (ConfigManager.loadedPlayers.contains(connection.getAddress())) {
             return Text.translatable(ACTION + "stop_" + pose, Text.keybind("key.sneak"));
         } else {
             return Text.of(ConfigManager.LANG.get(ACTION + "stop_" + pose).formatted(ConfigManager.LANG.get("key.fabsit.sneak")));
@@ -38,7 +36,8 @@ public class Messages {
 
     // get either a server or client translated string based on whether the player has the mod
     private static Text getChatMessageByKey(ServerPlayerEntity player, String key_base) {
-        if(ConfigManager.loadedPlayers.contains(player.networkHandler.connection.getAddress())) {
+        var connection = ((ServerCommonNetworkHandlerAccessor) player.networkHandler).getConnection();
+        if (ConfigManager.loadedPlayers.contains(connection.getAddress())) {
             return Text.translatable(CHAT + key_base);
         } else {
             return Text.of(ConfigManager.LANG.get(CHAT + key_base));

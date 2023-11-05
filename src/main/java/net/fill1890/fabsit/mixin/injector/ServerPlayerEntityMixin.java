@@ -1,8 +1,9 @@
 package net.fill1890.fabsit.mixin.injector;
 
 import net.fill1890.fabsit.config.ConfigManager;
-import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.fill1890.fabsit.entity.PoseManagerEntity;
+import net.fill1890.fabsit.mixin.accessor.ServerCommonNetworkHandlerAccessor;
+import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -25,7 +26,8 @@ public abstract class ServerPlayerEntityMixin {
      */
     @Inject(at = @At("HEAD"), method = "onDisconnect")
     private void removeFromConfig(CallbackInfo ci) {
-        ConfigManager.loadedPlayers.remove(this.networkHandler.connection.getAddress());
+        var connection = ((ServerCommonNetworkHandlerAccessor) networkHandler).getConnection();
+        ConfigManager.loadedPlayers.remove(connection.getAddress());
     }
 
     /**
