@@ -53,6 +53,7 @@ public abstract class GenericSitBasedCommand {
         try {
             PoseTest.confirmEnabled(pose);
         } catch(PoseException e) {
+            FabSit.LOGGER.error("Failed to execute command", e);
             if(ConfigManager.getConfig().enable_messages.pose_errors)
                 Messages.sendByException(player, pose, e);
             return -1;
@@ -87,6 +88,7 @@ public abstract class GenericSitBasedCommand {
             // TODO: make this nicer (no down(2))
             PoseTest.confirmPosable(player, BlockPos.ofFloored(sitPos).down(2));
         } catch (PoseException e) {
+            FabSit.LOGGER.error("Failed to execute command", e);
             if(ConfigManager.getConfig().enable_messages.pose_errors)
                 Messages.sendByException(player, pose, e);
             return -1;
@@ -100,6 +102,7 @@ public abstract class GenericSitBasedCommand {
             player.startRiding(chair, true);
         } catch (Throwable throwable) {
             FabSit.LOGGER.error("Failed to execute command", throwable);
+            return -1;
         }
 
 
