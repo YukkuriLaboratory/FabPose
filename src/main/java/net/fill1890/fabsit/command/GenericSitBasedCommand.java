@@ -10,6 +10,7 @@ import net.fill1890.fabsit.entity.PoseManagerEntity;
 import net.fill1890.fabsit.error.PoseException;
 import net.fill1890.fabsit.util.Messages;
 import net.fill1890.fabsit.util.PoseTest;
+import net.minecraft.entity.SpawnReason;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -95,10 +96,9 @@ public abstract class GenericSitBasedCommand {
         }
 
         try {
+            var world = player.getServerWorld();
             // set up the chair and register the block as occupied if config-enabled or using stair/slab
-            PoseManagerEntity chair = new PoseManagerEntity(sitPos, pose, player, chairPosition);
-
-            player.getEntityWorld().spawnEntity(chair);
+            PoseManagerEntity chair = FabSit.RAW_CHAIR_ENTITY_TYPE.spawn(world, null, PoseManagerEntity.getInitializer(sitPos, pose, player, chairPosition), player.getBlockPos(), SpawnReason.COMMAND, false, false);
             player.startRiding(chair, true);
         } catch (Throwable throwable) {
             FabSit.LOGGER.error("Failed to execute command", throwable);

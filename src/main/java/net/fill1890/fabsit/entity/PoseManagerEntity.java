@@ -6,11 +6,9 @@ import net.fill1890.fabsit.FabSit;
 import net.fill1890.fabsit.config.ConfigManager;
 import net.fill1890.fabsit.util.Messages;
 import net.minecraft.block.BlockState;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityDimensions;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.SpawnGroup;
+import net.minecraft.entity.*;
 import net.minecraft.entity.decoration.ArmorStandEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.packet.c2s.common.SyncedClientOptions;
 import net.minecraft.registry.Registries;
@@ -20,8 +18,10 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
+import java.util.function.Consumer;
 
 import static net.fill1890.fabsit.mixin.accessor.PlayerEntityAccessor.getLEFT_SHOULDER_ENTITY;
 import static net.fill1890.fabsit.mixin.accessor.PlayerEntityAccessor.getRIGHT_SHOULDER_ENTITY;
@@ -55,43 +55,32 @@ public class PoseManagerEntity extends ArmorStandEntity {
 
     protected ChairPosition position;
 
-    public PoseManagerEntity(Vec3d pos, Pose pose, ServerPlayerEntity player, ChairPosition position) {
-        // create a new armour stand at the appropriate height
-        //super(player.getWorld(), pos.x, pos.y - 1.6, pos.z);
-        super(FabSit.RAW_CHAIR_ENTITY_TYPE, player.getWorld());
-        //super(player.getWorld(), pos.x, pos.y, pos.z);
-        this.setPosition(pos.x, pos.y - 1.6, pos.z);
+    public static Consumer<PoseManagerEntity> getInitializer(Vec3d pos, Pose pose, ServerPlayerEntity player, ChairPosition position) {
+        return (entity) -> {
+            entity.setPosition(pos.x, pos.y - 1.6, pos.z);
+            entity.setYaw(player.getYaw()); // TODO: test this properly
+            entity.position = position;
+            // if the pose is more complex than sitting, create a posing npc
+            if (pose == Pose.LAYING || pose == Pose.SPINNING) {
+                // copy player game profile with a random uuid
+                GameProfile gameProfile = new GameProfile(UUID.randomUUID(), player.getEntityName());
+                gameProfile.getProperties().putAll(player.getGameProfile().getProperties());
 
-        this.setInvisible(true);
-        this.setInvulnerable(true);
-        this.setCustomName(Text.of(ENTITY_NAME));
-        this.setNoGravity(true);
-        this.setYaw(player.getYaw()); // TODO: test this properly
-
-        this.position = position;
-
-        // if the pose is more complex than sitting, create a posing npc
-        if(pose == Pose.LAYING || pose == Pose.SPINNING) {
-            // copy player game profile with a random uuid
-            GameProfile gameProfile = new GameProfile(UUID.randomUUID(), player.getEntityName());
-            gameProfile.getProperties().putAll(player.getGameProfile().getProperties());
-
-            if (pose == Pose.LAYING)
-                this.poser = new LayingEntity(player, gameProfile, SyncedClientOptions.createDefault());
-            if (pose == Pose.SPINNING)
-                this.poser = new SpinningEntity(player, gameProfile, SyncedClientOptions.createDefault());
-        }
-
-        this.pose = pose;
+                if (pose == Pose.LAYING)
+                    entity.poser = new LayingEntity(player, gameProfile, SyncedClientOptions.createDefault());
+                if (pose == Pose.SPINNING)
+                    entity.poser = new SpinningEntity(player, gameProfile, SyncedClientOptions.createDefault());
+            }
+            entity.pose = pose;
+        };
     }
 
     public PoseManagerEntity(EntityType<? extends PoseManagerEntity> entityType, World world) {
         super(entityType, world);
-
-        // if this is called directly it's probably because it's after a server start
-        // we don't have position or pose info so we just silently fail
-        // this should never be called on the client because the entity is always packet-replaced
-        this.kill();
+        setInvisible(true);
+        setInvulnerable(true);
+        setCustomName(Text.of(ENTITY_NAME));
+        setNoGravity(true);
     }
 
     @Override
@@ -166,29 +155,19 @@ public class PoseManagerEntity extends ArmorStandEntity {
         // kill when the player stops posing
         if(used && getPassengerList().size() < 1) { this.kill(); return; }
 
-        // rotate the armour stand with the player so the player's legs line up
-        if(this.getFirstPassenger() instanceof ServerPlayerEntity player) {
-            this.setYaw(player.getHeadYaw());
-
-            // send the action bar status if it hasn't been sent yet
-            // needs to be delayed or it's overwritten
-            if(!this.statusSent) {
-                if(ConfigManager.getConfig().enable_messages.action_bar)
-                    player.sendMessage(Messages.getPoseStopMessage(player, this.pose), true);
-
-                this.statusSent = true;
-            }
-        }
-
         // get the block the player's sitting on
         // if they're sitting on a slab or stair, get that, otherwise block below
-        BlockState sittingBlock = getEntityWorld().getBlockState(switch(this.position){
-            case IN_BLOCK -> this.getBlockPos();
-            case ON_BLOCK -> this.getBlockPos().down();
-        });
-
-        // force player to stand up if the block's been removed
-        if(sittingBlock.isAir()) { this.kill(); return; }
+        if (position != null) {
+            BlockState sittingBlock = getEntityWorld().getBlockState(switch (this.position) {
+                case IN_BLOCK -> this.getBlockPos();
+                case ON_BLOCK -> this.getBlockPos().down();
+            });
+            // force player to stand up if the block's been removed
+            if (sittingBlock.isAir()) {
+                this.kill();
+                return;
+            }
+        }
 
         // if pose is npc-based, update players with npc info
         if(this.pose == Pose.LAYING || this.pose == Pose.SPINNING) {
@@ -196,6 +175,35 @@ public class PoseManagerEntity extends ArmorStandEntity {
         }
 
         super.tick();
+    }
+
+    @Override
+    protected void tickControlled(PlayerEntity controllingPlayer, Vec3d movementInput) {
+        // rotate the armour stand with the player so the player's legs line up
+        setRotation(controllingPlayer.getYaw(), controllingPlayer.getPitch());
+        prevYaw = bodyYaw = headYaw = getYaw();
+        // send the action bar status if it hasn't been sent yet
+        // needs to be delayed or it's overwritten
+        if (controllingPlayer instanceof ServerPlayerEntity serverPlayer && !this.statusSent && this.pose != null) {
+            if (ConfigManager.getConfig().enable_messages.action_bar)
+                serverPlayer.sendMessage(Messages.getPoseStopMessage(serverPlayer, this.pose), true);
+
+            this.statusSent = true;
+        }
+    }
+
+    /**
+     * Remove the entity when server stops
+     */
+    @Override
+    public boolean shouldSave() {
+        return false;
+    }
+
+    @Nullable
+    @Override
+    public LivingEntity getControllingPassenger() {
+        return getFirstPassenger() instanceof PlayerEntity player ? player : null;
     }
 
     public static EntityType<PoseManagerEntity> register() {
