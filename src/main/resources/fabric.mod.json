@@ -29,7 +29,7 @@
   "mixins": [
     "fabsit.mixins.json"
   ],
-
+  "accessWidener": "fabsit.accesswidener",
   "depends": {
     "fabricloader": ">=0.14.24",
     "fabric-api": "*",
