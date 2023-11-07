@@ -125,6 +125,10 @@ public class PoseManagerEntity extends ArmorStandEntity {
         }
     }
 
+    public Pose getCustomPose() {
+        return pose;
+    }
+
     public void animate(int id) {
         if(this.pose == Pose.LAYING || this.pose == Pose.SPINNING) {
             poser.animate(id);
