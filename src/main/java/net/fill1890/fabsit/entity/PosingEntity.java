@@ -14,7 +14,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.network.packet.c2s.common.SyncedClientOptions;
 import net.minecraft.network.packet.s2c.play.*;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.BlockPos;
@@ -72,9 +71,9 @@ public abstract class PosingEntity extends ServerPlayerEntity {
      * @param player player to base poser on
      * @param gameProfile game profile of player (should have different UUID)
      */
-    public PosingEntity(ServerPlayerEntity player, GameProfile gameProfile, SyncedClientOptions clientOptions) {
+    public PosingEntity(ServerPlayerEntity player, GameProfile gameProfile) {
         // method_48926 = getWorld
-        super(player.server, player.getServerWorld(), gameProfile, clientOptions);
+        super(player.server, player.getServerWorld(), gameProfile);
 
         this.player = player;
 

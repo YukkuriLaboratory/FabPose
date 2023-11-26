@@ -10,7 +10,6 @@ import net.minecraft.entity.*;
 import net.minecraft.entity.decoration.ArmorStandEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.network.packet.c2s.common.SyncedClientOptions;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -67,9 +66,9 @@ public class PoseManagerEntity extends ArmorStandEntity {
                 gameProfile.getProperties().putAll(player.getGameProfile().getProperties());
 
                 if (pose == Pose.LAYING)
-                    entity.poser = new LayingEntity(player, gameProfile, SyncedClientOptions.createDefault());
+                    entity.poser = new LayingEntity(player, gameProfile);
                 if (pose == Pose.SPINNING)
-                    entity.poser = new SpinningEntity(player, gameProfile, SyncedClientOptions.createDefault());
+                    entity.poser = new SpinningEntity(player, gameProfile);
             }
             entity.pose = pose;
         };

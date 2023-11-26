@@ -1,7 +1,6 @@
 package net.fill1890.fabsit.entity;
 
 import com.mojang.authlib.GameProfile;
-import net.minecraft.network.packet.c2s.common.SyncedClientOptions;
 import net.minecraft.network.packet.s2c.play.EntityS2CPacket;
 import net.minecraft.network.packet.s2c.play.EntityTrackerUpdateS2CPacket;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -12,8 +11,8 @@ public class SpinningEntity extends PosingEntity {
     // pivot the poser to face vertically
     final EntityS2CPacket pivotPacket;
 
-    public SpinningEntity(ServerPlayerEntity player, GameProfile gameProfile, SyncedClientOptions clientOptions) {
-        super(player, gameProfile, clientOptions);
+    public SpinningEntity(ServerPlayerEntity player, GameProfile gameProfile) {
+        super(player, gameProfile);
 
         // set spinning state
         this.getDataTracker().set(getLIVING_FLAGS(), (byte) 0x04);

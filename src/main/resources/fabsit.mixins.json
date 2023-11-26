@@ -9,12 +9,12 @@
     "accessor.LivingEntityAccessor",
     "accessor.PlayerEntityAccessor",
     "accessor.PlayerListS2CPacketAccessor",
-    "accessor.ServerCommonNetworkHandlerAccessor",
     "accessor.ServerLoginNetworkHandlerAccessor",
+    "accessor.ServerPlayNetworkHandlerAccessor",
     "injector.LivingEntityMixin",
+    "injector.RegistrySyncManagerMixin",
     "injector.ServerPlayerEntityMixin",
-    "injector.ServerPlayNetworkHandlerMixin",
-    "injector.SyncConfigurationTaskMixin"
+    "injector.ServerPlayNetworkHandlerMixin"
   ],
   "injectors": {
     "defaultRequire": 1
