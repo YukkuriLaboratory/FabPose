@@ -45,7 +45,7 @@ public abstract class PosingEntity extends ServerPlayerEntity {
     // remove poser from the tablist
     private final PlayerRemoveS2CPacket removePoserPacket;
     // spawn poser in the world
-    private final EntitySpawnS2CPacket spawnPoserPacket;
+    private final PlayerSpawnS2CPacket spawnPoserPacket;
     // remove poser from the world
     private final EntitiesDestroyS2CPacket despawnPoserPacket;
     // send poser metadata
@@ -117,7 +117,7 @@ public abstract class PosingEntity extends ServerPlayerEntity {
         // remove the poser from the tablist
         this.removePoserPacket = new PlayerRemoveS2CPacket(List.of(this.getUuid()));
         // spawn the poser
-        this.spawnPoserPacket = new EntitySpawnS2CPacket(this);
+        this.spawnPoserPacket = new PlayerSpawnS2CPacket(this);
         // despawn the poser
         this.despawnPoserPacket = new EntitiesDestroyS2CPacket(this.getId());
         // update the poser metadata

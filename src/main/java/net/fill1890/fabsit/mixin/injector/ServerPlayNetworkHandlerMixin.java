@@ -100,7 +100,7 @@ public abstract class ServerPlayNetworkHandlerMixin {
             if (type != FabSit.RAW_CHAIR_ENTITY_TYPE) return;
 
             // cancel packet if player has fabsit loaded
-            if (!ConfigManager.loadedPlayers.contains(connection.getAddress())) {
+            if (ConfigManager.loadedPlayers.contains(connection.getAddress())) {
                 ci.cancel();
             }
         }
