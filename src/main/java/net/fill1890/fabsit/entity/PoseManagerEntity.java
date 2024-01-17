@@ -57,7 +57,7 @@ public class PoseManagerEntity extends ArmorStandEntity {
 
     public static Consumer<PoseManagerEntity> getInitializer(Vec3d pos, Pose pose, ServerPlayerEntity player, ChairPosition position) {
         return (entity) -> {
-            entity.setPosition(pos.x, pos.y - 1.6, pos.z);
+            entity.setPosition(pos.x, pos.y - 1.88, pos.z);
             entity.setYaw(player.getYaw()); // TODO: test this properly
             entity.position = position;
             // if the pose is more complex than sitting, create a posing npc
