@@ -168,8 +168,11 @@ public class PoseManagerEntity extends ArmorStandEntity {
             });
             // force player to stand up if the block's been removed
             if (sittingBlock.isAir()) {
-                this.kill();
-                return;
+                // Prevent players penetrating blocks when player.y-2 is air
+                if (position != ChairPosition.ON_BLOCK || getEntityWorld().getBlockState(getBlockPos().up()).isAir()) {
+                    this.kill();
+                    return;
+                }
             }
         }
 
