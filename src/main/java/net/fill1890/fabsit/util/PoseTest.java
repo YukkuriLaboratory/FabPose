@@ -4,7 +4,6 @@ import net.fill1890.fabsit.config.Config;
 import net.fill1890.fabsit.config.ConfigManager;
 import net.fill1890.fabsit.entity.Pose;
 import net.fill1890.fabsit.error.PoseException;
-import net.minecraft.block.BlockState;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.BlockPos;
 
@@ -28,14 +27,19 @@ public class PoseTest {
         if(player.isInsideWaterOrBubbleColumn() && !ConfigManager.getConfig().allow_posing_underwater)
             throw new PoseException.StateException();
 
-        // check if flying, swimming, sleeping, or underwater
+        // check if flying, jumping, swimming, sleeping, or underwater
         if(
-                player.isFallFlying()
+                player.isFallFlying() || player.getVelocity().y > 0
                 || player.isSwimming()
                 || player.isSleeping())
             throw new PoseException.StateException();
 
-        BlockState below = player.getEntityWorld().getBlockState(BlockPos.ofFloored(player.getPos()).down());
+        var blockPos = BlockPos.ofFloored(player.getPos());
+        // If player standing on a bottom half slab, playerPos equals blockPos
+        var below = player.getEntityWorld().getBlockState(blockPos);
+        if (below.isAir()) {
+            below = player.getEntityWorld().getBlockState(blockPos.down());
+        }
 
         // check if in midair
         if(below.isAir() && !ConfigManager.getConfig().allow_posing_midair)
