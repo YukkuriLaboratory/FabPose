@@ -242,6 +242,8 @@ public abstract class PosingEntity extends ServerPlayerEntity {
                 // if player is hidden, send an empty player and equipped NPC
                 p.networkHandler.sendPacket(playerHidden ? emptyPlayerPacket : emptyNpcPacket);
                 p.networkHandler.sendPacket(playerHidden ? equippedNpcPacket : equippedPlayerPacket);
+            } else {
+                p.networkHandler.sendPacket(equippedNpcPacket);
             }
         });
 

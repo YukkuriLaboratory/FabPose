@@ -5,11 +5,15 @@ import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
 import net.fill1890.fabsit.FabSit;
 import net.fill1890.fabsit.config.ConfigManager;
 import net.fill1890.fabsit.util.Messages;
-import net.minecraft.block.BlockState;
 import net.minecraft.entity.*;
+import net.minecraft.entity.data.DataTracker;
+import net.minecraft.entity.data.TrackedData;
+import net.minecraft.entity.data.TrackedDataHandler;
+import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.decoration.ArmorStandEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.packet.c2s.common.SyncedClientOptions;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
@@ -20,6 +24,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -45,7 +50,24 @@ public class PoseManagerEntity extends ArmorStandEntity {
     private boolean used = false;
     // has the action bar status been sent? (needs to be delayed until after addPassenger has executed)
     private boolean statusSent = false;
-    private Pose pose = null;
+    private static final TrackedDataHandler<Optional<Pose>> POSE_HANDLER = new TrackedDataHandler.ImmutableHandler<>() {
+        @Override
+        public void write(PacketByteBuf buf, Optional<Pose> value) {
+            var ordinal = value.map(Enum::ordinal).orElse(-1);
+            buf.writeInt(ordinal);
+        }
+
+        @Override
+        public Optional<Pose> read(PacketByteBuf buf) {
+            var ordinal = buf.readInt();
+            if (ordinal == -1) {
+                return Optional.empty();
+            } else {
+                return Optional.of(Pose.values()[ordinal]);
+            }
+        }
+    };
+    private static final TrackedData<Optional<Pose>> TRACKER_POSE = DataTracker.registerData(PoseManagerEntity.class, POSE_HANDLER);
     // visible npc for posing (if needed)
     private PosingEntity poser;
 
@@ -54,6 +76,10 @@ public class PoseManagerEntity extends ArmorStandEntity {
     protected boolean killing;
 
     protected ChairPosition position;
+
+    static {
+        TrackedDataHandlerRegistry.register(POSE_HANDLER);
+    }
 
     public static Consumer<PoseManagerEntity> getInitializer(Vec3d pos, Pose pose, ServerPlayerEntity player, ChairPosition position) {
         return (entity) -> {
@@ -71,7 +97,7 @@ public class PoseManagerEntity extends ArmorStandEntity {
                 if (pose == Pose.SPINNING)
                     entity.poser = new SpinningEntity(player, gameProfile, SyncedClientOptions.createDefault());
             }
-            entity.pose = pose;
+            entity.dataTracker.set(TRACKER_POSE, Optional.of(pose));
         };
     }
 
@@ -84,11 +110,18 @@ public class PoseManagerEntity extends ArmorStandEntity {
     }
 
     @Override
+    protected void initDataTracker() {
+        super.initDataTracker();
+        dataTracker.startTracking(TRACKER_POSE, Optional.empty());
+    }
+
+    @Override
     protected void addPassenger(Entity passenger) {
         super.addPassenger(passenger);
 
         // if the pose is npc-based, hide the player when initiated
-        if(this.pose == Pose.LAYING || this.pose == Pose.SPINNING) {
+        Pose pose = getCustomPose();
+        if (poser != null && (pose == Pose.LAYING || pose == Pose.SPINNING)) {
             passenger.setInvisible(true);
 
             // update shoulder entities
@@ -114,7 +147,8 @@ public class PoseManagerEntity extends ArmorStandEntity {
             ConfigManager.occupiedBlocks.remove(this.getBlockPos());
 
         // if the pose was npc-based, show the player again when exited
-        if(this.pose == Pose.LAYING || this.pose == Pose.SPINNING) {
+        Pose pose = getCustomPose();
+        if (poser != null && (pose == Pose.LAYING || pose == Pose.SPINNING)) {
             passenger.setInvisible(false);
 
             // replace shoulder entities
@@ -125,12 +159,14 @@ public class PoseManagerEntity extends ArmorStandEntity {
         }
     }
 
+    @Nullable
     public Pose getCustomPose() {
-        return pose;
+        return dataTracker.get(TRACKER_POSE).orElse(null);
     }
 
     public void animate(int id) {
-        if(this.pose == Pose.LAYING || this.pose == Pose.SPINNING) {
+        Pose pose = getCustomPose();
+        if (pose == Pose.LAYING || pose == Pose.SPINNING) {
             poser.animate(id);
         }
     }
@@ -161,23 +197,24 @@ public class PoseManagerEntity extends ArmorStandEntity {
 
         // get the block the player's sitting on
         // if they're sitting on a slab or stair, get that, otherwise block below
-        if (position != null) {
-            BlockState sittingBlock = getEntityWorld().getBlockState(switch (this.position) {
-                case IN_BLOCK -> this.getBlockPos();
-                case ON_BLOCK -> this.getBlockPos().down();
-            });
-            // force player to stand up if the block's been removed
-            if (sittingBlock.isAir()) {
-                // Prevent players penetrating blocks when player.y-2 is air
-                if (position != ChairPosition.ON_BLOCK || getEntityWorld().getBlockState(getBlockPos().up()).isAir()) {
-                    this.kill();
-                    return;
-                }
-            }
-        }
+//        if (position != null) {
+//            BlockState sittingBlock = getEntityWorld().getBlockState(switch (this.position) {
+//                case IN_BLOCK -> this.getBlockPos();
+//                case ON_BLOCK -> this.getBlockPos().down();
+//            });
+//            // force player to stand up if the block's been removed
+//            if (sittingBlock.isAir()) {
+//                // Prevent players penetrating blocks when player.y-2 is air
+//                if (position != ChairPosition.ON_BLOCK || getEntityWorld().getBlockState(getBlockPos().up()).isAir()) {
+//                    this.kill();
+//                    return;
+//                }
+//            }
+//        }
 
         // if pose is npc-based, update players with npc info
-        if(this.pose == Pose.LAYING || this.pose == Pose.SPINNING) {
+        var pose = getCustomPose();
+        if (poser != null && (pose == Pose.LAYING || pose == Pose.SPINNING)) {
             poser.sendUpdates();
         }
 
@@ -191,9 +228,10 @@ public class PoseManagerEntity extends ArmorStandEntity {
         prevYaw = bodyYaw = headYaw = getYaw();
         // send the action bar status if it hasn't been sent yet
         // needs to be delayed or it's overwritten
-        if (controllingPlayer instanceof ServerPlayerEntity serverPlayer && !this.statusSent && this.pose != null) {
+        var pose = getCustomPose();
+        if (controllingPlayer instanceof ServerPlayerEntity serverPlayer && !this.statusSent && pose != null) {
             if (ConfigManager.getConfig().enable_messages.action_bar)
-                serverPlayer.sendMessage(Messages.getPoseStopMessage(serverPlayer, this.pose), true);
+                serverPlayer.sendMessage(Messages.getPoseStopMessage(serverPlayer, pose), true);
 
             this.statusSent = true;
         }
