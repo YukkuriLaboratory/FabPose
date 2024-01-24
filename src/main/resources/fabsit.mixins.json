@@ -23,6 +23,7 @@
   },
   "client": [
     "injector.ArmorFeatureRendererMixin",
-    "injector.InGameHudMixin"
+    "injector.InGameHudMixin",
+    "injector.PlayerHeldItemFeatureRendererMixin"
   ]
 }
