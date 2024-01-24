@@ -8,6 +8,7 @@ import net.fill1890.fabsit.entity.ChairPosition;
 import net.fill1890.fabsit.entity.Pose;
 import net.fill1890.fabsit.entity.PoseManagerEntity;
 import net.fill1890.fabsit.error.PoseException;
+import net.fill1890.fabsit.extension.ForceSwimFlag;
 import net.fill1890.fabsit.util.Messages;
 import net.fill1890.fabsit.util.PoseTest;
 import net.minecraft.entity.SpawnReason;
@@ -97,9 +98,17 @@ public abstract class GenericSitBasedCommand {
 
         try {
             var world = player.getServerWorld();
-            // set up the chair and register the block as occupied if config-enabled or using stair/slab
-            PoseManagerEntity chair = FabSit.RAW_CHAIR_ENTITY_TYPE.spawn(world, null, PoseManagerEntity.getInitializer(sitPos, pose, player, chairPosition), player.getBlockPos(), SpawnReason.COMMAND, false, false);
-            player.startRiding(chair, true);
+            var playerFlag = (ForceSwimFlag) player;
+            if (pose == Pose.SWIMMING) {
+                var forceSwimming = playerFlag.fabSit$shouldForceSwim();
+                playerFlag.fabSit$setForceSwim(!forceSwimming);
+                player.setSwimming(!forceSwimming);
+            } else {
+                playerFlag.fabSit$setForceSwim(false);
+                // set up the chair and register the block as occupied if config-enabled or using stair/slab
+                PoseManagerEntity chair = FabSit.RAW_CHAIR_ENTITY_TYPE.spawn(world, null, PoseManagerEntity.getInitializer(sitPos, pose, player, chairPosition), player.getBlockPos(), SpawnReason.COMMAND, false, false);
+                player.startRiding(chair, true);
+            }
         } catch (Throwable throwable) {
             FabSit.LOGGER.error("Failed to execute command", throwable);
             return -1;

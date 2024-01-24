@@ -8,7 +8,8 @@ import java.util.stream.Stream;
 public enum PoseCommands {
     SIT(Pose.SITTING, "sit", true),
     LAY(Pose.LAYING, "lay", true),
-    SPIN(Pose.SPINNING, "spin", true);
+    SPIN(Pose.SPINNING, "spin", true),
+    SWIM(Pose.SWIMMING, "fakeswim", true);
 
     // Pose to use
     public final Pose pose;

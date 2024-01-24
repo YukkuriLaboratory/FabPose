@@ -33,6 +33,7 @@ public class Config {
         public boolean sit = true;
         public boolean lay = true;
         public boolean spin = true;
+        public boolean swim = true;
     }
 
     public static class Messages {

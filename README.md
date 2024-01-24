@@ -19,7 +19,7 @@ Requires the Fabric API
 
 Simply add the jar file to your server mods directory, and optionally to the client directory.
 
-Players can then use `/sit` to sit, `/lay` to lie down or `/spin` to start spinning.
+Players can then use `/sit` to sit, `/lay` to lie down, `/fakeswim` to swim on land or `/spin` to start spinning.
 
 Players can also right-click on a slab or stair with an empty hand to sit on it; this is disabled by default but can be enabled in the config file.
 

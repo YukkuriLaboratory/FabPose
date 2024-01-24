@@ -7,7 +7,6 @@ import net.fill1890.fabsit.FabSit;
 import net.fill1890.fabsit.entity.Pose;
 import net.fill1890.fabsit.network.PoseRequestC2SPacket;
 import net.minecraft.client.option.KeyBinding;
-import net.minecraft.client.option.StickyKeyBinding;
 import net.minecraft.client.util.InputUtil;
 
 public abstract class PoseKeybinds {
@@ -19,6 +18,7 @@ public abstract class PoseKeybinds {
     private static final KeyBinding sitKey = emptyKey("sit");
     private static final KeyBinding layKey = emptyKey("lay");
     private static final KeyBinding spinKey = emptyKey("spin");
+    private static final KeyBinding swimKey = emptyKey("swim");
 
     private static KeyBinding emptyKey(String base) {
         return KeyBindingHelper.registerKeyBinding(
@@ -38,6 +38,9 @@ public abstract class PoseKeybinds {
 
             while(spinKey.wasPressed()) {
                 ClientPlayNetworking.send(FabSit.REQUEST_CHANNEL, new PoseRequestC2SPacket(Pose.SPINNING).buf());
+            }
+            while (swimKey.wasPressed()) {
+                ClientPlayNetworking.send(FabSit.REQUEST_CHANNEL, new PoseRequestC2SPacket(Pose.SWIMMING).buf());
             }
         });
     }

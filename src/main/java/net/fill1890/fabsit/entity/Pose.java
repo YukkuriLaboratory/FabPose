@@ -6,7 +6,9 @@ Possible poses
 public enum Pose {
     SITTING("sitting"),
     LAYING("laying"),
-    SPINNING("spinning");
+    SPINNING("spinning"),
+
+    SWIMMING("swimming");
 
     public final String pose;
 

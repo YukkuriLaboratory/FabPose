@@ -14,7 +14,9 @@
     "injector.LivingEntityMixin",
     "injector.ServerPlayerEntityMixin",
     "injector.ServerPlayNetworkHandlerMixin",
-    "injector.SyncConfigurationTaskMixin"
+    "injector.SyncConfigurationTaskMixin",
+    "injector.swim.EntityMixin",
+    "injector.swim.PlayerEntityMixin"
   ],
   "injectors": {
     "defaultRequire": 1

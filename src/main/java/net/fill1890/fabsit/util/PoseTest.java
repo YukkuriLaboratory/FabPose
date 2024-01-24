@@ -4,6 +4,7 @@ import net.fill1890.fabsit.config.Config;
 import net.fill1890.fabsit.config.ConfigManager;
 import net.fill1890.fabsit.entity.Pose;
 import net.fill1890.fabsit.error.PoseException;
+import net.fill1890.fabsit.extension.ForceSwimFlag;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.BlockPos;
 
@@ -23,14 +24,15 @@ public class PoseTest {
         if(player.isSpectator())
             throw new PoseException.SpectatorException();
 
+        var forceSwim = ((ForceSwimFlag) player).fabSit$shouldForceSwim();
         // check if underwater
-        if(player.isInsideWaterOrBubbleColumn() && !ConfigManager.getConfig().allow_posing_underwater)
+        if ((!forceSwim && player.isInsideWaterOrBubbleColumn()) && !ConfigManager.getConfig().allow_posing_underwater)
             throw new PoseException.StateException();
 
         // check if flying, jumping, swimming, sleeping, or underwater
         if(
                 player.isFallFlying() || player.getVelocity().y > 0
-                || player.isSwimming()
+                        || (!forceSwim && player.isSwimming())
                 || player.isSleeping())
             throw new PoseException.StateException();
 
@@ -59,6 +61,7 @@ public class PoseTest {
             case LAYING -> poses.lay;
             case SPINNING -> poses.spin;
             case SITTING -> poses.sit;
+            case SWIMMING -> poses.swim;
         };
 
         if(!allowed) throw new PoseException.PoseDisabled();
