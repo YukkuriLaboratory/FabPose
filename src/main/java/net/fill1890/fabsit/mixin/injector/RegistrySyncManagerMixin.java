@@ -40,7 +40,7 @@ public abstract class RegistrySyncManagerMixin {
     )
     private static void removeFromSync(ServerPlayerEntity player, RegistryPacketHandler handler, CallbackInfo ci, Map<Identifier, Object2IntMap<Identifier>> map) {
         // if client does not have fabsit
-        var connection = ((ServerPlayNetworkHandlerAccessor) handler).getConnection();
+        var connection = ((ServerPlayNetworkHandlerAccessor) player.networkHandler).getConnection();
         if (!ConfigManager.loadedPlayers.contains(connection.getAddress())) {
 
             // scrub entities from the syncing registry
