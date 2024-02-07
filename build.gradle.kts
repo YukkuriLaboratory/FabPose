@@ -14,6 +14,24 @@ base {
     group = project.property("maven_group")!!
 }
 
+val serverTest = "serverTest"
+sourceSets {
+    val main by main
+    val classPathConfig =
+        closureOf<SourceSet> {
+            compileClasspath += main.output
+            runtimeClasspath += main.output
+        }
+    create(serverTest, classPathConfig)
+}
+val serverTestSourceSet = sourceSets.getByName(serverTest)
+
+configurations {
+    val implementation = "Implementation"
+    val testImplementation = testImplementation.get().exclude("org.slf4j", "slf4j-simple")
+    getByName("$serverTest$implementation").extendsFrom(testImplementation)
+}
+
 repositories {
     // Add repositories to retrieve artifacts from in here.
     // You should only use this when depending on other mods because
@@ -43,6 +61,28 @@ dependencies {
 
 loom {
     accessWidenerPath.set(file("src/main/resources/fabsit.accesswidener"))
+    runtimeOnlyLog4j.set(true)
+
+    runs {
+        create(serverTest) {
+            server()
+            configName = serverTest
+            vmArgs(
+                "-Dfabric-api.gametest",
+                "-Dfabric.api.gametest.report-file=${project.layout.buildDirectory}/$name/junit.xml",
+            )
+            runDir = "build/$serverTest"
+            setSource(serverTestSourceSet)
+            isIdeConfigGenerated = true
+        }
+        create("manual$serverTest") {
+            server()
+            configName = "Manual $serverTest"
+            runDir = "build/$serverTest"
+            setSource(serverTestSourceSet)
+            isIdeConfigGenerated = true
+        }
+    }
 }
 
 tasks.processResources {
