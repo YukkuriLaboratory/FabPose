@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "id": "lepinoidlogictest",
+  "version": "1",
+  "entrypoints": {
+    "main": [],
+    "fabric-gametest": []
+  }
+}

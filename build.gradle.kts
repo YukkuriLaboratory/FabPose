@@ -31,7 +31,7 @@ base {
     group = project.property("maven_group")!!
 }
 
-val serverTest = "serverTest"
+val serverTest = "servertest"
 sourceSets {
     val main by main
     val classPathConfig =
