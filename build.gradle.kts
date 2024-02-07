@@ -1,11 +1,28 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
+buildscript {
+    configurations.classpath {
+        resolutionStrategy {
+            force(
+                "com.pinterest.ktlint:ktlint-rule-engine:1.0.0",
+                "com.pinterest.ktlint:ktlint-rule-engine-core:1.0.0",
+                "com.pinterest.ktlint:ktlint-cli-reporter-core:1.0.0",
+                "com.pinterest.ktlint:ktlint-cli-reporter-checkstyle:1.0.0",
+                "com.pinterest.ktlint:ktlint-cli-reporter-json:1.0.0",
+                "com.pinterest.ktlint:ktlint-cli-reporter-html:1.0.0",
+                "com.pinterest.ktlint:ktlint-cli-reporter-plain:1.0.0",
+                "com.pinterest.ktlint:ktlint-cli-reporter-sarif:1.0.0",
+                "com.pinterest.ktlint:ktlint-ruleset-standard:1.0.0",
+            )
+        }
+    }
+}
+
 plugins {
     id("fabric-loom") version "1.5-SNAPSHOT"
     id("maven-publish")
-}
-
-java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    kotlin("jvm") version "1.9.21"
+    id("org.jmailen.kotlinter") version "4.2.0"
 }
 
 base {
@@ -50,6 +67,8 @@ dependencies {
 
     // Fabric API. This is technically optional, but you probably want it anyway.
     modImplementation("net.fabricmc.fabric-api:fabric-api:${project.property("fabric_version")}")
+    // Kotlin
+    modImplementation("net.fabricmc:fabric-language-kotlin:1.10.17+kotlin.1.9.22")
     // Permissions API
     modImplementation(include("me.lucko:fabric-permissions-api:0.1-SNAPSHOT")!!)
 
@@ -57,6 +76,12 @@ dependencies {
     // These are included in the Fabric API production distribution and allow you to update your mod to the latest modules at a later more convenient time.
 
     // modImplementation("net.fabricmc.fabric-api:fabric-api-deprecated:${project.property("fabric_version}")")
+
+    testImplementation("io.kotest:kotest-runner-junit5:5.6.2")?.version?.also { kotestVersion ->
+        testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
+        testImplementation("io.kotest:kotest-property:$kotestVersion")
+        testImplementation("io.kotest:kotest-framework-datatest:$kotestVersion")
+    }
 }
 
 loom {
@@ -99,10 +124,19 @@ tasks.withType<JavaCompile>().configureEach {
 }
 
 java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
     // Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
     // if it is present.
     // If you remove this line, sources will not be generated.
     withSourcesJar()
+}
+
+kotlin {
+    jvmToolchain(17)
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
+    }
 }
 
 tasks.jar {
