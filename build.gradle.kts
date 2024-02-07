@@ -36,7 +36,9 @@ sourceSets {
     val main by main
     val classPathConfig =
         closureOf<SourceSet> {
+            compileClasspath += main.compileClasspath
             compileClasspath += main.output
+            runtimeClasspath += main.runtimeClasspath
             runtimeClasspath += main.output
         }
     create(serverTest, classPathConfig)
