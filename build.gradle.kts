@@ -106,6 +106,7 @@ loom {
             server()
             configName = "Manual $serverTest"
             runDir = "build/$serverTest"
+            vmArgs("-Dfabric-api.gametest.command=true")
             setSource(serverTestSourceSet)
             isIdeConfigGenerated = true
         }
