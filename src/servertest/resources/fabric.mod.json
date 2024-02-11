@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "id": "lepinoidlogictest",
+  "id": "fabsitservertest",
   "version": "1",
   "entrypoints": {
     "main": [],
