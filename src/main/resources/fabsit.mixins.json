@@ -4,6 +4,7 @@
   "package": "net.fill1890.fabsit.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
+    "accessor.ClientConnectionAccessor",
     "accessor.EntityAccessor",
     "accessor.EntitySpawnPacketAccessor",
     "accessor.LivingEntityAccessor",
