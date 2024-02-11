@@ -16,7 +16,7 @@ import net.minecraft.block.enums.SlabType
 import net.minecraft.test.GameTest
 import net.minecraft.test.TestContext
 import net.minecraft.util.math.BlockPos
-import net.turtton.fabsit.DelegatedLogger
+import net.yukulab.fabsit.DelegatedLogger
 
 class TestPoseManagerEntity : FabricGameTest {
     @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE)

@@ -1,4 +1,4 @@
-package net.turtton.fabsit
+package net.yukulab.fabsit
 
 import kotlin.reflect.KProperty
 import net.fill1890.fabsit.FabSit

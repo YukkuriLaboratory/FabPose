@@ -1,4 +1,4 @@
-package net.turtton.fabsit.extension
+package net.yukulab.fabsit.extension
 
 import net.fill1890.fabsit.mixin.accessor.ClientConnectionAccessor
 import net.minecraft.network.ClientConnection
