@@ -5,7 +5,12 @@ import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
 import net.fill1890.fabsit.FabSit;
 import net.fill1890.fabsit.config.ConfigManager;
 import net.fill1890.fabsit.util.Messages;
-import net.minecraft.entity.*;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityDimensions;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.SpawnGroup;
 import net.minecraft.entity.data.DataTracker;
 import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.data.TrackedDataHandler;
@@ -197,20 +202,20 @@ public class PoseManagerEntity extends ArmorStandEntity {
 
         // get the block the player's sitting on
         // if they're sitting on a slab or stair, get that, otherwise block below
-//        if (position != null) {
-//            BlockState sittingBlock = getEntityWorld().getBlockState(switch (this.position) {
-//                case IN_BLOCK -> this.getBlockPos();
-//                case ON_BLOCK -> this.getBlockPos().down();
-//            });
-//            // force player to stand up if the block's been removed
-//            if (sittingBlock.isAir()) {
-//                // Prevent players penetrating blocks when player.y-2 is air
-//                if (position != ChairPosition.ON_BLOCK || getEntityWorld().getBlockState(getBlockPos().up()).isAir()) {
-//                    this.kill();
-//                    return;
-//                }
-//            }
-//        }
+        if (position != null) {
+            BlockState sittingBlock = getEntityWorld().getBlockState(switch (this.position) {
+                case IN_BLOCK -> this.getBlockPos();
+                case ON_BLOCK -> this.getBlockPos().down();
+            });
+            // force player to stand up if the block's been removed
+            if (sittingBlock.isAir()) {
+                // Prevent players penetrating blocks when player.y-2 is air
+                if (position != ChairPosition.ON_BLOCK || getEntityWorld().getBlockState(getBlockPos().up()).isAir()) {
+                    this.kill();
+                    return;
+                }
+            }
+        }
 
         // if pose is npc-based, update players with npc info
         var pose = getCustomPose();
