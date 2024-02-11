@@ -4,6 +4,8 @@
   "version": "1",
   "entrypoints": {
     "main": [],
-    "fabric-gametest": []
+    "fabric-gametest": [
+      "test.entity.TestPoseManagerEntity"
+    ]
   }
 }
