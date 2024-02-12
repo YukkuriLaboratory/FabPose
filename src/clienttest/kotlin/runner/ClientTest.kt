@@ -196,14 +196,15 @@ class ClientTest : ClientModInitializer {
 
         private suspend fun waitFor(target: String, timeout: Duration = 30.seconds, block: suspend (MinecraftClient) -> Boolean) {
             withContext(clientDispatcher) {
+                val client = MinecraftClient.getInstance()
                 try {
                     withTimeout(timeout) {
                         loop(1.seconds) {
-                            !block(MinecraftClient.getInstance())
+                            !block(client)
                         }
                     }
                 } catch (e: Exception) {
-                    throw RuntimeException("Error occurred on waiting for $target", e)
+                    client.setCrashReportSupplier(CrashReport.create(e, "Error occurred on waiting for $target"))
                 }
             }
         }
