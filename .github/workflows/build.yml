@@ -39,7 +39,7 @@ jobs:
 
   build:
     needs: lint
-    timeout-minutes: 60
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
