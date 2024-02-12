@@ -14,7 +14,7 @@ import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.util.math.Vec3d
 
 @JvmOverloads
-fun ServerPlayerEntity.sit(pose: Pose, targetSitPos: Vec3d? = null, chairPosition: ChairPosition = ChairPosition.ON_BLOCK): Result<Unit> =
+fun ServerPlayerEntity.pose(pose: Pose, targetSitPos: Vec3d? = null, chairPosition: ChairPosition = ChairPosition.ON_BLOCK): Result<Unit> =
     runCatching {
         pose.confirmEnabled()
 
@@ -40,8 +40,8 @@ fun ServerPlayerEntity.sit(pose: Pose, targetSitPos: Vec3d? = null, chairPositio
 
         canPose().getOrThrow()
 
+        currentPose = pose
         if (pose == Pose.SWIMMING) {
-            currentPose = pose
             isSwimming = true
         } else {
             val chair = FabSit.RAW_CHAIR_ENTITY_TYPE.spawn(

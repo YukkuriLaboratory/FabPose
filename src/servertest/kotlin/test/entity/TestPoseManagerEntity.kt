@@ -18,7 +18,7 @@ import net.minecraft.test.GameTest
 import net.minecraft.test.TestContext
 import net.minecraft.util.math.BlockPos
 import net.yukulab.fabsit.DelegatedLogger
-import net.yukulab.fabsit.extension.sit
+import net.yukulab.fabsit.extension.pose
 
 class TestPoseManagerEntity : FabricGameTest {
     @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE)
@@ -40,7 +40,7 @@ class TestPoseManagerEntity : FabricGameTest {
     fun checkAirBockShouldFailed(context: TestContext) = runCatchingAssertion(logger) {
         context.addInstantFinalTask(logger) {
             val mockPlayer = context.createMockServerPlayer(BlockPos(0, 3, 0))
-            mockPlayer.sit(Pose.SITTING).shouldBeFailure<MidairException>()
+            mockPlayer.pose(Pose.SITTING).shouldBeFailure<MidairException>()
             mockPlayer.vehicle.shouldBeNull()
         }
     }
@@ -54,7 +54,7 @@ class TestPoseManagerEntity : FabricGameTest {
         )
         val mockPlayer = context.createMockServerPlayer(BlockPos(0, blockHeight + 1, 0))
         mockPlayer.updatePosition(mockPlayer.x, mockPlayer.y - 0.5, mockPlayer.z)
-        mockPlayer.sit(Pose.SITTING).shouldBeSuccess()
+        mockPlayer.pose(Pose.SITTING).shouldBeSuccess()
         mockPlayer.vehicle.shouldNotBeNull().isAlive.shouldBeTrue()
         context.setBlockState(BlockPos(0, blockHeight, 0), Blocks.AIR)
         context.waitAndRun(5) {
@@ -71,10 +71,12 @@ class TestPoseManagerEntity : FabricGameTest {
         )
         val mockPlayer = context.createMockServerPlayer(BlockPos(0, blockHeight + 1, 0))
         mockPlayer.updatePosition(mockPlayer.x, mockPlayer.y - 0.4, mockPlayer.z)
-        mockPlayer.sit(pose).shouldBeSuccess()
+        mockPlayer.pose(pose).shouldBeSuccess()
         context.waitAndRun(5) {
             context.addInstantFinalTask(logger) {
                 mockPlayer.vehicle.shouldNotBeNull().isAlive.shouldBeTrue()
+                mockPlayer.pose(pose)
+                mockPlayer.vehicle.shouldBeNull()
             }
         }
     }

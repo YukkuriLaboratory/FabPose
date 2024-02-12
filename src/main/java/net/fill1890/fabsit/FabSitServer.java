@@ -45,6 +45,6 @@ public class FabSitServer implements DedicatedServerModInitializer {
 
     // attempt to pose when requested
     private static void handlePoseRequest(MinecraftServer server, ServerPlayerEntity player, ServerPlayNetworkHandler networkHandler, PacketByteBuf buf, PacketSender sender) {
-        ServerPlayerEntityKt.sit(player, new PoseRequestC2SPacket(buf).getPose());
+        ServerPlayerEntityKt.pose(player, new PoseRequestC2SPacket(buf).getPose());
     }
 }

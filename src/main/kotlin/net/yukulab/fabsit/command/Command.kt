@@ -12,7 +12,7 @@ import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.text.Text
 import net.yukulab.fabsit.DelegatedLogger
 import net.yukulab.fabsit.MOD_ID
-import net.yukulab.fabsit.extension.sit
+import net.yukulab.fabsit.extension.pose
 
 object Command {
     private const val PERMISSION_NAME = "$MOD_ID.commands"
@@ -46,7 +46,7 @@ object Command {
                             source.sendError(Text.of("You must be a player to run this command!"))
                             return@executes -1
                         }
-                        player.sit(pose).fold(
+                        player.pose(pose).fold(
                             { 0 },
                             {
                                 logger.error("Failed to pose", it)

@@ -81,7 +81,7 @@ public class UseStairCallback {
         }
 
         // set up the seat
-        ServerPlayerEntityKt.sit((ServerPlayerEntity) player, Pose.SITTING, sitPos, ChairPosition.IN_BLOCK);
+        ServerPlayerEntityKt.pose((ServerPlayerEntity) player, Pose.SITTING, sitPos, ChairPosition.IN_BLOCK);
 
         return ActionResult.PASS;
     }
