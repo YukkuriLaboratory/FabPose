@@ -18,9 +18,12 @@ public abstract class PoseKeybinds {
     // sit, lay, and spin hotkeys
     @VisibleForTesting
     public static final KeyBinding sitKey = emptyKey("sit");
-    private static final KeyBinding layKey = emptyKey("lay");
-    private static final KeyBinding spinKey = emptyKey("spin");
-    private static final KeyBinding swimKey = emptyKey("swim");
+    @VisibleForTesting
+    public static final KeyBinding layKey = emptyKey("lay");
+    @VisibleForTesting
+    public static final KeyBinding spinKey = emptyKey("spin");
+    @VisibleForTesting
+    public static final KeyBinding swimKey = emptyKey("swim");
 
     private static KeyBinding emptyKey(String base) {
         return KeyBindingHelper.registerKeyBinding(

@@ -34,6 +34,9 @@ class ClientTest : ClientModInitializer {
     override fun onInitializeClient() {
         val tests = listOf(
             TestPoseKeybindings::testSitKey,
+            TestPoseKeybindings::testLayKey,
+            TestPoseKeybindings::testSpinKey,
+            TestPoseKeybindings::testSwimKey,
         )
 
         // Related: https://github.com/FabricMC/fabric/pull/2678
