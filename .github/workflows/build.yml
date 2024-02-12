@@ -61,7 +61,9 @@ jobs:
       - name: make gradle wrapper executable
         run: chmod +x ./gradlew
       - name: build
-        run: ./gradlew ${{ matrix.task }} --stacktrace
+        uses: coactions/setup-xvfb@v1
+        with:
+          run: ./gradlew ${{ matrix.task }} --stacktrace
       - name: capture build artifacts
         if: ${{ matrix.task == 'build' && matrix.java == '17' }} # Only upload artifacts built from latest java on one OS
         uses: actions/upload-artifact@v2
