@@ -4,6 +4,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import net.minecraft.server.MinecraftServer
 
+const val MOD_ID = "fabsit"
+
 lateinit var server: MinecraftServer
     internal set
 

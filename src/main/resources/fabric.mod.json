@@ -36,5 +36,12 @@
     "minecraft": ">=1.20.2",
     "java": ">=17",
     "fabric-language-kotlin": ">=1.10.17+kotlin.1.9.22"
+  },
+  "custom": {
+    "loom:injected_interfaces": {
+      "net/minecraft/class_3222": [
+        "net/fill1890/fabsit/extension/PosingFlag"
+      ]
+    }
   }
 }

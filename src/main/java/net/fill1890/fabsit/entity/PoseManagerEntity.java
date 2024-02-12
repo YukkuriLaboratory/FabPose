@@ -139,7 +139,7 @@ public class PoseManagerEntity extends ArmorStandEntity {
         }
 
         if(ConfigManager.getConfig().centre_on_blocks || position == ChairPosition.IN_BLOCK)
-            ConfigManager.occupiedBlocks.add(this.getBlockPos());
+            ConfigManager.occupiedBlocks.add(passenger.getSteppingPos());
 
         used = true;
     }
@@ -149,7 +149,7 @@ public class PoseManagerEntity extends ArmorStandEntity {
         super.removePassenger(passenger);
 
         if(ConfigManager.getConfig().centre_on_blocks || position == ChairPosition.IN_BLOCK)
-            ConfigManager.occupiedBlocks.remove(this.getBlockPos());
+            ConfigManager.occupiedBlocks.remove(passenger.getSteppingPos());
 
         // if the pose was npc-based, show the player again when exited
         Pose pose = getCustomPose();

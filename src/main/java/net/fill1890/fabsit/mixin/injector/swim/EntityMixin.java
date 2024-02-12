@@ -1,17 +1,17 @@
 package net.fill1890.fabsit.mixin.injector.swim;
 
-import net.fill1890.fabsit.extension.ForceSwimFlag;
+import net.fill1890.fabsit.entity.Pose;
 import net.minecraft.entity.Entity;
+import net.minecraft.server.network.ServerPlayerEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 
 @Mixin(Entity.class)
-abstract public class EntityMixin implements ForceSwimFlag {
+abstract public class EntityMixin {
     @Shadow
     public abstract void setSwimming(boolean swimming);
 
@@ -24,10 +24,6 @@ abstract public class EntityMixin implements ForceSwimFlag {
     @Shadow
     public abstract boolean hasVehicle();
 
-    @Unique
-    boolean fabsit$forceSwim;
-
-
     @Inject(
             method = "updateSwimming",
             at = @At(
@@ -38,18 +34,12 @@ abstract public class EntityMixin implements ForceSwimFlag {
             cancellable = true
     )
     private void shouldForceSwimmingInLand(CallbackInfo ci) {
-        var generallyCanSwim = isSprinting() && isTouchingWater();
-        setSwimming((fabsit$forceSwim || generallyCanSwim) && !hasVehicle());
-        ci.cancel();
-    }
-
-    @Override
-    public boolean fabSit$shouldForceSwim() {
-        return fabsit$forceSwim;
-    }
-
-    @Override
-    public void fabSit$setForceSwim(boolean forceSwim) {
-        fabsit$forceSwim = forceSwim;
+        var entity = (Entity) (Object) this;
+        if (entity instanceof ServerPlayerEntity player) {
+            var pose = player.fabSit$currentPose();
+            var generallyCanSwim = isSprinting() && isTouchingWater();
+            setSwimming((pose == Pose.SWIMMING || generallyCanSwim) && !hasVehicle());
+            ci.cancel();
+        }
     }
 }

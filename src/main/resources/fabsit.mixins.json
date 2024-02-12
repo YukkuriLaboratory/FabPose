@@ -13,11 +13,11 @@
     "accessor.ServerCommonNetworkHandlerAccessor",
     "accessor.ServerLoginNetworkHandlerAccessor",
     "injector.LivingEntityMixin",
+    "injector.PlayerEntityMixin",
     "injector.ServerPlayerEntityMixin",
     "injector.ServerPlayNetworkHandlerMixin",
     "injector.SyncConfigurationTaskMixin",
-    "injector.swim.EntityMixin",
-    "injector.swim.PlayerEntityMixin"
+    "injector.swim.EntityMixin"
   ],
   "injectors": {
     "defaultRequire": 1

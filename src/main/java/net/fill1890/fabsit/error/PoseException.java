@@ -11,4 +11,7 @@ public class PoseException extends Exception {
     public static class PoseDisabled extends PoseException {}
     // block already occupied
     public static class BlockOccupied extends PoseException {}
+
+    public static class TooQuickly extends PoseException {
+    }
 }
