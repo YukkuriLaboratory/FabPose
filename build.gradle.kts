@@ -113,6 +113,7 @@ loom {
                 "-Dfabric-api.gametest",
                 "-Dfabric.api.gametest.report-file=${project.layout.buildDirectory}/$name/junit.xml",
             )
+            runDir = "build/$clientTest"
             setSource(clientTestSourceSet)
             isIdeConfigGenerated = true
         }
