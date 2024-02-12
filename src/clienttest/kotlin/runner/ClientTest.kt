@@ -87,7 +87,7 @@ class ClientTest : ClientModInitializer {
 
             MixinEnvironment.getCurrentEnvironment().audit()
 
-            waitForWorldTicks(200)
+            waitForWorldTicks(100)
             val result = tests.map {
                 runCatching {
                     it(MinecraftClient.getInstance())
@@ -206,7 +206,7 @@ class ClientTest : ClientModInitializer {
             }
         }
 
-        private suspend fun waitFor(target: String, timeout: Duration = 30.seconds, block: suspend (MinecraftClient) -> Boolean) {
+        private suspend fun waitFor(target: String, timeout: Duration = 10.seconds, block: suspend (MinecraftClient) -> Boolean) {
             withContext(clientDispatcher) {
                 val client = MinecraftClient.getInstance()
                 try {
