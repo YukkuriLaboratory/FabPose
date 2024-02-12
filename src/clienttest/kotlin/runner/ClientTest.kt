@@ -1,7 +1,8 @@
 package runner
 
+import com.mojang.text2speech.Narrator
 import io.kotest.matchers.nulls.shouldNotBeNull
-import kotlin.io.path.exists
+import kotlin.io.path.notExists
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
@@ -13,6 +14,7 @@ import kotlinx.coroutines.withTimeout
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.client.MinecraftClient
+import net.minecraft.client.gui.screen.AccessibilityOnboardingScreen
 import net.minecraft.client.gui.screen.GameMenuScreen
 import net.minecraft.client.gui.screen.LevelLoadingScreen
 import net.minecraft.client.gui.screen.Screen
@@ -23,6 +25,7 @@ import net.minecraft.client.gui.widget.ButtonWidget
 import net.minecraft.client.gui.widget.CyclingButtonWidget
 import net.minecraft.client.gui.widget.GridWidget
 import net.minecraft.client.gui.widget.PressableWidget
+import net.minecraft.screen.ScreenTexts
 import net.minecraft.text.Text
 import net.minecraft.util.crash.CrashReport
 import net.yukulab.fabsit.DelegatedLogger
@@ -44,10 +47,15 @@ class ClientTest : ClientModInitializer {
         CoroutineScope(Dispatchers.Default).launch {
             waitForLoadingComplete()
 
+            if (FabricLoader.getInstance().gameDir.resolve("options.txt").notExists()) {
+                waitForScreen(AccessibilityOnboardingScreen::class.java)
+                clickScreenButton(ScreenTexts.CONTINUE)
+            }
+
             waitForScreen(TitleScreen::class.java)
             clickScreenButton("menu.singleplayer")
 
-            if (FabricLoader.getInstance().gameDir.resolve("saves").exists()) {
+            if (FabricLoader.getInstance().gameDir.resolve("saves").toFile().listFiles()?.isNotEmpty() == true) {
                 waitForScreen(SelectWorldScreen::class.java)
                 clickScreenButton("selectWorld.create")
             }
@@ -138,7 +146,11 @@ class ClientTest : ClientModInitializer {
         }
 
         private suspend fun clickScreenButton(translationKey: String) {
-            val buttonText = Text.translatable(translationKey).string
+            clickScreenButton(Text.translatable(translationKey))
+        }
+
+        private suspend fun clickScreenButton(translationKey: Text) {
+            val buttonText = translationKey.string
 
             waitFor("Click button $buttonText") { client ->
                 val screen = client.currentScreen ?: return@waitFor false
@@ -203,6 +215,8 @@ class ClientTest : ClientModInitializer {
                             !block(client)
                         }
                     }
+                } catch (_: Narrator.InitializeException) {
+                    // ignore
                 } catch (e: Exception) {
                     client.setCrashReportSupplier(CrashReport.create(e, "Error occurred on waiting for $target"))
                 }
