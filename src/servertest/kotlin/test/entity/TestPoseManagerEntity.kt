@@ -45,7 +45,7 @@ class TestPoseManagerEntity : FabricGameTest {
 
     @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE)
     fun checkBlockUpdated(context: TestContext) = runCatchingAssertion(logger) {
-        val blockHeight = 2
+        val blockHeight = 4
         context.setBlockState(
             BlockPos(0, blockHeight, 0),
             Blocks.STONE_SLAB.defaultState.with(SlabBlock.TYPE, SlabType.BOTTOM),
@@ -61,8 +61,7 @@ class TestPoseManagerEntity : FabricGameTest {
         }
     }
 
-    private fun poseOnSlabBlock(context: TestContext, pose: Pose) {
-        val blockHeight = 2
+    private fun poseOnSlabBlock(context: TestContext, pose: Pose, blockHeight: Int = 4) {
         context.setBlockState(
             BlockPos(0, blockHeight, 0),
             Blocks.STONE_SLAB.defaultState.with(SlabBlock.TYPE, SlabType.BOTTOM),
