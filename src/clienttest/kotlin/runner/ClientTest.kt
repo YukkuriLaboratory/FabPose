@@ -1,6 +1,5 @@
 package runner
 
-import com.mojang.text2speech.Narrator
 import io.kotest.matchers.nulls.shouldNotBeNull
 import kotlin.io.path.notExists
 import kotlin.time.Duration
@@ -215,8 +214,6 @@ class ClientTest : ClientModInitializer {
                             !block(client)
                         }
                     }
-                } catch (_: Narrator.InitializeException) {
-                    // ignore
                 } catch (e: Exception) {
                     client.setCrashReportSupplier(CrashReport.create(e, "Error occurred on waiting for $target"))
                 }
