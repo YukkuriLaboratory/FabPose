@@ -26,7 +26,6 @@ fun ServerPlayerEntity.pose(pose: Pose, targetSitPos: Vec3d? = null, chairPositi
 
         if (currentPose != null) {
             currentPose = null
-            // isSwimming = false
             return@runCatching
         }
 
