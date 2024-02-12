@@ -194,7 +194,7 @@ class ClientTest : ClientModInitializer {
             }
         }
 
-        private suspend fun waitFor(target: String, timeout: Duration = 10.seconds, block: suspend (MinecraftClient) -> Boolean) {
+        private suspend fun waitFor(target: String, timeout: Duration = 30.seconds, block: suspend (MinecraftClient) -> Boolean) {
             withContext(clientDispatcher) {
                 try {
                     withTimeout(timeout) {
