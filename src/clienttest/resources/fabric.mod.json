@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "id": "fabsitclienttest",
+  "version": "1",
+  "entrypoints": {
+    "main": [],
+    "client": [
+      "runner.ClientTest"
+    ]
+  }
+}

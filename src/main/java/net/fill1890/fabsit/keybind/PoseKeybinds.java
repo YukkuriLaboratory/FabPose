@@ -8,6 +8,7 @@ import net.fill1890.fabsit.entity.Pose;
 import net.fill1890.fabsit.network.PoseRequestC2SPacket;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
+import org.jetbrains.annotations.VisibleForTesting;
 
 public abstract class PoseKeybinds {
     // translation keys for controls screen
@@ -15,7 +16,8 @@ public abstract class PoseKeybinds {
     private static final String CATEGORY = "key." + FabSit.MOD_ID + ".category";
 
     // sit, lay, and spin hotkeys
-    private static final KeyBinding sitKey = emptyKey("sit");
+    @VisibleForTesting
+    public static final KeyBinding sitKey = emptyKey("sit");
     private static final KeyBinding layKey = emptyKey("lay");
     private static final KeyBinding spinKey = emptyKey("spin");
     private static final KeyBinding swimKey = emptyKey("swim");

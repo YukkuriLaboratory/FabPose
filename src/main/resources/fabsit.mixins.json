@@ -23,6 +23,11 @@
     "defaultRequire": 1
   },
   "client": [
+    "accessor.CreateWorldScreenAccessor",
+    "accessor.CyclingButtonWidgetAccessor",
+    "accessor.ScreenAccessor",
+    "accessor.TabButtonWidgetAccessor",
+    "accessor.TabNavigationWidgetAccessor",
     "injector.ArmorFeatureRendererMixin",
     "injector.HeadFeatureRendererMixin",
     "injector.InGameHudMixin",

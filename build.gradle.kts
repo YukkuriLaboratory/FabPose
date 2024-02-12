@@ -32,6 +32,7 @@ base {
 }
 
 val serverTest = "servertest"
+val clientTest = "clienttest"
 sourceSets {
     val main by main
     val classPathConfig =
@@ -42,13 +43,16 @@ sourceSets {
             runtimeClasspath += main.output
         }
     create(serverTest, classPathConfig)
+    create(clientTest, classPathConfig)
 }
 val serverTestSourceSet = sourceSets.getByName(serverTest)
+val clientTestSourceSet = sourceSets.getByName(clientTest)
 
 configurations {
     val implementation = "Implementation"
     val testImplementation = testImplementation.get().exclude("org.slf4j", "slf4j-simple")
     getByName("$serverTest$implementation").extendsFrom(testImplementation)
+    getByName("$clientTest$implementation").extendsFrom(testImplementation)
 }
 
 repositories {
@@ -100,6 +104,16 @@ loom {
             )
             runDir = "build/$serverTest"
             setSource(serverTestSourceSet)
+            isIdeConfigGenerated = true
+        }
+        create(clientTest) {
+            client()
+            configName = clientTest
+            vmArgs(
+                "-Dfabric-api.gametest",
+                "-Dfabric.api.gametest.report-file=${project.layout.buildDirectory}/$name/junit.xml",
+            )
+            setSource(clientTestSourceSet)
             isIdeConfigGenerated = true
         }
         create("manual$serverTest") {
