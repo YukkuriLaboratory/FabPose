@@ -24,6 +24,7 @@ import net.minecraft.client.gui.widget.CyclingButtonWidget
 import net.minecraft.client.gui.widget.GridWidget
 import net.minecraft.client.gui.widget.PressableWidget
 import net.minecraft.text.Text
+import net.minecraft.util.crash.CrashReport
 import net.yukulab.fabsit.DelegatedLogger
 import net.yukulab.fabsit.extension.accessor
 import net.yukulab.fabsit.extension.loop
@@ -96,6 +97,13 @@ class ClientTest : ClientModInitializer {
             clickScreenButton("menu.returnToMenu")
 
             waitForScreen(TitleScreen::class.java)
+            if (failure != 0) {
+                withContext(clientDispatcher) {
+                    val crashReport =
+                        CrashReport.create(RuntimeException("$failure Tests failed"), "$failure Tests failed")
+                    MinecraftClient.getInstance().setCrashReportSupplier(crashReport)
+                }
+            }
             clickScreenButton("menu.quit")
         }
     }
