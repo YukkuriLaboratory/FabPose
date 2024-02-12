@@ -9,7 +9,6 @@ import net.fill1890.fabsit.error.LoadConfigException;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.decoration.ArmorStandEntity;
 import net.minecraft.util.Identifier;
-import net.yukulab.fabsit.command.Command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,7 +31,6 @@ public class FabSit implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-        Command.INSTANCE.register();
 		FabricDefaultAttributeRegistry.register(RAW_CHAIR_ENTITY_TYPE, ArmorStandEntity.createLivingAttributes());
 
 		try {
