@@ -24,6 +24,7 @@ import net.minecraft.client.gui.widget.ButtonWidget
 import net.minecraft.client.gui.widget.CyclingButtonWidget
 import net.minecraft.client.gui.widget.GridWidget
 import net.minecraft.client.gui.widget.PressableWidget
+import net.minecraft.client.option.Perspective
 import net.minecraft.screen.ScreenTexts
 import net.minecraft.text.Text
 import net.minecraft.util.crash.CrashReport
@@ -86,6 +87,9 @@ class ClientTest : ClientModInitializer {
 
             MixinEnvironment.getCurrentEnvironment().audit()
 
+            withContext(clientDispatcher) {
+                MinecraftClient.getInstance().options.perspective = Perspective.THIRD_PERSON_BACK
+            }
             waitForWorldTicks(100)
             val result = tests.map {
                 runCatching {
