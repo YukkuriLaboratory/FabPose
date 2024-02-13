@@ -43,6 +43,9 @@
     "loom:injected_interfaces": {
       "net/minecraft/class_1657": [
         "net/fill1890/fabsit/extension/PosingFlag"
+      ],
+      "net/minecraft/class_2535": [
+        "net/fill1890/fabsit/extension/ModFlag"
       ]
     }
   }

@@ -12,6 +12,7 @@
     "accessor.PlayerListS2CPacketAccessor",
     "accessor.ServerCommonNetworkHandlerAccessor",
     "accessor.ServerLoginNetworkHandlerAccessor",
+    "injector.ClientConnectionMixin",
     "injector.LivingEntityMixin",
     "injector.PlayerEntityMixin",
     "injector.ServerPlayerEntityMixin",

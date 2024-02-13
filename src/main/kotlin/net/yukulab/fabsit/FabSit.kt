@@ -11,6 +11,7 @@ import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
 import net.yukulab.fabsit.command.Command
 import net.yukulab.fabsit.entity.FabSitEntities
+import net.yukulab.fabsit.network.Networking
 
 class FabSit : ModInitializer {
     private val job = Job()
@@ -28,5 +29,6 @@ class FabSit : ModInitializer {
         }
         Command.register()
         FabSitEntities.register()
+        Networking.registerServerHandlers()
     }
 }

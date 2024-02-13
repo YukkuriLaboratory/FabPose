@@ -23,7 +23,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.lang.reflect.Type;
-import java.net.SocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Map;
@@ -40,9 +39,6 @@ public abstract class ConfigManager {
     public static Map<String, String> LANG;
     // blocks currently occupied for posing
     public static ArrayList<BlockPos> occupiedBlocks = new ArrayList<>();
-
-    // players that have the mod loaded
-    public static final ArrayList<SocketAddress> loadedPlayers = new ArrayList<>();
 
     public static Config getConfig() {
         return CONFIG;

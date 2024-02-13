@@ -1,7 +1,6 @@
 package net.fill1890.fabsit.mixin.injector;
 
 import net.fill1890.fabsit.FabSit;
-import net.fill1890.fabsit.config.ConfigManager;
 import net.fill1890.fabsit.mixin.accessor.EntitySpawnPacketAccessor;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
@@ -75,7 +74,7 @@ public abstract class ServerPlayNetworkHandlerMixin extends ServerCommonNetworkH
         if (packet instanceof EntitySpawnS2CPacket sp && sp.getEntityType() == FabSitEntities.POSE_MANAGER) {
 
             // if fabsit loaded, replace with the chair entity to hide horse hearts
-            if (ConfigManager.loadedPlayers.contains(connection.getAddress())) {
+            if (connection.fabSit$isModEnabled()) {
                 ((EntitySpawnPacketAccessor) sp).setEntityTypeId(FabSit.CHAIR_ENTITY_TYPE);
                 ((EntitySpawnPacketAccessor) sp).setY(sp.getY() + 0.75);
 
@@ -106,7 +105,7 @@ public abstract class ServerPlayNetworkHandlerMixin extends ServerCommonNetworkH
             }
 
             // cancel packet if player has fabsit loaded
-            if (!ConfigManager.loadedPlayers.contains(connection.getAddress())) {
+            if (!connection.fabSit$isModEnabled()) {
                 super.send(ap, callbacks);
                 return;
             }
