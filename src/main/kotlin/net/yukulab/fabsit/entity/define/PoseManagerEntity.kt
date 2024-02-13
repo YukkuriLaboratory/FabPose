@@ -86,7 +86,6 @@ class PoseManagerEntity(entityType: EntityType<out PoseManagerEntity>, world: Wo
             if (ConfigManager.getConfig().centre_on_blocks || chairPosition == ChairPosition.IN_BLOCK) {
                 ConfigManager.occupiedBlocks.remove(passenger.steppingPos)
             }
-            passenger.currentPose = null
 
             val pose = passenger.currentPose
             val poseEntity = poser
@@ -104,6 +103,7 @@ class PoseManagerEntity(entityType: EntityType<out PoseManagerEntity>, world: Wo
                     poserDataTracker.set(it, NbtCompound())
                 }
             }
+            passenger.currentPose = null
         }
     }
 
