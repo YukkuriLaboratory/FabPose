@@ -21,7 +21,8 @@
       "net.yukulab.fabsit.FabSit"
     ],
     "client": [
-      "net.fill1890.fabsit.FabSitClient"
+      "net.fill1890.fabsit.FabSitClient",
+      "net.yukulab.fabsit.FabSitClient"
     ],
     "server": [
       "net.fill1890.fabsit.FabSitServer"
@@ -40,7 +41,7 @@
   },
   "custom": {
     "loom:injected_interfaces": {
-      "net/minecraft/class_3222": [
+      "net/minecraft/class_1657": [
         "net/fill1890/fabsit/extension/PosingFlag"
       ]
     }

@@ -16,6 +16,7 @@
     "injector.PlayerEntityMixin",
     "injector.ServerPlayerEntityMixin",
     "injector.ServerPlayNetworkHandlerMixin",
+    "injector.ServerWorldMixin",
     "injector.SyncConfigurationTaskMixin",
     "injector.swim.EntityMixin"
   ],

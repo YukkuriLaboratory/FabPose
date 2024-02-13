@@ -8,3 +8,9 @@ fun TestContext.addInstantFinalTask(logger: Logger, block: () -> Unit) {
         runCatchingAssertion(logger, block)
     }
 }
+
+fun TestContext.waitAndRun(ticks: Long, logger: Logger, block: () -> Unit) {
+    waitAndRun(ticks) {
+        runCatchingAssertion(logger, block)
+    }
+}

@@ -1,10 +1,10 @@
 package net.fill1890.fabsit.mixin.injector;
 
 import net.fill1890.fabsit.config.ConfigManager;
-import net.fill1890.fabsit.entity.PoseManagerEntity;
 import net.fill1890.fabsit.mixin.accessor.ServerCommonNetworkHandlerAccessor;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.yukulab.fabsit.entity.define.PoseManagerEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;

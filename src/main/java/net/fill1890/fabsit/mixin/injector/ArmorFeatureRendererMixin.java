@@ -1,7 +1,6 @@
 package net.fill1890.fabsit.mixin.injector;
 
 import net.fill1890.fabsit.entity.Pose;
-import net.fill1890.fabsit.entity.PoseManagerEntity;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.feature.ArmorFeatureRenderer;
 import net.minecraft.client.util.math.MatrixStack;
@@ -22,7 +21,7 @@ abstract public class ArmorFeatureRendererMixin<T extends LivingEntity> {
             cancellable = true
     )
     private void preventInvisiblePlayerArmors(MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i, T livingEntity, float f, float g, float h, float j, float k, float l, CallbackInfo ci) {
-        if (livingEntity instanceof PlayerEntity player && player.getVehicle() instanceof PoseManagerEntity poseManager && EnumSet.of(Pose.LAYING, Pose.SPINNING).contains(poseManager.getCustomPose())) {
+        if (livingEntity instanceof PlayerEntity player && EnumSet.of(Pose.LAYING, Pose.SPINNING).contains(player.fabSit$currentPose())) {
             ci.cancel();
         }
     }

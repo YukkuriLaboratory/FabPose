@@ -2,7 +2,6 @@ package net.fill1890.fabsit.mixin.injector;
 
 import net.fill1890.fabsit.FabSit;
 import net.fill1890.fabsit.config.ConfigManager;
-import net.fill1890.fabsit.entity.PoseManagerEntity;
 import net.fill1890.fabsit.mixin.accessor.EntitySpawnPacketAccessor;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
@@ -18,6 +17,8 @@ import net.minecraft.server.network.ConnectedClientData;
 import net.minecraft.server.network.ServerCommonNetworkHandler;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.yukulab.fabsit.entity.FabSitEntities;
+import net.yukulab.fabsit.entity.define.PoseManagerEntity;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -71,7 +72,7 @@ public abstract class ServerPlayNetworkHandlerMixin extends ServerCommonNetworkH
     @Override
     public void send(Packet<?> packet, @Nullable PacketCallbacks callbacks) {
         // check for spawn packets, then spawn packets for the poser
-        if(packet instanceof EntitySpawnS2CPacket sp && sp.getEntityType() == FabSit.RAW_CHAIR_ENTITY_TYPE) {
+        if (packet instanceof EntitySpawnS2CPacket sp && sp.getEntityType() == FabSitEntities.POSE_MANAGER) {
 
             // if fabsit loaded, replace with the chair entity to hide horse hearts
             if (ConfigManager.loadedPlayers.contains(connection.getAddress())) {
@@ -99,7 +100,7 @@ public abstract class ServerPlayNetworkHandlerMixin extends ServerCommonNetworkH
             }
 
             EntityType<?> type = entity.getType();
-            if (type != FabSit.RAW_CHAIR_ENTITY_TYPE) {
+            if (type != FabSitEntities.POSE_MANAGER) {
                 super.send(packet, callbacks);
                 return;
             }

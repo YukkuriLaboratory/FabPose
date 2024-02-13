@@ -1,7 +1,6 @@
 package net.fill1890.fabsit.mixin.injector;
 
 import net.fill1890.fabsit.entity.Pose;
-import net.fill1890.fabsit.entity.PoseManagerEntity;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.feature.PlayerHeldItemFeatureRenderer;
 import net.minecraft.client.render.model.json.ModelTransformationMode;
@@ -25,7 +24,7 @@ abstract public class PlayerHeldItemFeatureRendererMixin {
             cancellable = true
     )
     private void preventInvisiblePlayerItems(LivingEntity entity, ItemStack stack, ModelTransformationMode transformationMode, Arm arm, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, CallbackInfo ci) {
-        if (entity instanceof PlayerEntity player && player.getVehicle() instanceof PoseManagerEntity poseManager && EnumSet.of(Pose.LAYING, Pose.SPINNING).contains(poseManager.getCustomPose())) {
+        if (entity instanceof PlayerEntity player && EnumSet.of(Pose.LAYING, Pose.SPINNING).contains(player.fabSit$currentPose())) {
             ci.cancel();
         }
     }

@@ -1,26 +1,28 @@
 package net.yukulab.fabsit.extension
 
 import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.datetime.toKotlinInstant
-import net.fill1890.fabsit.FabSit
 import net.fill1890.fabsit.config.ConfigManager
 import net.fill1890.fabsit.entity.ChairPosition
 import net.fill1890.fabsit.entity.Pose
-import net.fill1890.fabsit.entity.PoseManagerEntity
 import net.fill1890.fabsit.error.PoseException
 import net.minecraft.entity.SpawnReason
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.util.math.Vec3d
+import net.yukulab.fabsit.entity.FabSitEntities
+import net.yukulab.fabsit.entity.define.PoseManagerEntity
+import net.yukulab.fabsit.serverScope
 
 @JvmOverloads
-fun ServerPlayerEntity.pose(pose: Pose, targetSitPos: Vec3d? = null, chairPosition: ChairPosition = ChairPosition.ON_BLOCK): Result<Unit> =
+fun ServerPlayerEntity.pose(pose: Pose, targetSitPos: Vec3d? = null, chairPosition: ChairPosition = ChairPosition.ON_BLOCK, checkSpam: Boolean = true): Result<Unit> =
     runCatching {
         pose.confirmEnabled()
 
         val now = Clock.System.now()
         val lastUse = lastPoseTime?.toKotlinInstant()
-        if (lastUse != null && (now - lastUse) < 500.milliseconds) {
+        if (checkSpam && lastUse != null && (now - lastUse) < 500.milliseconds) {
             throw PoseException.TooQuickly()
         }
 
@@ -43,16 +45,19 @@ fun ServerPlayerEntity.pose(pose: Pose, targetSitPos: Vec3d? = null, chairPositi
         if (pose == Pose.SWIMMING) {
             isSwimming = true
         } else {
-            val chair = FabSit.RAW_CHAIR_ENTITY_TYPE.spawn(
+            val chair = FabSitEntities.POSE_MANAGER.spawn(
                 serverWorld,
                 null,
-                PoseManagerEntity.getInitializer(sitPos, pose, this, chairPosition),
+                PoseManagerEntity.getInitializer(sitPos, this, chairPosition),
                 blockPos,
                 SpawnReason.COMMAND,
                 false,
                 false,
             )
-            startRiding(chair, true)
+            // Adding delay to sync entity with client
+            serverScope.launch {
+                startRiding(chair, true)
+            }
         }
     }
 
