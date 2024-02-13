@@ -13,7 +13,10 @@ mod for Spigot however implementation is ongoing. Exact behaviour matching is no
 Available on [Github](https://github.com/fill1890/FabSit), [Modrinth](https://modrinth.com/mod/fabsit) and
 [CurseForge](https://www.curseforge.com/minecraft/mc-mods/fabsit)
 
-Requires the Fabric API
+# Requires
+
+- [Fabric API](https://modrinth.com/mod/fabric-api)
+- [Fabric Language Kotlin](https://modrinth.com/mod/fabric-language-kotlin)
 
 ## Usage
 
@@ -45,24 +48,18 @@ Configuration file with default values is as follows:
   // Locale to use for server-side translation
   // Currently only supports en_us
   "locale": "en_us",
-  
   // Allow poses underwater?
   "allow_posing_underwater": false,
-  
   // Allow poses midair? Note that this will likely
   // interfere with fall damage if enabled
   "allow_posing_midair": false,
-  
   // Force players to sit in the centre of a block
   "centre_on_blocks": false,
-  
   // Allow players to sit on a stair or slab by right-clicking
   "right_click_sit": false,
-  
   // adjusts the behaviour when hiding players using /lay and /spin
   // try disabling this if there is erratic behaviour using these commands
   "strongly_remove_players": true,
-  
   // server-enabled poses. If LuckPerms is installed,
   // prefer using permissions instead as they are dynamic
   "allow_poses": {
@@ -70,7 +67,6 @@ Configuration file with default values is as follows:
     "lay": true,
     "spin": true
   },
-  
   // enable/disable update messages
   "messages": {
     // send a custom message to the action bar
