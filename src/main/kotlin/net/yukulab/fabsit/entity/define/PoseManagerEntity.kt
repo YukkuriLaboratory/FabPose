@@ -36,6 +36,9 @@ import net.yukulab.fabsit.extension.currentPose
 class PoseManagerEntity(entityType: EntityType<out PoseManagerEntity>, world: World) :
     ArmorStandEntity(entityType, world) {
     private var owner: PlayerEntity? = null
+
+    // Storing pose data even if player reset pose from [ServerPlayerEntity.pose]
+    private var selectedPose: Pose? = null
     private var poser: PosingEntity? = null
 
     private var chairPosition: ChairPosition? = null
@@ -52,9 +55,9 @@ class PoseManagerEntity(entityType: EntityType<out PoseManagerEntity>, world: Wo
 
         if (passenger is PlayerEntity) {
             owner = passenger
-            val pose = passenger.currentPose
+            val pose = selectedPose
             val poseEntity = poser
-            if (poseEntity != null && pose in setOf(Pose.LAYING, Pose.SWIMMING)) {
+            if (poseEntity != null && pose in setOf(Pose.LAYING, Pose.SPINNING)) {
                 passenger.isInvisible = true
 
                 val poserDataTracker = poseEntity.dataTracker
@@ -87,7 +90,7 @@ class PoseManagerEntity(entityType: EntityType<out PoseManagerEntity>, world: Wo
                 ConfigManager.occupiedBlocks.remove(passenger.steppingPos)
             }
 
-            val pose = passenger.currentPose
+            val pose = selectedPose
             val poseEntity = poser
             if (poseEntity != null && pose in setOf(Pose.LAYING, Pose.SPINNING)) {
                 passenger.isInvisible = false
@@ -102,13 +105,15 @@ class PoseManagerEntity(entityType: EntityType<out PoseManagerEntity>, world: Wo
                     passengerDataTracker.set(it, poserDataTracker.get(it))
                     poserDataTracker.set(it, NbtCompound())
                 }
+                passenger.updatePosition(passenger.x, passenger.y + 0.5, passenger.z)
             }
+            // Reset pose state for player sneaking
             passenger.currentPose = null
         }
     }
 
     fun animate(id: Int) {
-        val pose = owner?.currentPose
+        val pose = selectedPose
         if (pose in setOf(Pose.LAYING, Pose.SPINNING)) {
             poser?.animate(id)
         }
@@ -131,7 +136,7 @@ class PoseManagerEntity(entityType: EntityType<out PoseManagerEntity>, world: Wo
         }
 
         // if pose is npc-based, update players with npc info
-        val pose = owner?.currentPose
+        val pose = selectedPose
         val poseEntity = poser
         if (poseEntity != null && pose in setOf(Pose.LAYING, Pose.SPINNING)) {
             poseEntity.sendUpdates()
@@ -162,6 +167,7 @@ class PoseManagerEntity(entityType: EntityType<out PoseManagerEntity>, world: Wo
                 it.setPosition(pos.x, pos.y - 1.88, pos.z)
                 it.yaw = playerEntity.yaw
                 it.chairPosition = position
+                it.selectedPose = playerEntity.currentPose
 
                 // if the pose is more complex than sitting, create a posing npc
                 val pose = playerEntity.currentPose
