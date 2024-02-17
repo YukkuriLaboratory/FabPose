@@ -19,6 +19,9 @@ import net.minecraft.nbt.NbtCompound
 import net.minecraft.network.packet.c2s.common.SyncedClientOptions
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.text.Text
+import net.minecraft.util.TypeFilter
+import net.minecraft.util.math.BlockPos
+import net.minecraft.util.math.Box
 import net.minecraft.util.math.Vec3d
 import net.minecraft.world.World
 import net.yukulab.fabsit.extension.currentPose
@@ -41,7 +44,8 @@ class PoseManagerEntity(entityType: EntityType<out PoseManagerEntity>, world: Wo
     private var selectedPose: Pose? = null
     private var poser: PosingEntity? = null
 
-    private var chairPosition: ChairPosition? = null
+    var chairPosition: ChairPosition? = null
+        private set
 
     init {
         isInvisible = true
@@ -72,10 +76,6 @@ class PoseManagerEntity(entityType: EntityType<out PoseManagerEntity>, world: Wo
                 }
             }
 
-            if (ConfigManager.getConfig().centre_on_blocks || chairPosition == ChairPosition.IN_BLOCK) {
-                ConfigManager.occupiedBlocks.add(passenger.steppingPos)
-            }
-
             if (passenger is ServerPlayerEntity && pose != null && ConfigManager.getConfig().enable_messages.action_bar) {
                 passenger.sendMessage(Messages.getPoseStopMessage(passenger, pose), true)
             }
@@ -86,10 +86,6 @@ class PoseManagerEntity(entityType: EntityType<out PoseManagerEntity>, world: Wo
         super.removePassenger(passenger)
 
         if (passenger is PlayerEntity) {
-            if (ConfigManager.getConfig().centre_on_blocks || chairPosition == ChairPosition.IN_BLOCK) {
-                ConfigManager.occupiedBlocks.remove(passenger.steppingPos)
-            }
-
             val pose = selectedPose
             val poseEntity = poser
             if (poseEntity != null && pose in setOf(Pose.LAYING, Pose.SPINNING)) {
@@ -182,5 +178,13 @@ class PoseManagerEntity(entityType: EntityType<out PoseManagerEntity>, world: Wo
                     }
                 }
             }
+
+        @JvmStatic
+        fun isOccupied(world: World, pos: BlockPos): Boolean {
+            val box = Box.from(Vec3d.of(pos))
+            return world.getEntitiesByType(TypeFilter.instanceOf(PoseManagerEntity::class.java), box) {
+                it.chairPosition == ChairPosition.IN_BLOCK
+            }.isNotEmpty()
+        }
     }
 }

@@ -18,6 +18,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
+import net.yukulab.fabsit.entity.define.PoseManagerEntity;
 import net.yukulab.fabsit.extension.ServerPlayerEntityKt;
 
 public class UseStairCallback {
@@ -47,7 +48,7 @@ public class UseStairCallback {
             return ActionResult.PASS;
 
         // use the block occupation logic since this forces centering
-        if(ConfigManager.occupiedBlocks.contains(pos))
+        if (PoseManagerEntity.isOccupied(world, pos))
             return ActionResult.PASS;
 
         // player needs to click with an empty hand

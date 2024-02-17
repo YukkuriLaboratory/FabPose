@@ -90,7 +90,7 @@ fun ServerPlayerEntity.canPose(): Result<Unit> = runCatching {
         throw PoseException.MidairException()
     }
 
-    if (config.centre_on_blocks || config.right_click_sit && ConfigManager.occupiedBlocks.contains(steppingPos)) {
+    if (config.centre_on_blocks || config.right_click_sit && PoseManagerEntity.isOccupied(world, steppingPos)) {
         throw PoseException.BlockOccupied()
     }
 }
