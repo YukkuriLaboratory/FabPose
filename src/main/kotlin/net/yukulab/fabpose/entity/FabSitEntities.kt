@@ -1,4 +1,4 @@
-package net.yukulab.fabsit.entity
+package net.yukulab.fabpose.entity
 
 import net.fabricmc.fabric.api.`object`.builder.v1.entity.FabricDefaultAttributeRegistry
 import net.fabricmc.fabric.api.`object`.builder.v1.entity.FabricEntityTypeBuilder
@@ -10,8 +10,8 @@ import net.minecraft.entity.decoration.ArmorStandEntity
 import net.minecraft.registry.Registries
 import net.minecraft.registry.Registry
 import net.minecraft.util.Identifier
-import net.yukulab.fabsit.MOD_ID
-import net.yukulab.fabsit.entity.define.PoseManagerEntity
+import net.yukulab.fabpose.MOD_ID
+import net.yukulab.fabpose.entity.define.PoseManagerEntity
 
 object FabSitEntities {
     @JvmField

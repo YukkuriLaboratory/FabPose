@@ -1,4 +1,4 @@
-package net.yukulab.fabsit.network
+package net.yukulab.fabpose.network
 
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
@@ -7,9 +7,9 @@ import net.fabricmc.fabric.api.networking.v1.ServerLoginConnectionEvents
 import net.fabricmc.fabric.api.networking.v1.ServerLoginNetworking
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
 import net.minecraft.util.Identifier
-import net.yukulab.fabsit.MOD_ID
-import net.yukulab.fabsit.network.packet.HandShakeS2CPacket
-import net.yukulab.fabsit.network.packet.play.PoseRequestC2SPacket
+import net.yukulab.fabpose.MOD_ID
+import net.yukulab.fabpose.network.packet.HandShakeS2CPacket
+import net.yukulab.fabpose.network.packet.play.PoseRequestC2SPacket
 
 object Networking {
     val HANDSHAKE: Identifier = id("handshake")

@@ -10,7 +10,7 @@ import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.network.ServerConfigurationNetworkHandler;
 import net.minecraft.util.Identifier;
-import net.yukulab.fabsit.entity.FabSitEntities;
+import net.yukulab.fabpose.entity.FabSitEntities;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;

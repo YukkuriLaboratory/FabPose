@@ -1,7 +1,7 @@
 package net.fill1890.fabsit.mixin.injector;
 
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.yukulab.fabsit.entity.define.PoseManagerEntity;
+import net.yukulab.fabpose.entity.define.PoseManagerEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;

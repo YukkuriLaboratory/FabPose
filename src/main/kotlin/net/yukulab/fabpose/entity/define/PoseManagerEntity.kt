@@ -1,4 +1,4 @@
-package net.yukulab.fabsit.entity.define
+package net.yukulab.fabpose.entity.define
 
 import com.mojang.authlib.GameProfile
 import java.util.UUID
@@ -24,7 +24,7 @@ import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Box
 import net.minecraft.util.math.Vec3d
 import net.minecraft.world.World
-import net.yukulab.fabsit.extension.currentPose
+import net.yukulab.fabpose.extension.currentPose
 
 /**
  * The PoseManagerEntity provides an interface to a variety of posing actions, currently:

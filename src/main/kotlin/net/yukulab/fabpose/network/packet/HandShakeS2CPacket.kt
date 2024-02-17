@@ -1,4 +1,4 @@
-package net.yukulab.fabsit.network.packet
+package net.yukulab.fabpose.network.packet
 
 import io.netty.util.concurrent.Future
 import io.netty.util.concurrent.GenericFutureListener
@@ -15,8 +15,8 @@ import net.minecraft.client.network.ClientLoginNetworkHandler
 import net.minecraft.network.PacketByteBuf
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.network.ServerLoginNetworkHandler
-import net.yukulab.fabsit.extension.accessor
-import net.yukulab.fabsit.network.Networking
+import net.yukulab.fabpose.extension.accessor
+import net.yukulab.fabpose.network.Networking
 
 object HandShakeS2CPacket {
     fun sendQuery(

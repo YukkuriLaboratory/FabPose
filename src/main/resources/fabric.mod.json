@@ -1,43 +1,41 @@
 {
   "schemaVersion": 1,
-  "id": "fabsit",
-  "version": "1.5.5+1.20.2",
-
-  "name": "FabSit",
-  "description": "Sit in Fabric",
+  "id": "fabpose",
+  "version": "${version}",
+  "name": "FabPose",
+  "description": "Pose in Fabric",
   "authors": [
-    "fill1890"
+    "fill1890",
+    "turtton"
   ],
   "contact": {
-    "sources": "https://github.com/fill1890/fabsit"
+    "sources": "https://github.com/YukkuriLaboratory/fabsit"
   },
-
   "license": "MIT",
-
   "environment": "*",
   "entrypoints": {
     "main": [
       "net.fill1890.fabsit.FabSit",
-      "net.yukulab.fabsit.FabSit"
+      "net.yukulab.fabpose.FabPose"
     ],
     "client": [
       "net.fill1890.fabsit.FabSitClient",
-      "net.yukulab.fabsit.FabSitClient"
+      "net.yukulab.fabpose.FabPoseClient"
     ],
     "server": [
       "net.fill1890.fabsit.FabSitServer"
     ]
   },
   "mixins": [
-    "fabsit.mixins.json"
+    "fabpose.mixins.json"
   ],
-  "accessWidener": "fabsit.accesswidener",
+  "accessWidener": "fabpose.accesswidener",
   "depends": {
-    "fabricloader": ">=0.14.24",
+    "fabricloader": ">=${loader_version}",
     "fabric-api": "*",
-    "minecraft": ">=1.20.2",
+    "minecraft": ">=${minecraft_version}",
     "java": ">=17",
-    "fabric-language-kotlin": ">=1.10.17+kotlin.1.9.22"
+    "fabric-language-kotlin": ">=${flk_version}"
   },
   "custom": {
     "loom:injected_interfaces": {

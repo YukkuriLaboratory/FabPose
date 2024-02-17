@@ -20,8 +20,8 @@ import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.test.GameTest
 import net.minecraft.test.TestContext
 import net.minecraft.util.math.BlockPos
-import net.yukulab.fabsit.DelegatedLogger
-import net.yukulab.fabsit.extension.pose
+import net.yukulab.fabpose.DelegatedLogger
+import net.yukulab.fabpose.extension.pose
 
 @Suppress("UNUSED")
 class TestPoseManagerEntity : FabricGameTest {

@@ -1,4 +1,4 @@
-package net.yukulab.fabsit.extension
+package net.yukulab.fabpose.extension
 
 import net.fill1890.fabsit.extension.ModFlag
 import net.fill1890.fabsit.mixin.accessor.ClientConnectionAccessor

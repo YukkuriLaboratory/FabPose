@@ -6,7 +6,7 @@ import net.fill1890.fabsit.FabSit;
 import net.fill1890.fabsit.entity.Pose;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
-import net.yukulab.fabsit.network.packet.play.PoseRequestC2SPacket;
+import net.yukulab.fabpose.network.packet.play.PoseRequestC2SPacket;
 import org.jetbrains.annotations.VisibleForTesting;
 
 public abstract class PoseKeybinds {

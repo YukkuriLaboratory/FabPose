@@ -1,4 +1,4 @@
-package net.yukulab.fabsit
+package net.yukulab.fabpose
 
 import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.CoroutineScope
@@ -9,11 +9,11 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
-import net.yukulab.fabsit.command.Command
-import net.yukulab.fabsit.entity.FabSitEntities
-import net.yukulab.fabsit.network.Networking
+import net.yukulab.fabpose.command.Command
+import net.yukulab.fabpose.entity.FabSitEntities
+import net.yukulab.fabpose.network.Networking
 
-class FabSit : ModInitializer {
+class FabPose : ModInitializer {
     private val job = Job()
     override fun onInitialize() {
         coroutineScope = CoroutineScope(Dispatchers.Default + job)

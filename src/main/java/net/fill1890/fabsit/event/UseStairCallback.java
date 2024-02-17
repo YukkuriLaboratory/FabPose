@@ -18,8 +18,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
-import net.yukulab.fabsit.entity.define.PoseManagerEntity;
-import net.yukulab.fabsit.extension.ServerPlayerEntityKt;
+import net.yukulab.fabpose.entity.define.PoseManagerEntity;
+import net.yukulab.fabpose.extension.ServerPlayerEntityKt;
 
 public class UseStairCallback {
     public static ActionResult interact(PlayerEntity player, World world, Hand hand, BlockHitResult hitResult) {

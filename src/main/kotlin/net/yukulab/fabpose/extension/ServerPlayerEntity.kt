@@ -1,4 +1,4 @@
-package net.yukulab.fabsit.extension
+package net.yukulab.fabpose.extension
 
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.launch
@@ -11,9 +11,9 @@ import net.fill1890.fabsit.error.PoseException
 import net.minecraft.entity.SpawnReason
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.util.math.Vec3d
-import net.yukulab.fabsit.entity.FabSitEntities
-import net.yukulab.fabsit.entity.define.PoseManagerEntity
-import net.yukulab.fabsit.serverScope
+import net.yukulab.fabpose.entity.FabSitEntities
+import net.yukulab.fabpose.entity.define.PoseManagerEntity
+import net.yukulab.fabpose.serverScope
 
 @JvmOverloads
 fun ServerPlayerEntity.pose(pose: Pose, targetSitPos: Vec3d? = null, chairPosition: ChairPosition = ChairPosition.ON_BLOCK, checkSpam: Boolean = true): Result<Unit> =

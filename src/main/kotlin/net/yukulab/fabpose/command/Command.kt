@@ -1,4 +1,4 @@
-package net.yukulab.fabsit.command
+package net.yukulab.fabpose.command
 
 import com.mojang.brigadier.CommandDispatcher
 import com.mojang.brigadier.builder.LiteralArgumentBuilder.literal
@@ -10,9 +10,9 @@ import net.fill1890.fabsit.error.PoseException
 import net.fill1890.fabsit.util.Messages
 import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.text.Text
-import net.yukulab.fabsit.DelegatedLogger
-import net.yukulab.fabsit.MOD_ID
-import net.yukulab.fabsit.extension.pose
+import net.yukulab.fabpose.DelegatedLogger
+import net.yukulab.fabpose.MOD_ID
+import net.yukulab.fabpose.extension.pose
 
 object Command {
     private const val PERMISSION_NAME = "$MOD_ID.commands"

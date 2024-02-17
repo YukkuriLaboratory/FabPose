@@ -30,9 +30,9 @@ public class FabSit implements ModInitializer {
 		try {
 			ConfigManager.loadConfig();
 		} catch(LoadConfigException ignored) {
-			LOGGER.warn("FabSit config not loaded! Using default settings");
+            LOGGER.warn("FabPose config not loaded! Using default settings");
 		}
 
-		LOGGER.info("FabSit loaded");
+        LOGGER.info("FabPose loaded");
 	}
 }

@@ -28,9 +28,9 @@ import net.minecraft.client.option.Perspective
 import net.minecraft.screen.ScreenTexts
 import net.minecraft.text.Text
 import net.minecraft.util.crash.CrashReport
-import net.yukulab.fabsit.DelegatedLogger
-import net.yukulab.fabsit.extension.accessor
-import net.yukulab.fabsit.extension.loop
+import net.yukulab.fabpose.DelegatedLogger
+import net.yukulab.fabpose.extension.accessor
+import net.yukulab.fabpose.extension.loop
 import org.spongepowered.asm.mixin.MixinEnvironment
 import test.keybind.TestPoseKeybindings
 

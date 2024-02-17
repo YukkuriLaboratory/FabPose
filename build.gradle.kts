@@ -65,16 +65,20 @@ repositories {
     maven("https://oss.sonatype.org/content/repositories/snapshots")
 }
 
+val minecraftVersion = project.property("minecraft_version")
+val loaderVersion = project.property("loader_version")
+val fabricVersion = project.property("fabric_version")
+val flkVersion = project.property("flk_version")
 dependencies {
     // To change the versions see the gradle.properties file
-    minecraft("com.mojang:minecraft:${project.property("minecraft_version")}")
+    minecraft("com.mojang:minecraft:$minecraftVersion")
     mappings("net.fabricmc:yarn:${project.property("yarn_mappings")}:v2")
-    modImplementation("net.fabricmc:fabric-loader:${project.property("loader_version")}")
+    modImplementation("net.fabricmc:fabric-loader:$loaderVersion")
 
     // Fabric API. This is technically optional, but you probably want it anyway.
-    modImplementation("net.fabricmc.fabric-api:fabric-api:${project.property("fabric_version")}")
+    modImplementation("net.fabricmc.fabric-api:fabric-api:$fabricVersion")
     // Kotlin
-    modImplementation("net.fabricmc:fabric-language-kotlin:1.10.17+kotlin.1.9.22")
+    modImplementation("net.fabricmc:fabric-language-kotlin:$flkVersion")
     // Permissions API
     modImplementation(include("me.lucko:fabric-permissions-api:0.1-SNAPSHOT")!!)
 
@@ -91,7 +95,7 @@ dependencies {
 }
 
 loom {
-    accessWidenerPath.set(file("src/main/resources/fabsit.accesswidener"))
+    accessWidenerPath.set(file("src/main/resources/fabpose.accesswidener"))
     runtimeOnlyLog4j.set(true)
 
     runs {
@@ -129,10 +133,22 @@ loom {
 }
 
 tasks.processResources {
-    inputs.property("version", project.version)
+    inputs.properties(
+        "loader_version" to loaderVersion,
+        "version" to project.version,
+        "fabric_version" to fabricVersion,
+        "minecraft_version" to minecraftVersion,
+        "flk_version" to flkVersion,
+    )
 
     filesMatching("fabric.mod.json") {
-        expand("version" to project.version)
+        expand(
+            "loader_version" to loaderVersion,
+            "version" to project.version,
+            "fabric_version" to fabricVersion,
+            "minecraft_version" to minecraftVersion,
+            "flk_version" to flkVersion,
+        )
     }
 }
 

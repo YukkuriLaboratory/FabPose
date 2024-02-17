@@ -1,4 +1,4 @@
-package net.yukulab.fabsit.extension
+package net.yukulab.fabpose.extension
 
 import java.time.Instant
 import net.fill1890.fabsit.entity.Pose

@@ -1,4 +1,4 @@
-package net.yukulab.fabsit.extension
+package net.yukulab.fabpose.extension
 
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds

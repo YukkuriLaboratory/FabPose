@@ -11,8 +11,8 @@ import net.fill1890.fabsit.keybind.PoseKeybinds
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.option.KeyBinding
 import net.minecraft.client.util.InputUtil
-import net.yukulab.fabsit.extension.currentPose
-import net.yukulab.fabsit.extension.loop
+import net.yukulab.fabpose.extension.currentPose
+import net.yukulab.fabpose.extension.loop
 import runner.clientDispatcher
 
 object TestPoseKeybindings {

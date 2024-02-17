@@ -1,4 +1,4 @@
-package net.yukulab.fabsit.network.packet.play
+package net.yukulab.fabpose.network.packet.play
 
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
@@ -10,8 +10,8 @@ import net.minecraft.network.PacketByteBuf
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.network.ServerPlayNetworkHandler
 import net.minecraft.server.network.ServerPlayerEntity
-import net.yukulab.fabsit.extension.pose
-import net.yukulab.fabsit.network.Networking
+import net.yukulab.fabpose.extension.pose
+import net.yukulab.fabpose.network.Networking
 
 object PoseRequestC2SPacket {
     fun onReceive(
