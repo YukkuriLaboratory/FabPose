@@ -6,8 +6,8 @@ import net.fill1890.fabsit.mixin.accessor.EntityAccessor;
 import net.minecraft.entity.EntityPose;
 import net.minecraft.entity.data.DataTracker;
 import net.minecraft.entity.data.TrackedData;
+import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.player.PlayerEntity;
-import net.yukulab.fabsit.entity.data.TrackedDataHandlers;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -16,12 +16,12 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.time.Instant;
-import java.util.Optional;
+import java.util.OptionalInt;
 
 @Mixin(PlayerEntity.class)
 abstract public class PlayerEntityMixin implements PosingFlag {
     @Unique
-    private static TrackedData<Optional<Pose>> FABSIT_TRACKER_POSE;
+    private static TrackedData<OptionalInt> FABSIT_TRACKER_POSE;
 
     @Unique
     Instant fabSit$lastPoseTime;
@@ -46,7 +46,7 @@ abstract public class PlayerEntityMixin implements PosingFlag {
     private static void initDataTracker(CallbackInfo ci) {
         FABSIT_TRACKER_POSE = DataTracker.registerData(
                 PlayerEntity.class,
-                TrackedDataHandlers.POSE_HANDLER
+                TrackedDataHandlerRegistry.OPTIONAL_INT
         );
     }
 
@@ -56,14 +56,15 @@ abstract public class PlayerEntityMixin implements PosingFlag {
     )
     private void initCustomTracker(CallbackInfo ci) {
         var dataTracker = ((EntityAccessor) this).getDataTracker();
-        dataTracker.startTracking(FABSIT_TRACKER_POSE, Optional.empty());
+        dataTracker.startTracking(FABSIT_TRACKER_POSE, OptionalInt.empty());
     }
 
 
     @Override
     public void fabSit$setPosing(@Nullable Pose posing) {
         var dataTracker = ((EntityAccessor) this).getDataTracker();
-        dataTracker.set(FABSIT_TRACKER_POSE, Optional.ofNullable(posing));
+        var ordinal = posing != null ? OptionalInt.of(posing.ordinal()) : OptionalInt.empty();
+        dataTracker.set(FABSIT_TRACKER_POSE, ordinal);
         if (posing != null) {
             fabSit$lastPoseTime = Instant.now();
         } else {
@@ -75,7 +76,12 @@ abstract public class PlayerEntityMixin implements PosingFlag {
     @Override
     public @Nullable Pose fabSit$currentPose() {
         var dataTracker = ((EntityAccessor) this).getDataTracker();
-        return dataTracker.get(FABSIT_TRACKER_POSE).orElse(null);
+        var ordinal = dataTracker.get(FABSIT_TRACKER_POSE);
+        if (ordinal.isPresent()) {
+            return Pose.values()[ordinal.getAsInt()];
+        } else {
+            return null;
+        }
     }
 
     @Override
