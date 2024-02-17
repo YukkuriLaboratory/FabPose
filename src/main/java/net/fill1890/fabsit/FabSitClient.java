@@ -29,7 +29,6 @@ public class FabSitClient implements ClientModInitializer {
         // renderer is required for all registered entities, but we don't want to render them
         // so pass in an empty renderer
         EntityRendererRegistry.register(FabSit.CHAIR_ENTITY_TYPE, EmptyRenderer::new);
-        EntityRendererRegistry.register(FabSit.RAW_CHAIR_ENTITY_TYPE, EmptyRenderer::new);
 
         // keybinds for posing
         PoseKeybinds.register();

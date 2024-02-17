@@ -2,12 +2,12 @@ package net.fill1890.fabsit.keybind;
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fill1890.fabsit.FabSit;
 import net.fill1890.fabsit.entity.Pose;
-import net.fill1890.fabsit.network.PoseRequestC2SPacket;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
+import net.yukulab.fabpose.network.packet.play.PoseRequestC2SPacket;
+import org.jetbrains.annotations.VisibleForTesting;
 
 public abstract class PoseKeybinds {
     // translation keys for controls screen
@@ -15,10 +15,14 @@ public abstract class PoseKeybinds {
     private static final String CATEGORY = "key." + FabSit.MOD_ID + ".category";
 
     // sit, lay, and spin hotkeys
-    private static final KeyBinding sitKey = emptyKey("sit");
-    private static final KeyBinding layKey = emptyKey("lay");
-    private static final KeyBinding spinKey = emptyKey("spin");
-    private static final KeyBinding swimKey = emptyKey("swim");
+    @VisibleForTesting
+    public static final KeyBinding sitKey = emptyKey("sit");
+    @VisibleForTesting
+    public static final KeyBinding layKey = emptyKey("lay");
+    @VisibleForTesting
+    public static final KeyBinding spinKey = emptyKey("spin");
+    @VisibleForTesting
+    public static final KeyBinding swimKey = emptyKey("swim");
 
     private static KeyBinding emptyKey(String base) {
         return KeyBindingHelper.registerKeyBinding(
@@ -29,18 +33,18 @@ public abstract class PoseKeybinds {
     public static void register() {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             while(sitKey.wasPressed()) {
-                ClientPlayNetworking.send(FabSit.REQUEST_CHANNEL, new PoseRequestC2SPacket(Pose.SITTING).buf());
+                PoseRequestC2SPacket.send(Pose.SITTING);
             }
 
             while(layKey.wasPressed()) {
-                ClientPlayNetworking.send(FabSit.REQUEST_CHANNEL, new PoseRequestC2SPacket(Pose.LAYING).buf());
+                PoseRequestC2SPacket.send(Pose.LAYING);
             }
 
             while(spinKey.wasPressed()) {
-                ClientPlayNetworking.send(FabSit.REQUEST_CHANNEL, new PoseRequestC2SPacket(Pose.SPINNING).buf());
+                PoseRequestC2SPacket.send(Pose.SPINNING);
             }
             while (swimKey.wasPressed()) {
-                ClientPlayNetworking.send(FabSit.REQUEST_CHANNEL, new PoseRequestC2SPacket(Pose.SWIMMING).buf());
+                PoseRequestC2SPacket.send(Pose.SWIMMING);
             }
         });
     }

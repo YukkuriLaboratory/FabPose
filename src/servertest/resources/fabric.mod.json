@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "id": "fabsitservertest",
+  "version": "1",
+  "entrypoints": {
+    "main": [],
+    "fabric-gametest": [
+      "test.entity.TestPoseManagerEntity"
+    ]
+  }
+}

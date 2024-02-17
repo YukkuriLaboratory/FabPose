@@ -1,12 +1,8 @@
 package net.fill1890.fabsit.mixin.injector;
 
-import net.fill1890.fabsit.config.ConfigManager;
-import net.fill1890.fabsit.entity.PoseManagerEntity;
-import net.fill1890.fabsit.mixin.accessor.ServerCommonNetworkHandlerAccessor;
-import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.yukulab.fabpose.entity.define.PoseManagerEntity;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -16,19 +12,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  */
 @Mixin(ServerPlayerEntity.class)
 public abstract class ServerPlayerEntityMixin {
-
-    @Shadow public ServerPlayNetworkHandler networkHandler;
-
-    /**
-     * Remove players from the loaded players list, if present
-     *
-     * @param ci mixin callback info
-     */
-    @Inject(at = @At("HEAD"), method = "onDisconnect")
-    private void removeFromConfig(CallbackInfo ci) {
-        var connection = ((ServerCommonNetworkHandlerAccessor) networkHandler).getConnection();
-        ConfigManager.loadedPlayers.remove(connection.getAddress());
-    }
 
     /**
      * Remove player seats from the world when they disconnect

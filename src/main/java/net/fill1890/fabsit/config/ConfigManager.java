@@ -8,17 +8,21 @@ import com.google.gson.JsonSyntaxException;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fill1890.fabsit.FabSit;
 import net.fill1890.fabsit.error.LoadConfigException;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.math.BlockPos;
 import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.lang.reflect.Type;
-import java.net.SocketAddress;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -31,15 +35,6 @@ public abstract class ConfigManager {
     private static Config CONFIG;
     // language data
     public static Map<String, String> LANG;
-    // blocks currently occupied for posing
-    public static ArrayList<BlockPos> occupiedBlocks = new ArrayList<>();
-
-    // players that have the mod loaded
-    public static final ArrayList<SocketAddress> loadedPlayers = new ArrayList<>();
-
-    // record of the last time each player used a pose command
-    // to prevent spamming
-    public static final HashMap<ServerPlayerEntity, Long> lastUses= new HashMap<>();
 
     public static Config getConfig() {
         return CONFIG;
