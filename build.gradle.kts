@@ -76,8 +76,23 @@ dependencies {
     mappings("net.fabricmc:yarn:${project.property("yarn_mappings")}:v2")
     modImplementation("net.fabricmc:fabric-loader:$loaderVersion")
 
-    // Fabric API. This is technically optional, but you probably want it anyway.
-    modImplementation("net.fabricmc.fabric-api:fabric-api:$fabricVersion")
+    setOf(
+        "fabric-api-base",
+        "fabric-command-api-v2",
+        "fabric-events-interaction-v0",
+        "fabric-key-binding-api-v1",
+        "fabric-lifecycle-events-v1",
+        "fabric-networking-api-v1",
+        "fabric-registry-sync-v0",
+        "fabric-rendering-v1",
+        "fabric-object-builder-api-v1",
+        "fabric-gametest-api-v1",
+    ).forEach {
+        // Fabric API. This is technically optional, but you probably want it anyway.
+        modImplementation(fabricApi.module(it, fabricVersion.toString()))
+    }
+    // For Gametests
+    modLocalRuntime("net.fabricmc.fabric-api:fabric-api:$fabricVersion")
     // Kotlin
     modImplementation("net.fabricmc:fabric-language-kotlin:$flkVersion")
     // Permissions API
