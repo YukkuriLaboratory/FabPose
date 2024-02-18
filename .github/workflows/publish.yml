@@ -1,0 +1,53 @@
+name: Publish on GitHub, CurseForge & Modrinth
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check environment variables
+        run: env
+      - uses: actions/checkout@v4
+      - name: get release tag
+        id: rawtag
+        uses: olegtarasov/get-tag@v2.1.2
+        with:
+          tagRegex: "v(.*)"
+      - uses: winterjung/split@v2
+        id: tag
+        with:
+          msg: ${{ steps.rawtag.outputs.tag }}
+          separator: '+'
+      - uses: actions/setup-java@v2
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - name: Build with Gradle
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: build
+        env:
+          MOD_VERSION: ${{ steps.tag.outputs._0 }}
+
+      - uses: Kir-Antipov/mc-publish@v3.3
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          curseforge-id: ${{ secrets.CURSEFORGE_ID }}
+          curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
+          modrinth-id: ${{ secrets.MODRINTH_ID }}
+          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+          version: ${{ steps.tag.outputs._0 }}
+          version-type: release
+          java: 17
+          loaders: fabric
+          game-versions: ${{ steps.tag.outputs._1 }}
+          files: |
+            build/libs/fabpose-${{ steps.tag.outputs._0 }}+${{ steps.tag.outputs._1 }}.jar
+            build/libs/fabpose-${{ steps.tag.outputs._0 }}+${{ steps.tag.outputs._1 }}-sources.jar

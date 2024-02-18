@@ -25,9 +25,11 @@ plugins {
     id("org.jmailen.kotlinter") version "4.2.0"
 }
 
+val minecraftVersion = project.property("minecraft_version")
+val modVersion = System.getenv("MOD_VERSION") ?: "0.0.0"
 base {
     archivesName.set(project.property("archives_base_name") as? String)
-    version = project.property("mod_version")!!
+    version = "$modVersion+$minecraftVersion"
     group = project.property("maven_group")!!
 }
 
@@ -65,7 +67,6 @@ repositories {
     maven("https://oss.sonatype.org/content/repositories/snapshots")
 }
 
-val minecraftVersion = project.property("minecraft_version")
 val loaderVersion = project.property("loader_version")
 val fabricVersion = project.property("fabric_version")
 val flkVersion = project.property("flk_version")
