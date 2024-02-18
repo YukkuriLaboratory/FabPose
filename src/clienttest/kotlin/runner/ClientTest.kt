@@ -15,10 +15,10 @@ import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gui.screen.AccessibilityOnboardingScreen
 import net.minecraft.client.gui.screen.GameMenuScreen
-import net.minecraft.client.gui.screen.LevelLoadingScreen
 import net.minecraft.client.gui.screen.Screen
 import net.minecraft.client.gui.screen.TitleScreen
 import net.minecraft.client.gui.screen.world.CreateWorldScreen
+import net.minecraft.client.gui.screen.world.LevelLoadingScreen
 import net.minecraft.client.gui.screen.world.SelectWorldScreen
 import net.minecraft.client.gui.widget.ButtonWidget
 import net.minecraft.client.gui.widget.CyclingButtonWidget

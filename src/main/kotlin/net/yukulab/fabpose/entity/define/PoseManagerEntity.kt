@@ -168,7 +168,7 @@ class PoseManagerEntity(entityType: EntityType<out PoseManagerEntity>, world: Wo
                 // if the pose is more complex than sitting, create a posing npc
                 val pose = playerEntity.currentPose
                 if (pose in setOf(Pose.LAYING, Pose.SPINNING)) {
-                    val gameProfile = GameProfile(UUID.randomUUID(), playerEntity.entityName)
+                    val gameProfile = GameProfile(UUID.randomUUID(), playerEntity.nameForScoreboard)
                     gameProfile.properties.putAll(playerEntity.gameProfile.properties)
 
                     if (pose == Pose.LAYING) {
