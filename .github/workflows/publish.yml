@@ -43,6 +43,7 @@ jobs:
           curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
           modrinth-id: ${{ secrets.MODRINTH_ID }}
           modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+          name: ${{ steps.rawtag.outputs.tag }}
           version: ${{ steps.tag.outputs._0 }}
           version-type: release
           java: 17
