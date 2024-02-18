@@ -23,7 +23,6 @@
       "net.yukulab.fabpose.FabPoseClient"
     ],
     "server": [
-      "net.fill1890.fabsit.FabSitServer"
     ]
   },
   "mixins": [

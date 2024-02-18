@@ -1,9 +1,11 @@
 package net.fill1890.fabsit;
 
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fill1890.fabsit.config.ConfigManager;
 import net.fill1890.fabsit.entity.ChairEntity;
 import net.fill1890.fabsit.error.LoadConfigException;
+import net.fill1890.fabsit.event.UseStairCallback;
 import net.minecraft.entity.EntityType;
 import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
@@ -32,6 +34,8 @@ public class FabSit implements ModInitializer {
 		} catch(LoadConfigException ignored) {
             LOGGER.warn("FabPose config not loaded! Using default settings");
 		}
+        // use a stair to sit
+        UseBlockCallback.EVENT.register(UseStairCallback::interact);
 
         LOGGER.info("FabPose loaded");
 	}

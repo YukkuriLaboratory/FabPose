@@ -23,6 +23,7 @@ import net.yukulab.fabpose.extension.ServerPlayerEntityKt;
 
 public class UseStairCallback {
     public static ActionResult interact(PlayerEntity player, World world, Hand hand, BlockHitResult hitResult) {
+        if (!(player instanceof ServerPlayerEntity)) return ActionResult.PASS;
         // only allow interaction if enabled
         if(!ConfigManager.getConfig().right_click_sit)
             return ActionResult.PASS;
