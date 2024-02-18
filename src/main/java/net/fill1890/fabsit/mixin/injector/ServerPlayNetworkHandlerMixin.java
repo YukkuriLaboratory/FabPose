@@ -6,8 +6,10 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.network.PacketCallbacks;
+import net.minecraft.network.listener.ClientPlayPacketListener;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.c2s.play.HandSwingC2SPacket;
+import net.minecraft.network.packet.s2c.play.BundleS2CPacket;
 import net.minecraft.network.packet.s2c.play.EntityAnimationS2CPacket;
 import net.minecraft.network.packet.s2c.play.EntityAttributesS2CPacket;
 import net.minecraft.network.packet.s2c.play.EntitySpawnS2CPacket;
@@ -21,6 +23,7 @@ import net.yukulab.fabpose.entity.define.PoseManagerEntity;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -71,22 +74,14 @@ public abstract class ServerPlayNetworkHandlerMixin extends ServerCommonNetworkH
     @Override
     public void send(Packet<?> packet, @Nullable PacketCallbacks callbacks) {
         // check for spawn packets, then spawn packets for the poser
-        if (packet instanceof EntitySpawnS2CPacket sp && sp.getEntityType() == FabSitEntities.POSE_MANAGER) {
-
-            // if fabsit loaded, replace with the chair entity to hide horse hearts
-            if (connection.fabSit$isModEnabled()) {
-                ((EntitySpawnPacketAccessor) sp).setEntityTypeId(FabSit.CHAIR_ENTITY_TYPE);
-                ((EntitySpawnPacketAccessor) sp).setY(sp.getY() + 0.75);
-
-                // if not just replace with an armour stand
-            } else {
-                ((EntitySpawnPacketAccessor) sp).setEntityTypeId(EntityType.ARMOR_STAND);
+        if (packet instanceof EntitySpawnS2CPacket sp) {
+            fabPose$modifySpawnPacket(sp);
+        } else if (packet instanceof BundleS2CPacket bp) {
+            for (Packet<ClientPlayPacketListener> p : bp.getPackets()) {
+                if (p instanceof EntitySpawnS2CPacket sp) {
+                    fabPose$modifySpawnPacket(sp);
+                }
             }
-
-            // send the updated packet
-            super.send(sp, callbacks);
-            // prevent further packet action
-            return;
         }
 
         // check for entity attribute packets, and block for clients with fabsit
@@ -105,11 +100,26 @@ public abstract class ServerPlayNetworkHandlerMixin extends ServerCommonNetworkH
             }
 
             // cancel packet if player has fabsit loaded
-            if (!connection.fabSit$isModEnabled()) {
-                super.send(ap, callbacks);
+            if (connection.fabSit$isModEnabled()) {
                 return;
             }
         }
         super.send(packet, callbacks);
+    }
+
+    @Unique
+    private void fabPose$modifySpawnPacket(EntitySpawnS2CPacket sp) {
+        if (sp.getEntityType() == FabSitEntities.POSE_MANAGER) {
+
+            // if fabsit loaded, replace with the chair entity to hide horse hearts
+            if (connection.fabSit$isModEnabled()) {
+                ((EntitySpawnPacketAccessor) sp).setEntityTypeId(FabSit.CHAIR_ENTITY_TYPE);
+
+                ((EntitySpawnPacketAccessor) sp).setY(sp.getY() + 0.75);
+                // if not just replace with an armour stand
+            } else {
+                ((EntitySpawnPacketAccessor) sp).setEntityTypeId(EntityType.ARMOR_STAND);
+            }
+        }
     }
 }
