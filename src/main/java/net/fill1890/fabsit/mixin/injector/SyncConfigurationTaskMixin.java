@@ -53,8 +53,9 @@ public abstract class SyncConfigurationTaskMixin {
 
             var id = RegistryKeys.ENTITY_TYPE.getValue();
             // scrub entities from the syncing registry
-            map.get(id).removeInt(new Identifier(FabSit.MOD_ID, ChairEntity.ENTITY_ID));
-            map.get(id).removeInt(Registries.ENTITY_TYPE.getKey(FabSitEntities.POSE_MANAGER));
+            var entityTypeMap = map.get(id);
+            entityTypeMap.removeInt(new Identifier(FabSit.MOD_ID, ChairEntity.ENTITY_ID));
+            entityTypeMap.removeInt(Registries.ENTITY_TYPE.getId(FabSitEntities.POSE_MANAGER));
         }
     }
 
