@@ -3,6 +3,7 @@ package net.yukulab.fabpose.network
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.fabricmc.fabric.api.client.networking.v1.ClientLoginNetworking
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry
 import net.fabricmc.fabric.api.networking.v1.ServerLoginConnectionEvents
 import net.fabricmc.fabric.api.networking.v1.ServerLoginNetworking
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
@@ -16,9 +17,11 @@ object Networking {
     val POSE_REQUEST: Identifier = id("poserequest")
 
     fun registerServerHandlers() {
+        PayloadTypeRegistry.playC2S().register(PoseRequestC2SPacket.ID, PoseRequestC2SPacket.CODEC)
+
         ServerLoginConnectionEvents.QUERY_START.register(HandShakeS2CPacket::sendQuery)
         ServerLoginNetworking.registerGlobalReceiver(HANDSHAKE, HandShakeS2CPacket::onHandShakeServer)
-        ServerPlayNetworking.registerGlobalReceiver(POSE_REQUEST, PoseRequestC2SPacket::onReceive)
+        ServerPlayNetworking.registerGlobalReceiver(PoseRequestC2SPacket.ID, PoseRequestC2SPacket::onReceive)
     }
 
     @Environment(EnvType.CLIENT)

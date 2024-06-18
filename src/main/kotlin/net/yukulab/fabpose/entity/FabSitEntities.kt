@@ -3,6 +3,7 @@ package net.yukulab.fabpose.entity
 import net.fabricmc.fabric.api.`object`.builder.v1.entity.FabricDefaultAttributeRegistry
 import net.fabricmc.fabric.api.`object`.builder.v1.entity.FabricEntityTypeBuilder
 import net.minecraft.entity.Entity
+import net.minecraft.entity.EntityAttachments
 import net.minecraft.entity.EntityDimensions
 import net.minecraft.entity.EntityType
 import net.minecraft.entity.SpawnGroup
@@ -18,7 +19,8 @@ object FabSitEntities {
     val POSE_MANAGER: EntityType<PoseManagerEntity> = register(
         "pose_manager",
         FabricEntityTypeBuilder.create(SpawnGroup.MISC, ::PoseManagerEntity)
-            .dimensions(EntityDimensions(0.5f, 1.975f, true))
+            .dimensions(EntityDimensions(0.5f, 1.975f,
+                1.975f * 0.85f,  EntityAttachments.of(0.5f, 1.975f), true))
             .build(),
     )
 

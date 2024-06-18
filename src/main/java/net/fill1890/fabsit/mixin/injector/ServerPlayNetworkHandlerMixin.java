@@ -77,7 +77,7 @@ public abstract class ServerPlayNetworkHandlerMixin extends ServerCommonNetworkH
         if (packet instanceof EntitySpawnS2CPacket sp) {
             fabPose$modifySpawnPacket(sp);
         } else if (packet instanceof BundleS2CPacket bp) {
-            for (Packet<ClientPlayPacketListener> p : bp.getPackets()) {
+            for (Packet<? super ClientPlayPacketListener> p : bp.getPackets()) {
                 if (p instanceof EntitySpawnS2CPacket sp) {
                     fabPose$modifySpawnPacket(sp);
                 }
@@ -86,7 +86,7 @@ public abstract class ServerPlayNetworkHandlerMixin extends ServerCommonNetworkH
 
         // check for entity attribute packets, and block for clients with fabsit
         // clients spit an error into logs when we try to update a non-living entity with living attributes
-        if(packet instanceof EntityAttributesS2CPacket ap) {
+        if (packet instanceof EntityAttributesS2CPacket ap) {
             Entity entity = player.getWorld().getEntityById(ap.getEntityId());
             if (entity == null) {
                 super.send(packet, callbacks);
@@ -113,9 +113,10 @@ public abstract class ServerPlayNetworkHandlerMixin extends ServerCommonNetworkH
 
             // if fabsit loaded, replace with the chair entity to hide horse hearts
             if (connection.fabSit$isModEnabled()) {
-                ((EntitySpawnPacketAccessor) sp).setEntityTypeId(FabSit.CHAIR_ENTITY_TYPE);
+                // FIXME: If call setEntityTypeId(), game will crash by ArrayIndexOutOfBoundsException (9 out of 8)
+                // ((EntitySpawnPacketAccessor) sp).setEntityTypeId(FabSit.CHAIR_ENTITY_TYPE);
 
-                ((EntitySpawnPacketAccessor) sp).setY(sp.getY() + 0.75);
+                // ((EntitySpawnPacketAccessor) sp).setY(sp.getY() + 0.75);
                 // if not just replace with an armour stand
             } else {
                 ((EntitySpawnPacketAccessor) sp).setEntityTypeId(EntityType.ARMOR_STAND);

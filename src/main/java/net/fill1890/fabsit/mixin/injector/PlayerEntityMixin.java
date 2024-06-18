@@ -1,5 +1,6 @@
 package net.fill1890.fabsit.mixin.injector;
 
+import net.fill1890.fabsit.FabSit;
 import net.fill1890.fabsit.entity.Pose;
 import net.fill1890.fabsit.extension.PosingFlag;
 import net.fill1890.fabsit.mixin.accessor.EntityAccessor;
@@ -54,9 +55,8 @@ abstract public class PlayerEntityMixin implements PosingFlag {
             method = "initDataTracker",
             at = @At("RETURN")
     )
-    private void initCustomTracker(CallbackInfo ci) {
-        var dataTracker = ((EntityAccessor) this).getDataTracker();
-        dataTracker.startTracking(FABSIT_TRACKER_POSE, OptionalInt.empty());
+    private void initCustomTracker(DataTracker.Builder builder, CallbackInfo ci) {
+        builder.add(FABSIT_TRACKER_POSE, OptionalInt.empty());
     }
 
 

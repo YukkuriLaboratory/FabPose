@@ -47,7 +47,6 @@ fun ServerPlayerEntity.pose(pose: Pose, targetSitPos: Vec3d? = null, chairPositi
         } else {
             val chair = FabSitEntities.POSE_MANAGER.spawn(
                 serverWorld,
-                null,
                 PoseManagerEntity.getInitializer(sitPos, this, chairPosition),
                 blockPos,
                 SpawnReason.COMMAND,

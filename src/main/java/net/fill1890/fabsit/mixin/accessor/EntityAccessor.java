@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 public interface EntityAccessor {
     /**
      * Accessor for the NBT data for an entity pose
-     *
+     * <p>
      * Used to get the NBT location for setting a specific pose
      *
      * @return NBT pose data
