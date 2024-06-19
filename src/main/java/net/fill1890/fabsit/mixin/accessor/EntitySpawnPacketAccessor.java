@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 public interface EntitySpawnPacketAccessor {
     /**
      * Modify type ID of entity
-     *
+     * <p>
      * Used to fake out pose manager packets for cross-compatibility between vanilla and fabsit clients
      *
      * @param type new entity type
@@ -24,7 +24,7 @@ public interface EntitySpawnPacketAccessor {
 
     /**
      * Modify y-position of entity
-     *
+     * <p>
      * Used to adjust y-positions of entities for consistency between vanilla and fabsit clients
      *
      * @param y new position

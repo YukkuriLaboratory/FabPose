@@ -27,7 +27,7 @@ jobs:
           separator: '+'
       - uses: actions/setup-java@v2
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: 'temurin'
       - name: Build with Gradle
         uses: gradle/gradle-build-action@v2
@@ -46,7 +46,7 @@ jobs:
           name: ${{ steps.rawtag.outputs.tag }}
           version: ${{ steps.tag.outputs._0 }}
           version-type: release
-          java: 17
+          java: 21
           loaders: fabric
           game-versions: ${{ steps.tag.outputs._1 }}
           files: |

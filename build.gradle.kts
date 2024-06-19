@@ -19,9 +19,9 @@ buildscript {
 }
 
 plugins {
-    id("fabric-loom") version "1.5-SNAPSHOT"
+    id("fabric-loom") version "1.6-SNAPSHOT"
     id("maven-publish")
-    kotlin("jvm") version "1.9.21"
+    kotlin("jvm") version "1.9.24"
     id("org.jmailen.kotlinter") version "4.2.0"
 }
 
@@ -169,13 +169,13 @@ tasks.processResources {
 }
 
 tasks.withType<JavaCompile>().configureEach {
-    // Minecraft 1.18 (1.18-pre2) upwards uses Java 17.
-    options.release = 17
+    // Minecraft 1.20.6 upwards uses Java 21
+    options.release = 21
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
     // Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
     // if it is present.
     // If you remove this line, sources will not be generated.
@@ -183,9 +183,9 @@ java {
 }
 
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(21)
     compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_17)
+        jvmTarget.set(JvmTarget.JVM_21)
     }
 }
 
