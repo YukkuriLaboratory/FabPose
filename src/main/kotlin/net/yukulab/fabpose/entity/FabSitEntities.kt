@@ -19,8 +19,15 @@ object FabSitEntities {
     val POSE_MANAGER: EntityType<PoseManagerEntity> = register(
         "pose_manager",
         FabricEntityTypeBuilder.create(SpawnGroup.MISC, ::PoseManagerEntity)
-            .dimensions(EntityDimensions(0.5f, 1.975f,
-                1.975f * 0.85f,  EntityAttachments.of(0.5f, 1.975f), true))
+            .dimensions(
+                EntityDimensions(
+                    0.5f,
+                    1.975f,
+                    1.975f * 0.85f,
+                    EntityAttachments.of(0.5f, 1.975f),
+                    true,
+                ),
+            )
             .build(),
     )
 

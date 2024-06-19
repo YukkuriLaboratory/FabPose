@@ -15,13 +15,13 @@ import net.yukulab.fabpose.network.Networking
 data class PoseRequestC2SPacket(val pose: Pose) : CustomPayload {
     companion object {
         val ID: Id<PoseRequestC2SPacket> = Id<PoseRequestC2SPacket>(Networking.POSE_REQUEST)
-        val CODEC: PacketCodec<RegistryByteBuf, PoseRequestC2SPacket> = PacketCodec.of({value, buf ->
+        val CODEC: PacketCodec<RegistryByteBuf, PoseRequestC2SPacket> = PacketCodec.of({ value, buf ->
             buf.writeEnumConstant(value.pose)
-        }, {buf -> PoseRequestC2SPacket(buf.readEnumConstant(Pose::class.java))})
+        }, { buf -> PoseRequestC2SPacket(buf.readEnumConstant(Pose::class.java)) })
 
         fun onReceive(
             payload: PoseRequestC2SPacket,
-            context: ServerPlayNetworking.Context
+            context: ServerPlayNetworking.Context,
         ) {
             context.player().pose(payload.pose)
         }
@@ -34,7 +34,6 @@ data class PoseRequestC2SPacket(val pose: Pose) : CustomPayload {
     }
 
     override fun getId(): Id<PoseRequestC2SPacket> {
-        return ID;
+        return ID
     }
-
 }

@@ -8,7 +8,6 @@ import net.fabricmc.fabric.api.networking.v1.LoginPacketSender
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs
 import net.fabricmc.fabric.api.networking.v1.PacketSender
 import net.fabricmc.fabric.api.networking.v1.ServerLoginNetworking
-import net.fill1890.fabsit.FabSit
 import net.fill1890.fabsit.extension.ModFlag
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.network.ClientLoginNetworkHandler
