@@ -25,7 +25,7 @@ fun TestContext.createMockServerPlayer(relativePos: BlockPos = BlockPos(0, 1, 0)
             world.server,
             MockClientConnection(NetworkSide.SERVERBOUND),
             it,
-            ConnectedClientData.createDefault(it.gameProfile),
+            ConnectedClientData.createDefault(it.gameProfile, true),
         )
         it.refreshPositionAndAngles(getAbsolutePos(relativePos), 0f, 0f)
         it.changeGameMode(GameMode.CREATIVE)
