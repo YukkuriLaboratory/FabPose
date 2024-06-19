@@ -45,7 +45,7 @@ jobs:
       matrix:
         # Use these Java versions
         java: [
-          17,    # Current Java LTS & minimum supported by Minecraft
+          21,    # Current Java LTS & minimum supported by Minecraft
         ]
         task: [ build, runServertest, runClienttest ]
     runs-on: ubuntu-latest
