@@ -1,14 +1,11 @@
 package net.fill1890.fabsit.mixin.injector;
 
-import net.fill1890.fabsit.FabSit;
 import net.fill1890.fabsit.entity.Pose;
 import net.fill1890.fabsit.extension.PosingFlag;
-import net.fill1890.fabsit.mixin.accessor.EntityAccessor;
 import net.minecraft.entity.EntityPose;
-import net.minecraft.entity.data.DataTracker;
-import net.minecraft.entity.data.TrackedData;
-import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.yukulab.fabpose.network.packet.play.SyncPoseS2CPacket;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -17,16 +14,16 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.time.Instant;
-import java.util.OptionalInt;
 
 @Mixin(PlayerEntity.class)
 abstract public class PlayerEntityMixin implements PosingFlag {
     @Unique
-    private static TrackedData<OptionalInt> FABSIT_TRACKER_POSE;
+    Pose fabsit$pose;
 
     @Unique
     Instant fabSit$lastPoseTime;
 
+    @SuppressWarnings("UnreachableCode")
     @Inject(
             method = "updatePose",
             at = @At("HEAD"),
@@ -40,48 +37,31 @@ abstract public class PlayerEntityMixin implements PosingFlag {
         }
     }
 
-    @Inject(
-            method = "<clinit>",
-            at = @At("TAIL")
-    )
-    private static void initDataTracker(CallbackInfo ci) {
-        FABSIT_TRACKER_POSE = DataTracker.registerData(
-                PlayerEntity.class,
-                TrackedDataHandlerRegistry.OPTIONAL_INT
-        );
-    }
-
-    @Inject(
-            method = "initDataTracker",
-            at = @At("RETURN")
-    )
-    private void initCustomTracker(DataTracker.Builder builder, CallbackInfo ci) {
-        builder.add(FABSIT_TRACKER_POSE, OptionalInt.empty());
-    }
-
-
+    @SuppressWarnings("UnreachableCode")
     @Override
     public void fabSit$setPosing(@Nullable Pose posing) {
-        var dataTracker = ((EntityAccessor) this).getDataTracker();
-        var ordinal = posing != null ? OptionalInt.of(posing.ordinal()) : OptionalInt.empty();
-        dataTracker.set(FABSIT_TRACKER_POSE, ordinal);
+        fabsit$pose = posing;
+        var player = (PlayerEntity) (Object) this;
         if (posing != null) {
             fabSit$lastPoseTime = Instant.now();
         } else {
-            var player = (PlayerEntity) (Object) this;
             player.stopRiding();
+        }
+        var server = player.getServer();
+        if (server != null) {
+            var currentWorldKey = player.getWorld().getRegistryKey();
+            var packet = new SyncPoseS2CPacket(player.getUuid(), posing);
+            for (ServerPlayerEntity targetPlayer : server.getPlayerManager().getPlayerList()) {
+                if (targetPlayer.getWorld().getRegistryKey() == currentWorldKey) {
+                    packet.send(targetPlayer);
+                }
+            }
         }
     }
 
     @Override
     public @Nullable Pose fabSit$currentPose() {
-        var dataTracker = ((EntityAccessor) this).getDataTracker();
-        var ordinal = dataTracker.get(FABSIT_TRACKER_POSE);
-        if (ordinal.isPresent()) {
-            return Pose.values()[ordinal.getAsInt()];
-        } else {
-            return null;
-        }
+        return fabsit$pose;
     }
 
     @Override
