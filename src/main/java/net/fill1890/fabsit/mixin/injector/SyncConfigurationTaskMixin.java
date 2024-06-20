@@ -2,8 +2,6 @@ package net.fill1890.fabsit.mixin.injector;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import net.fabricmc.fabric.impl.registry.sync.RegistrySyncManager;
-import net.fill1890.fabsit.FabSit;
-import net.fill1890.fabsit.entity.ChairEntity;
 import net.fill1890.fabsit.mixin.accessor.ServerCommonNetworkHandlerAccessor;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.registry.Registries;
@@ -54,7 +52,6 @@ public abstract class SyncConfigurationTaskMixin {
             var id = RegistryKeys.ENTITY_TYPE.getValue();
             // scrub entities from the syncing registry
             var entityTypeMap = map.get(id);
-            entityTypeMap.removeInt(new Identifier(FabSit.MOD_ID, ChairEntity.ENTITY_ID));
             entityTypeMap.removeInt(Registries.ENTITY_TYPE.getId(FabSitEntities.POSE_MANAGER));
         }
     }

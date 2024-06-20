@@ -1,6 +1,5 @@
 package net.fill1890.fabsit.mixin.injector;
 
-import net.fill1890.fabsit.FabSit;
 import net.fill1890.fabsit.mixin.accessor.EntitySpawnPacketAccessor;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
@@ -111,14 +110,8 @@ public abstract class ServerPlayNetworkHandlerMixin extends ServerCommonNetworkH
     private void fabPose$modifySpawnPacket(EntitySpawnS2CPacket sp) {
         if (sp.getEntityType() == FabSitEntities.POSE_MANAGER) {
 
-            // if fabsit loaded, replace with the chair entity to hide horse hearts
-            if (connection.fabSit$isModEnabled()) {
-                // FIXME: If call setEntityTypeId(), game will crash by ArrayIndexOutOfBoundsException (9 out of 8)
-                // ((EntitySpawnPacketAccessor) sp).setEntityTypeId(FabSit.CHAIR_ENTITY_TYPE);
-
-                // ((EntitySpawnPacketAccessor) sp).setY(sp.getY() + 0.75);
-                // if not just replace with an armour stand
-            } else {
+            // if fabsit not loaded, replace PoseManager entity to vanilla ArmorStand
+            if (!connection.fabSit$isModEnabled()) {
                 ((EntitySpawnPacketAccessor) sp).setEntityTypeId(EntityType.ARMOR_STAND);
             }
         }
