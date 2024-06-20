@@ -110,7 +110,7 @@ public abstract class ServerPlayNetworkHandlerMixin extends ServerCommonNetworkH
     private void fabPose$modifySpawnPacket(EntitySpawnS2CPacket sp) {
         if (sp.getEntityType() == FabSitEntities.POSE_MANAGER) {
 
-            // if fabsit loaded, replace with the chair entity to hide horse hearts
+            // if fabsit not loaded, replace PoseManager entity to vanilla ArmorStand
             if (!connection.fabSit$isModEnabled()) {
                 ((EntitySpawnPacketAccessor) sp).setEntityTypeId(EntityType.ARMOR_STAND);
             }
