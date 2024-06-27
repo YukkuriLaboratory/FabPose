@@ -16,7 +16,7 @@ public abstract class MixinAccessibilityOnboardingScreen {
             ),
             cancellable = true
     )
-    private void suppressNarratorError(Runnable callback, CallbackInfo ci) {
+    private void suppressNarratorError(boolean dontShowAgain, Runnable callback, CallbackInfo ci) {
         callback.run();
         ci.cancel();
     }

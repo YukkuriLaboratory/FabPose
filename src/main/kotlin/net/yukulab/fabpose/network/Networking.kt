@@ -38,5 +38,5 @@ object Networking {
         ClientPlayNetworking.registerGlobalReceiver(SyncPoseS2CPacket.ID, SyncPoseS2CPacket::onReceive)
     }
 
-    private fun id(name: String): Identifier = Identifier(MOD_ID, name)
+    private fun id(name: String): Identifier = Identifier.of(MOD_ID, name)
 }
