@@ -21,7 +21,7 @@ buildscript {
 plugins {
     id("fabric-loom") version "1.6-SNAPSHOT"
     id("maven-publish")
-    kotlin("jvm") version "1.9.24"
+    kotlin("jvm") version "2.0.0"
     id("org.jmailen.kotlinter") version "4.2.0"
 }
 
