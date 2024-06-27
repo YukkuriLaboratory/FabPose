@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.util.Scanner;
 import java.util.UUID;
@@ -21,7 +22,7 @@ public abstract class SkinUtil {
         String reply;
 
         try {
-            url = new URL(String.format(MOJANG_UUID2SKIN, uuid.toString()));
+            url = URI.create(String.format(MOJANG_UUID2SKIN, uuid.toString())).toURL();
         } catch (MalformedURLException e) {
             throw new LoadSkinException.UrlException();
         }
