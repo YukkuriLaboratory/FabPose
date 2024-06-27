@@ -82,7 +82,9 @@ public abstract class PosingEntity extends ServerPlayerEntity {
         if(FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
             FabSit.LOGGER.info("FabSit posing client side - attempting to fetch skin manually");
 
-            Executors.newCachedThreadPool().submit(this::fetchSkinAndUpdate);
+            try (var pool = Executors.newCachedThreadPool()) {
+                pool.submit(this::fetchSkinAndUpdate);
+            }
         }
 
         // poser shouldn't take damage
