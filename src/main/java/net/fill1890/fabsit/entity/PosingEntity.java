@@ -72,6 +72,7 @@ public abstract class PosingEntity extends ServerPlayerEntity {
      * @param player player to base poser on
      * @param gameProfile game profile of player (should have different UUID)
      */
+    @SuppressWarnings("UnreachableCode")
     public PosingEntity(ServerPlayerEntity player, GameProfile gameProfile, SyncedClientOptions clientOptions) {
         // method_48926 = getWorld
         super(player.server, player.getServerWorld(), gameProfile, clientOptions);
@@ -81,7 +82,9 @@ public abstract class PosingEntity extends ServerPlayerEntity {
         if(FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
             FabSit.LOGGER.info("FabSit posing client side - attempting to fetch skin manually");
 
-            Executors.newCachedThreadPool().submit(this::fetchSkinAndUpdate);
+            try (var pool = Executors.newCachedThreadPool()) {
+                pool.submit(this::fetchSkinAndUpdate);
+            }
         }
 
         // poser shouldn't take damage
@@ -118,7 +121,7 @@ public abstract class PosingEntity extends ServerPlayerEntity {
         // remove the poser from the tablist
         this.removePoserPacket = new PlayerRemoveS2CPacket(List.of(this.getUuid()));
         // spawn the poser
-        this.spawnPoserPacket = new EntitySpawnS2CPacket(this);
+        this.spawnPoserPacket = new EntitySpawnS2CPacket(this, 0, getBlockPos());
         // despawn the poser
         this.despawnPoserPacket = new EntitiesDestroyS2CPacket(this.getId());
         // update the poser metadata
@@ -174,7 +177,7 @@ public abstract class PosingEntity extends ServerPlayerEntity {
         this.removingPlayers.forEach(p -> {
             p.networkHandler.sendPacket(this.despawnPoserPacket);
             if(p != player && ConfigManager.getConfig().strongly_remove_players){
-                p.networkHandler.sendPacket(new EntitySpawnS2CPacket(player));
+                p.networkHandler.sendPacket(new EntitySpawnS2CPacket(player, 0, player.getBlockPos()));
                 p.networkHandler.sendPacket(new EntityTrackerUpdateS2CPacket(player.getId(), player.getDataTracker().getChangedEntries()));
             }
         });
@@ -331,7 +334,7 @@ public abstract class PosingEntity extends ServerPlayerEntity {
             p.networkHandler.sendPacket(this.despawnPoserPacket);
 
             if(p != player && ConfigManager.getConfig().strongly_remove_players) {
-                p.networkHandler.sendPacket(new EntitySpawnS2CPacket(player));
+                p.networkHandler.sendPacket(new EntitySpawnS2CPacket(player, 0, player.getBlockPos()));
                 p.networkHandler.sendPacket(new EntityTrackerUpdateS2CPacket(player.getId(), player.getDataTracker().getChangedEntries()));
             }
         });
