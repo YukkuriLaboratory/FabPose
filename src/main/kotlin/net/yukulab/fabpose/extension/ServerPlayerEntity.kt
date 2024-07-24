@@ -75,12 +75,12 @@ fun ServerPlayerEntity.canPose(): Result<Unit> = runCatching {
     val config = ConfigManager.getConfig()
     // check if underwater
     if (isInsideWaterOrBubbleColumn && !config.allow_posing_underwater) {
-        throw PoseException.StateException()
+        throw PoseException.StateException("Cannot pose underwater")
     }
 
     // check if flying, jumping, swimming, sleeping, or underwater
     if (isFallFlying || velocity.y > 0 || isSwimming || isSleeping) {
-        throw PoseException.StateException()
+        throw PoseException.StateException("Cannot pose while flying, jumping, swimming, or sleeping")
     }
 
     val standingBlock = steppingBlockState
