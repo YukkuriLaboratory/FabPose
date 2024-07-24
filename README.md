@@ -24,6 +24,10 @@ Players can then use `/sit` to sit, `/lay` to lie down, `/swim` to swim on land 
 
 Players can also right-click on a slab or stair with an empty hand to sit on it; this is disabled by default but can be enabled in the config file.
 
+# Known issue
+
+- In vanilla client, the player ran `/swim` will not see the animation, but other players can see it.
+
 ## Permissions
 
 Permissions to pose are granted to all players by default.
