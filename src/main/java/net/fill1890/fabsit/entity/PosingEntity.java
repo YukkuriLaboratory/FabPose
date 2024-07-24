@@ -14,7 +14,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.network.packet.c2s.common.SyncedClientOptions;
 import net.minecraft.network.packet.s2c.play.*;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.BlockPos;
@@ -46,7 +45,7 @@ public abstract class PosingEntity extends ServerPlayerEntity {
     // remove poser from the tablist
     private final PlayerRemoveS2CPacket removePoserPacket;
     // spawn poser in the world
-    private final EntitySpawnS2CPacket spawnPoserPacket;
+    private final PlayerSpawnS2CPacket spawnPoserPacket;
     // remove poser from the world
     private final EntitiesDestroyS2CPacket despawnPoserPacket;
     // send poser metadata
@@ -72,9 +71,9 @@ public abstract class PosingEntity extends ServerPlayerEntity {
      * @param player player to base poser on
      * @param gameProfile game profile of player (should have different UUID)
      */
-    public PosingEntity(ServerPlayerEntity player, GameProfile gameProfile, SyncedClientOptions clientOptions) {
+    public PosingEntity(ServerPlayerEntity player, GameProfile gameProfile) {
         // method_48926 = getWorld
-        super(player.server, player.getServerWorld(), gameProfile, clientOptions);
+        super(player.server, player.getServerWorld(), gameProfile);
 
         this.player = player;
 
@@ -118,7 +117,7 @@ public abstract class PosingEntity extends ServerPlayerEntity {
         // remove the poser from the tablist
         this.removePoserPacket = new PlayerRemoveS2CPacket(List.of(this.getUuid()));
         // spawn the poser
-        this.spawnPoserPacket = new EntitySpawnS2CPacket(this);
+        this.spawnPoserPacket = new PlayerSpawnS2CPacket(this);
         // despawn the poser
         this.despawnPoserPacket = new EntitiesDestroyS2CPacket(this.getId());
         // update the poser metadata
@@ -174,7 +173,7 @@ public abstract class PosingEntity extends ServerPlayerEntity {
         this.removingPlayers.forEach(p -> {
             p.networkHandler.sendPacket(this.despawnPoserPacket);
             if(p != player && ConfigManager.getConfig().strongly_remove_players){
-                p.networkHandler.sendPacket(new EntitySpawnS2CPacket(player));
+                p.networkHandler.sendPacket(new PlayerSpawnS2CPacket(player));
                 p.networkHandler.sendPacket(new EntityTrackerUpdateS2CPacket(player.getId(), player.getDataTracker().getChangedEntries()));
             }
         });
@@ -331,7 +330,7 @@ public abstract class PosingEntity extends ServerPlayerEntity {
             p.networkHandler.sendPacket(this.despawnPoserPacket);
 
             if(p != player && ConfigManager.getConfig().strongly_remove_players) {
-                p.networkHandler.sendPacket(new EntitySpawnS2CPacket(player));
+                p.networkHandler.sendPacket(new PlayerSpawnS2CPacket(player));
                 p.networkHandler.sendPacket(new EntityTrackerUpdateS2CPacket(player.getId(), player.getDataTracker().getChangedEntries()));
             }
         });

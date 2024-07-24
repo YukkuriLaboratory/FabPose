@@ -3,7 +3,7 @@ package net.fill1890.fabsit.util;
 import net.fill1890.fabsit.config.ConfigManager;
 import net.fill1890.fabsit.entity.Pose;
 import net.fill1890.fabsit.error.PoseException;
-import net.fill1890.fabsit.mixin.accessor.ServerCommonNetworkHandlerAccessor;
+import net.fill1890.fabsit.mixin.accessor.ServerPlayNetworkHandlerAccessor;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 
@@ -26,7 +26,7 @@ public class Messages {
 
     // stop posing action message
     public static Text getPoseStopMessage(ServerPlayerEntity player, Pose pose) {
-        var connection = ((ServerCommonNetworkHandlerAccessor) player.networkHandler).getConnection();
+        var connection = ((ServerPlayNetworkHandlerAccessor) player.networkHandler).getConnection();
         if (connection.fabSit$isModEnabled()) {
             return Text.translatable(ACTION + "stop_" + pose, Text.keybind("key.sneak"));
         } else {
@@ -36,7 +36,7 @@ public class Messages {
 
     // get either a server or client translated string based on whether the player has the mod
     private static Text getChatMessageByKey(ServerPlayerEntity player, String key_base) {
-        var connection = ((ServerCommonNetworkHandlerAccessor) player.networkHandler).getConnection();
+        var connection = ((ServerPlayNetworkHandlerAccessor) player.networkHandler).getConnection();
         if (connection.fabSit$isModEnabled()) {
             return Text.translatable(CHAT + key_base);
         } else {

@@ -6,7 +6,6 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.enums.BedPart;
 import net.minecraft.entity.EntityPose;
-import net.minecraft.network.packet.c2s.common.SyncedClientOptions;
 import net.minecraft.network.packet.s2c.play.BlockUpdateS2CPacket;
 import net.minecraft.network.packet.s2c.play.EntityPositionS2CPacket;
 import net.minecraft.network.packet.s2c.play.EntityTrackerUpdateS2CPacket;
@@ -35,8 +34,8 @@ public class LayingEntity extends PosingEntity {
     // teleport the poser to the correct location
     private final EntityPositionS2CPacket teleportPoserPacket;
 
-    public LayingEntity(ServerPlayerEntity player, GameProfile profile, SyncedClientOptions clientOptions) {
-        super(player, profile, clientOptions);
+    public LayingEntity(ServerPlayerEntity player, GameProfile profile) {
+        super(player, profile);
 
         // set sleeping pose; mixin is again used to access entity data
         this.getDataTracker().set(getPOSE(), EntityPose.SLEEPING);

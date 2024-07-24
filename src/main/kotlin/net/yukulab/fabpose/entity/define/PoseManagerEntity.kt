@@ -16,7 +16,6 @@ import net.minecraft.entity.LivingEntity
 import net.minecraft.entity.decoration.ArmorStandEntity
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.nbt.NbtCompound
-import net.minecraft.network.packet.c2s.common.SyncedClientOptions
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.text.Text
 import net.minecraft.util.TypeFilter
@@ -172,9 +171,9 @@ class PoseManagerEntity(entityType: EntityType<out PoseManagerEntity>, world: Wo
                     gameProfile.properties.putAll(playerEntity.gameProfile.properties)
 
                     if (pose == Pose.LAYING) {
-                        it.poser = LayingEntity(playerEntity, gameProfile, SyncedClientOptions.createDefault())
+                        it.poser = LayingEntity(playerEntity, gameProfile)
                     } else if (pose == Pose.SPINNING) {
-                        it.poser = SpinningEntity(playerEntity, gameProfile, SyncedClientOptions.createDefault())
+                        it.poser = SpinningEntity(playerEntity, gameProfile)
                     }
                 }
             }

@@ -10,7 +10,7 @@
     "accessor.LivingEntityAccessor",
     "accessor.PlayerEntityAccessor",
     "accessor.PlayerListS2CPacketAccessor",
-    "accessor.ServerCommonNetworkHandlerAccessor",
+    "accessor.ServerPlayNetworkHandlerAccessor",
     "accessor.ServerLoginNetworkHandlerAccessor",
     "injector.ClientConnectionMixin",
     "injector.LivingEntityMixin",
@@ -18,7 +18,7 @@
     "injector.ServerPlayerEntityMixin",
     "injector.ServerPlayNetworkHandlerMixin",
     "injector.ServerWorldMixin",
-    "injector.SyncConfigurationTaskMixin",
+    "injector.RegistrySyncManagerMixin",
     "injector.swim.EntityMixin"
   ],
   "injectors": {
