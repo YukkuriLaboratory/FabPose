@@ -2,6 +2,7 @@ package net.fill1890.fabsit.entity;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
+import com.mojang.authlib.properties.PropertyMap;
 import com.mojang.datafixers.util.Pair;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
@@ -65,6 +66,8 @@ public abstract class PosingEntity extends ServerPlayerEntity {
     // Set of players currently being removed; use for resetting world state
     protected final Set<ServerPlayerEntity> removingPlayers = new HashSet<>();
 
+    private final String TEXTURES = "textures";
+
     /**
      * Create a new EntityPoser
      *
@@ -77,8 +80,10 @@ public abstract class PosingEntity extends ServerPlayerEntity {
 
         this.player = player;
 
-        if(FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
+        var hasSignature = gameProfile.getProperties().get(TEXTURES).stream().findFirst().map(Property::hasSignature).orElse(false);
+        if(FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT || !hasSignature) {
             FabSit.LOGGER.info("FabSit posing client side - attempting to fetch skin manually");
+
 
             Executors.newCachedThreadPool().submit(this::fetchSkinAndUpdate);
         }
@@ -359,7 +364,10 @@ public abstract class PosingEntity extends ServerPlayerEntity {
         // update textures
         String value = skinNbt.getString("value");
         String signature = skinNbt.getString("signature");
-        this.getGameProfile().getProperties().put("textures", new Property("textures", value, signature));
+
+        PropertyMap properties = this.getGameProfile().getProperties();
+        properties.removeAll(TEXTURES);
+        properties.put(TEXTURES, new Property(TEXTURES, value, signature));
 
         FabSit.LOGGER.info("Updated skin for " + this.player.getName().getString());
     }
