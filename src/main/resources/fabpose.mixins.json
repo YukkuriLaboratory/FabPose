@@ -10,15 +10,16 @@
     "accessor.LivingEntityAccessor",
     "accessor.PlayerEntityAccessor",
     "accessor.PlayerListS2CPacketAccessor",
-    "accessor.ServerPlayNetworkHandlerAccessor",
     "accessor.ServerLoginNetworkHandlerAccessor",
+    "accessor.ServerPlayNetworkHandlerAccessor",
     "injector.ClientConnectionMixin",
     "injector.LivingEntityMixin",
     "injector.PlayerEntityMixin",
+    "injector.RegistrySyncManagerMixin",
     "injector.ServerPlayerEntityMixin",
     "injector.ServerPlayNetworkHandlerMixin",
     "injector.ServerWorldMixin",
-    "injector.RegistrySyncManagerMixin",
+    "injector.YggdrasilMinecraftSessionServiceMixin",
     "injector.swim.EntityMixin"
   ],
   "injectors": {
