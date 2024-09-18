@@ -18,4 +18,8 @@ fun Pose.getStaticName(): String {
 
 private const val PERMISSION_NAME = "$MOD_ID.commands"
 
-fun Pose.getPermissionName(): String = "$PERMISSION_NAME.${getStaticName()}"
+fun Pose.getPermissionName(): String {
+    val k = "$PERMISSION_NAME.${getStaticName()}"
+    println(k)
+    return k
+}

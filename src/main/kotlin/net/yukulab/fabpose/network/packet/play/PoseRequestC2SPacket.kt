@@ -5,6 +5,8 @@ import net.fabricmc.api.Environment
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
 import net.fill1890.fabsit.entity.Pose
+import net.fill1890.fabsit.error.PoseException
+import net.fill1890.fabsit.util.Messages
 import net.minecraft.network.RegistryByteBuf
 import net.minecraft.network.codec.PacketCodec
 import net.minecraft.network.packet.CustomPayload
@@ -23,7 +25,12 @@ data class PoseRequestC2SPacket(val pose: Pose) : CustomPayload {
             payload: PoseRequestC2SPacket,
             context: ServerPlayNetworking.Context,
         ) {
-            context.player().pose(payload.pose)
+            val player = context.player()
+            player.pose(payload.pose).onFailure {
+                if (it is PoseException.PermissionException) {
+                    player.sendMessage(Messages.getStateError(player, payload.pose), false)
+                }
+            }
         }
 
         @JvmStatic
