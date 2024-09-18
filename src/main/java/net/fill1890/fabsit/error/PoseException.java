@@ -41,4 +41,10 @@ public class PoseException extends Exception {
             super("Too quickly");
         }
     }
+
+    public static class PermissionException extends PoseException {
+        public PermissionException() {
+            super("You do not have permission to pose");
+        }
+    }
 }

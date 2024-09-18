@@ -4,6 +4,7 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.datetime.toKotlinInstant
+import me.lucko.fabric.api.permissions.v0.Permissions
 import net.fill1890.fabsit.config.ConfigManager
 import net.fill1890.fabsit.entity.ChairPosition
 import net.fill1890.fabsit.entity.Pose
@@ -19,6 +20,10 @@ import net.yukulab.fabpose.serverScope
 fun ServerPlayerEntity.pose(pose: Pose, targetSitPos: Vec3d? = null, chairPosition: ChairPosition = ChairPosition.ON_BLOCK, checkSpam: Boolean = true): Result<Unit> =
     runCatching {
         pose.confirmEnabled()
+
+        if (!Permissions.check(this, pose.getPermissionName(), true)) {
+            throw PoseException.PermissionException()
+        }
 
         val now = Clock.System.now()
         val lastUse = lastPoseTime?.toKotlinInstant()

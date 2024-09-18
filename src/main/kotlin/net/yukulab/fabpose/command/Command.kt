@@ -12,10 +12,11 @@ import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.text.Text
 import net.yukulab.fabpose.DelegatedLogger
 import net.yukulab.fabpose.MOD_ID
+import net.yukulab.fabpose.extension.getPermissionName
+import net.yukulab.fabpose.extension.getStaticName
 import net.yukulab.fabpose.extension.pose
 
 object Command {
-    private const val PERMISSION_NAME = "$MOD_ID.commands"
     private val logger by DelegatedLogger()
 
     fun register() {
@@ -27,19 +28,9 @@ object Command {
 
     private fun registerPoseCommands(dispatcher: CommandDispatcher<ServerCommandSource>) {
         Pose.entries.forEach { pose ->
-            pose.name
-            var name = pose.name.lowercase()
-            if (name.contains(".*ing$".toRegex())) {
-                // sitting -> sitt
-                name = name.removeSuffix("ing")
-                // sitt -> sit
-                if (name[name.lastIndex] == name[name.lastIndex - 1]) {
-                    name = name.dropLast(1)
-                }
-            }
             dispatcher.register(
-                literal<ServerCommandSource?>(name)
-                    .requires(Permissions.require("$PERMISSION_NAME.$name", true))
+                literal<ServerCommandSource?>(pose.getStaticName())
+                    .requires(Permissions.require(pose.getPermissionName(), true))
                     .executes { context ->
                         val source = context.source
                         val player = source.player ?: run {
