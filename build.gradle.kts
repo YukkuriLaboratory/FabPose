@@ -65,6 +65,7 @@ repositories {
     // for more information about repositories.
 
     maven("https://oss.sonatype.org/content/repositories/snapshots")
+    maven("https://api.modrinth.com/maven")
 }
 
 val loaderVersion = project.property("loader_version")
@@ -96,7 +97,10 @@ dependencies {
     // Kotlin
     modImplementation("net.fabricmc:fabric-language-kotlin:$flkVersion")
     // Permissions API
-    modImplementation(include("me.lucko:fabric-permissions-api:0.1-SNAPSHOT")!!)
+    modImplementation(include("me.lucko:fabric-permissions-api:0.3.3")!!)
+
+    // To avoid jvm error in my environment
+    modRuntimeOnly("maven.modrinth:sodium:mc1.21.4-0.6.6-fabric")
 
     // Uncomment the following line to enable the deprecated Fabric API modules.
     // These are included in the Fabric API production distribution and allow you to update your mod to the latest modules at a later more convenient time.
@@ -120,7 +124,7 @@ loom {
             configName = serverTest
             vmArgs(
                 "-Dfabric-api.gametest",
-                "-Dfabric.api.gametest.report-file=${project.layout.buildDirectory}/$name/junit.xml",
+                "-Dfabric.api.gametest.report-file=${project.layout.buildDirectory.get()}/$name/junit.xml",
             )
             runDir = "build/$serverTest"
             setSource(serverTestSourceSet)

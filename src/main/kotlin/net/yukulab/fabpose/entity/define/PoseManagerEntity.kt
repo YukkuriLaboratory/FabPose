@@ -18,6 +18,7 @@ import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.nbt.NbtCompound
 import net.minecraft.network.packet.c2s.common.SyncedClientOptions
 import net.minecraft.server.network.ServerPlayerEntity
+import net.minecraft.server.world.ServerWorld
 import net.minecraft.text.Text
 import net.minecraft.util.TypeFilter
 import net.minecraft.util.math.BlockPos
@@ -117,17 +118,18 @@ class PoseManagerEntity(entityType: EntityType<out PoseManagerEntity>, world: Wo
 
     override fun collidesWith(other: Entity?): Boolean = false
 
-    override fun kill() {
+    override fun kill(world: ServerWorld) {
         poser?.destroy()
-        super.kill()
+        super.kill(world)
     }
 
     override fun tick() {
         if (isRemoved) return
 
         // kill when the player stops posing
-        if (passengerList.isEmpty() && owner != null) {
-            kill()
+        val world = world
+        if (passengerList.isEmpty() && owner != null && world is ServerWorld) {
+            kill(world)
             return
         }
 

@@ -43,6 +43,9 @@
       ],
       "net/minecraft/class_2535": [
         "net/fill1890/fabsit/extension/ModFlag"
+      ],
+      "net/minecraft/class_10055": [
+        "net/fill1890/fabsit/extension/PosingFlag"
       ]
     }
   }

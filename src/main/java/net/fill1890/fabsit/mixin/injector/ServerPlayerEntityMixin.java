@@ -1,6 +1,7 @@
 package net.fill1890.fabsit.mixin.injector;
 
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.yukulab.fabpose.entity.define.PoseManagerEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -26,7 +27,7 @@ public abstract class ServerPlayerEntityMixin {
         // if player is sitting on a fabsit chair, kick them off
         if(self.hasVehicle() && self.getVehicle() instanceof PoseManagerEntity chair) {
             self.stopRiding();
-            chair.kill();
+            chair.kill(self.getServerWorld());
         }
     }
 }

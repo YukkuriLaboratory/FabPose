@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
+import com.google.gson.Strictness;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fill1890.fabsit.FabSit;
 import net.fill1890.fabsit.error.LoadConfigException;
@@ -30,7 +31,7 @@ import java.util.Map;
  */
 public abstract class ConfigManager {
     // GSON config
-    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().setLenient().create();
+    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().setStrictness(Strictness.LENIENT).create();
     // config data
     private static Config CONFIG;
     // language data

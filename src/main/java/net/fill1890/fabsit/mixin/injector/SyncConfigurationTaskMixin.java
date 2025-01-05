@@ -26,11 +26,10 @@ import java.util.function.Consumer;
 @Mixin(RegistrySyncManager.SyncConfigurationTask.class)
 public abstract class SyncConfigurationTaskMixin {
     @Shadow
-    @Final
-    private ServerConfigurationNetworkHandler handler;
+    public abstract ServerConfigurationNetworkHandler handler();
+
     @Shadow
-    @Final
-    private Map<Identifier, Object2IntMap<Identifier>> map;
+    public abstract Map<Identifier, Object2IntMap<Identifier>> map();
 
     /**
      * Scrub registry if needed to remove custom fabsit entities for compatibility
@@ -46,12 +45,12 @@ public abstract class SyncConfigurationTaskMixin {
     )
     private void removeFromSync(Consumer<Packet<?>> sender, CallbackInfo ci) {
         // if client does not have fabsit
-        var connection = ((ServerCommonNetworkHandlerAccessor) handler).getConnection();
+        var connection = ((ServerCommonNetworkHandlerAccessor) handler()).getConnection();
         if (!connection.fabSit$isModEnabled()) {
 
             var id = RegistryKeys.ENTITY_TYPE.getValue();
             // scrub entities from the syncing registry
-            var entityTypeMap = map.get(id);
+            var entityTypeMap = map().get(id);
             entityTypeMap.removeInt(Registries.ENTITY_TYPE.getId(FabSitEntities.POSE_MANAGER));
         }
     }

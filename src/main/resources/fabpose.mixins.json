@@ -31,9 +31,11 @@
     "accessor.TabButtonWidgetAccessor",
     "accessor.TabNavigationWidgetAccessor",
     "injector.ArmorFeatureRendererMixin",
-    "injector.OtherClientPlayerEntityMixin",
     "injector.HeadFeatureRendererMixin",
     "injector.InGameHudMixin",
+    "injector.MixinPlayerEntityRenderer",
+    "injector.MixinPlayerEntityRenderState",
+    "injector.OtherClientPlayerEntityMixin",
     "injector.PlayerHeldItemFeatureRendererMixin"
   ]
 }

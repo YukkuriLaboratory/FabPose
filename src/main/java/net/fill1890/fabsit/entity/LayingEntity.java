@@ -6,6 +6,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.enums.BedPart;
 import net.minecraft.entity.EntityPose;
+import net.minecraft.entity.player.PlayerPosition;
 import net.minecraft.network.packet.c2s.common.SyncedClientOptions;
 import net.minecraft.network.packet.s2c.play.BlockUpdateS2CPacket;
 import net.minecraft.network.packet.s2c.play.EntityPositionS2CPacket;
@@ -14,6 +15,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.BlockPos;
 
 import java.util.Optional;
+import java.util.Set;
 
 import static net.fill1890.fabsit.mixin.accessor.EntityAccessor.getPOSE;
 import static net.fill1890.fabsit.mixin.accessor.LivingEntityAccessor.getSLEEPING_POSITION;
@@ -62,7 +64,7 @@ public class LayingEntity extends PosingEntity {
         this.removeBedPacket = new BlockUpdateS2CPacket(bedPos, old);
         // teleport the poser from the bed to the player, as the poser
         // spawns on the bed (mojang moment)
-        this.teleportPoserPacket = new EntityPositionS2CPacket(this);
+        this.teleportPoserPacket = EntityPositionS2CPacket.create(getId(), PlayerPosition.fromEntity(this), Set.of(), isOnGround());
         // refresh metadata so the bed is assigned correctly
         this.trackerPoserPacket = new EntityTrackerUpdateS2CPacket(this.getId(), this.getDataTracker().getChangedEntries());
 

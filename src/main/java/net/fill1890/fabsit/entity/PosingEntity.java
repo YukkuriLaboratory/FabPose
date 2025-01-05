@@ -15,9 +15,12 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.network.encryption.PublicPlayerSession;
 import net.minecraft.network.packet.c2s.common.SyncedClientOptions;
 import net.minecraft.network.packet.s2c.play.*;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.Nullables;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 
@@ -118,7 +121,9 @@ public abstract class PosingEntity extends ServerPlayerEntity {
                 0,
                 player.interactionManager.getGameMode(),
                 null,
-                null
+                false,
+                player.getPlayerListOrder(),
+                Nullables.map(player.getSession(), PublicPlayerSession::toSerialized)
         );
         this.addPoserPacket = new PlayerListS2CPacket(EnumSet.of(ADD_PLAYER), List.of());
         ((PlayerListS2CPacketAccessor) addPoserPacket).setEntries(List.of(fakeEntry));
@@ -379,7 +384,7 @@ public abstract class PosingEntity extends ServerPlayerEntity {
      * kill() for this entity is rerouted to destroy() as it will not be spawned
      */
     @Override
-    public void kill() {
+    public void kill(ServerWorld world) {
         this.destroy();
     }
 

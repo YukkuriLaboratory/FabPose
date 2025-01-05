@@ -21,6 +21,6 @@ public abstract class ServerWorldMixin {
         var world = (ServerWorld) (Object) this;
         var center = pos.toCenterPos();
         world.getEntitiesByClass(PoseManagerEntity.class, Box.of(center, 0.5, 0.5, 0.5), (e) -> true)
-                .forEach(PoseManagerEntity::kill);
+                .forEach(e -> e.kill(world));
     }
 }

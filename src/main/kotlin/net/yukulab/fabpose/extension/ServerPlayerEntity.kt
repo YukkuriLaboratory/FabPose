@@ -84,7 +84,7 @@ fun ServerPlayerEntity.canPose(): Result<Unit> = runCatching {
     }
 
     // check if flying, jumping, swimming, sleeping, or underwater
-    if (isFallFlying || velocity.y > 0 || isSwimming || isSleeping) {
+    if (isGliding || velocity.y > 0 || isSwimming || isSleeping) {
         throw PoseException.StateException("Cannot pose while flying, jumping, swimming, or sleeping")
     }
 
