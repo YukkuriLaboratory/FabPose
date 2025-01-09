@@ -1,5 +1,7 @@
 package net.yukulab.fabpose.entity
 
+import net.fabricmc.fabric.api.event.registry.RegistryAttribute
+import net.fabricmc.fabric.api.event.registry.RegistryAttributeHolder
 import net.fabricmc.fabric.api.`object`.builder.v1.entity.FabricDefaultAttributeRegistry
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityType
@@ -23,6 +25,8 @@ object FabSitEntities {
     )
 
     fun register() {
+        // Disable registry syncing and allows all clients to join the server
+        RegistryAttributeHolder.get(RegistryKeys.ENTITY_TYPE).addAttribute(RegistryAttribute.OPTIONAL)
         FabricDefaultAttributeRegistry.register(POSE_MANAGER, ArmorStandEntity.createLivingAttributes())
     }
 
