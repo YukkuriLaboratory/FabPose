@@ -25,10 +25,10 @@ import java.util.function.Consumer;
 @Mixin(RegistrySyncManager.SyncConfigurationTask.class)
 public abstract class SyncConfigurationTaskMixin {
 
-    @Shadow
+    @Shadow(remap = false)
     public abstract ServerConfigurationNetworkHandler handler();
 
-    @Shadow
+    @Shadow(remap = false)
     public abstract Map<Identifier, Object2IntMap<Identifier>> map();
 
     /**
