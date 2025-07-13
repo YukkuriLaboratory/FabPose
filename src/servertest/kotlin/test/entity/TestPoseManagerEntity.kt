@@ -10,68 +10,67 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.result.shouldBeFailure
 import io.kotest.matchers.result.shouldBeSuccess
 import mock.createMockServerPlayer
-import net.fabricmc.fabric.api.gametest.v1.FabricGameTest
+import net.fabricmc.fabric.api.gametest.v1.GameTest
 import net.fill1890.fabsit.entity.Pose
 import net.fill1890.fabsit.error.PoseException.MidairException
 import net.minecraft.block.Blocks
 import net.minecraft.block.SlabBlock
 import net.minecraft.block.enums.SlabType
 import net.minecraft.server.network.ServerPlayerEntity
-import net.minecraft.test.GameTest
 import net.minecraft.test.TestContext
 import net.minecraft.util.math.BlockPos
 import net.yukulab.fabpose.DelegatedLogger
 import net.yukulab.fabpose.extension.pose
 
 @Suppress("UNUSED")
-class TestPoseManagerEntity : FabricGameTest {
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE)
-    fun checkSitOnSlabBlock(context: TestContext) = runCatchingAssertion(logger) {
+class TestPoseManagerEntity {
+    @GameTest
+    fun checkSitOnSlabBlock(context: TestContext) = runCatchingAssertion(logger, context) {
         poseOnSlabBlock(context, Pose.SITTING)
     }
 
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE)
-    fun checkSitOnSlabBlockLowHeight(context: TestContext) = runCatchingAssertion(logger) {
+    @GameTest
+    fun checkSitOnSlabBlockLowHeight(context: TestContext) = runCatchingAssertion(logger, context) {
         poseOnSlabBlock(context, Pose.SITTING, blockHeight = 2)
     }
 
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE)
-    fun checkSitOnSlabBlockWithSneak(context: TestContext) = runCatchingAssertion(logger) {
+    @GameTest
+    fun checkSitOnSlabBlockWithSneak(context: TestContext) = runCatchingAssertion(logger, context) {
         poseOnSlabBlock(context, Pose.SITTING, removeWithSneak = true)
     }
 
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE)
-    fun checkLayOnSlabBlock(context: TestContext) = runCatchingAssertion(logger) {
+    @GameTest
+    fun checkLayOnSlabBlock(context: TestContext) = runCatchingAssertion(logger, context) {
         poseOnSlabBlock(context, Pose.LAYING)
     }
 
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE)
-    fun checkLayOnSlabBlockLowHeight(context: TestContext) = runCatchingAssertion(logger) {
+    @GameTest
+    fun checkLayOnSlabBlockLowHeight(context: TestContext) = runCatchingAssertion(logger, context) {
         poseOnSlabBlock(context, Pose.SITTING, blockHeight = 2)
     }
 
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE)
-    fun checkLayOnSlabBlockWithSneak(context: TestContext) = runCatchingAssertion(logger) {
+    @GameTest
+    fun checkLayOnSlabBlockWithSneak(context: TestContext) = runCatchingAssertion(logger, context) {
         poseOnSlabBlock(context, Pose.SITTING, removeWithSneak = true)
     }
 
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE)
-    fun checkSpinOnSlabBlock(context: TestContext) = runCatchingAssertion(logger) {
+    @GameTest
+    fun checkSpinOnSlabBlock(context: TestContext) = runCatchingAssertion(logger, context) {
         poseOnSlabBlock(context, Pose.SPINNING)
     }
 
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE)
-    fun checkSpinOnSlabBlockLowHeight(context: TestContext) = runCatchingAssertion(logger) {
+    @GameTest
+    fun checkSpinOnSlabBlockLowHeight(context: TestContext) = runCatchingAssertion(logger, context) {
         poseOnSlabBlock(context, Pose.SITTING, blockHeight = 2)
     }
 
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE)
-    fun checkSpinOnSlabBlockWithSneak(context: TestContext) = runCatchingAssertion(logger) {
+    @GameTest
+    fun checkSpinOnSlabBlockWithSneak(context: TestContext) = runCatchingAssertion(logger, context) {
         poseOnSlabBlock(context, Pose.SITTING, removeWithSneak = true)
     }
 
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE)
-    fun checkAirBockShouldFailed(context: TestContext) = runCatchingAssertion(logger) {
+    @GameTest
+    fun checkAirBockShouldFailed(context: TestContext) = runCatchingAssertion(logger, context) {
         context.addInstantFinalTask(logger) {
             val mockPlayer = context.createMockServerPlayer(BlockPos(0, 3, 0))
             mockPlayer.pose(Pose.SITTING).shouldBeFailure<MidairException>()
@@ -79,8 +78,8 @@ class TestPoseManagerEntity : FabricGameTest {
         }
     }
 
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE)
-    fun checkBlockUpdated(context: TestContext) = runCatchingAssertion(logger) {
+    @GameTest
+    fun checkBlockUpdated(context: TestContext) = runCatchingAssertion(logger, context) {
         val blockHeight = 4
         context.setBlockState(
             BlockPos(0, blockHeight, 0),

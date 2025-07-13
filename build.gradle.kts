@@ -19,7 +19,7 @@ buildscript {
 }
 
 plugins {
-    id("fabric-loom") version "1.9-SNAPSHOT"
+    id("fabric-loom") version "1.11-SNAPSHOT"
     id("maven-publish")
     kotlin("jvm") version "2.0.0"
     id("org.jmailen.kotlinter") version "4.2.0"
@@ -97,10 +97,7 @@ dependencies {
     // Kotlin
     modImplementation("net.fabricmc:fabric-language-kotlin:$flkVersion")
     // Permissions API
-    modImplementation(include("me.lucko:fabric-permissions-api:0.3.3")!!)
-
-    // To avoid jvm error in my environment
-    modRuntimeOnly("maven.modrinth:sodium:mc1.21.4-0.6.6-fabric")
+    modImplementation(include("me.lucko:fabric-permissions-api:0.4.1")!!)
 
     // Uncomment the following line to enable the deprecated Fabric API modules.
     // These are included in the Fabric API production distribution and allow you to update your mod to the latest modules at a later more convenient time.

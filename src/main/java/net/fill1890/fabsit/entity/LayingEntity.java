@@ -44,7 +44,7 @@ public class LayingEntity extends PosingEntity {
         this.getDataTracker().set(getPOSE(), EntityPose.SLEEPING);
 
         // lowest possible block to put the bed on (minimal interference)
-        int worldBottom = this.getEntityWorld().getDimension().minY();
+        int worldBottom = this.getWorld().getDimension().minY();
         BlockPos bedPos = getBlockPos().withY(worldBottom);
         // set the sleeping position of the poser to the bed
         this.getDataTracker().set(getSLEEPING_POSITION(), Optional.of(bedPos));
@@ -52,7 +52,7 @@ public class LayingEntity extends PosingEntity {
         // get the top half of a bed to replace the old block with
         BlockState bed = Blocks.WHITE_BED.getDefaultState().with(BedBlock.PART, BedPart.HEAD);
         // save the old block to restore it later
-        BlockState old = this.getEntityWorld().getBlockState(bedPos);
+        BlockState old = this.getWorld().getBlockState(bedPos);
 
         // update bed facing direction to match player
         bed = bed.with(BedBlock.FACING, this.initialDirection.getOpposite());

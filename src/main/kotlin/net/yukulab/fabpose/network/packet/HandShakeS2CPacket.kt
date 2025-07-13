@@ -1,5 +1,6 @@
 package net.yukulab.fabpose.network.packet
 
+import io.netty.channel.ChannelFutureListener
 import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
 import net.fabricmc.api.EnvType
@@ -12,7 +13,6 @@ import net.fill1890.fabsit.extension.ModFlag
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.network.ClientLoginNetworkHandler
 import net.minecraft.network.PacketByteBuf
-import net.minecraft.network.PacketCallbacks
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.network.ServerLoginNetworkHandler
 import net.yukulab.fabpose.extension.accessor
@@ -46,8 +46,8 @@ object HandShakeS2CPacket {
     fun onHandShakeClient(
         client: MinecraftClient,
         clientLoginNetworkHandler: ClientLoginNetworkHandler,
-        bufs: PacketByteBuf,
-        callbacksConsumer: Consumer<PacketCallbacks>,
+        buf: PacketByteBuf,
+        callbacksConsumer: Consumer<ChannelFutureListener>,
     ): CompletableFuture<PacketByteBuf?> {
         return CompletableFuture.completedFuture(PacketByteBufs.empty())
     }

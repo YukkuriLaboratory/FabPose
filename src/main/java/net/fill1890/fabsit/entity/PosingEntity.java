@@ -81,7 +81,7 @@ public abstract class PosingEntity extends ServerPlayerEntity {
     @SuppressWarnings("UnreachableCode")
     public PosingEntity(ServerPlayerEntity player, GameProfile gameProfile, SyncedClientOptions clientOptions) {
         // method_48926 = getWorld
-        super(player.server, player.getServerWorld(), gameProfile, clientOptions);
+        super(player.getWorld().getServer(), player.getWorld(), gameProfile, clientOptions);
 
         this.player = player;
 
@@ -153,7 +153,7 @@ public abstract class PosingEntity extends ServerPlayerEntity {
         this.removingPlayers.clear();
 
         // get all players in the current world
-        this.getServerWorld().getPlayers().forEach(p -> {
+        this.getWorld().getPlayers().forEach(p -> {
                     // check if they're being updated, in range of the poser, and can see the poser
                     boolean updating = this.updatingPlayers.contains(p);
                     boolean inRange = p.getPos().isInRange(this.getPos(), 250);
@@ -267,7 +267,7 @@ public abstract class PosingEntity extends ServerPlayerEntity {
     }
 
     protected void syncHeadYaw() {
-        if(player.headYaw != player.prevHeadYaw) {
+        if(player.headYaw != player.lastHeadYaw) {
             // yaw is usually from -180 to 180, with the break at north,
             // 0 at south, east at -90, and west at 90
             // so we take the head yaw, change the key (0) to the initial direction,
@@ -364,20 +364,20 @@ public abstract class PosingEntity extends ServerPlayerEntity {
         try {
             skinNbt = SkinUtil.fetchByUuid(this.player.getUuid());
         } catch (LoadSkinException e) {
-            FabSit.LOGGER.error("Could not load skin for NPC for " + this.player.getName().getString() + ", got " + e);
+            FabSit.LOGGER.error("Could not load skin for NPC for {}, got {}", this.player.getName().getString(), e);
         }
 
         if(skinNbt == null) return;
 
         // update textures
-        String value = skinNbt.getString("value");
-        String signature = skinNbt.getString("signature");
+        String value = skinNbt.getString("value").orElse("");
+        String signature = skinNbt.getString("signature").orElse("");
 
         PropertyMap properties = this.getGameProfile().getProperties();
         properties.removeAll(TEXTURES);
         properties.put(TEXTURES, new Property(TEXTURES, value, signature));
 
-        FabSit.LOGGER.info("Updated skin for " + this.player.getName().getString());
+        FabSit.LOGGER.info("Updated skin for {}", this.player.getName().getString());
     }
 
     /**

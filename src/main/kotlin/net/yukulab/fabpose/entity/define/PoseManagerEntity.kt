@@ -147,7 +147,7 @@ class PoseManagerEntity(entityType: EntityType<out PoseManagerEntity>, world: Wo
 
         // rotate the armour stand with the player so the player's legs line up
         setRotation(controllingPlayer.yaw, controllingPlayer.pitch)
-        prevYaw = yaw
+        lastYaw = yaw
         bodyYaw = yaw
         headYaw = yaw
     }

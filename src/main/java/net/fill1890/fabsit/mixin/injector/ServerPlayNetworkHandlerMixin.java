@@ -1,10 +1,10 @@
 package net.fill1890.fabsit.mixin.injector;
 
+import io.netty.channel.ChannelFutureListener;
 import net.fill1890.fabsit.mixin.accessor.EntitySpawnPacketAccessor;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.network.ClientConnection;
-import net.minecraft.network.PacketCallbacks;
 import net.minecraft.network.listener.ClientPlayPacketListener;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.c2s.play.HandSwingC2SPacket;
@@ -71,7 +71,7 @@ public abstract class ServerPlayNetworkHandlerMixin extends ServerCommonNetworkH
      * @param callbacks passed from mixin function
      */
     @Override
-    public void send(Packet<?> packet, @Nullable PacketCallbacks callbacks) {
+    public void send(Packet<?> packet, @Nullable ChannelFutureListener callbacks) {
         // check for spawn packets, then spawn packets for the poser
         if (packet instanceof EntitySpawnS2CPacket sp) {
             fabPose$modifySpawnPacket(sp);

@@ -11,6 +11,7 @@ import net.fill1890.fabsit.entity.Pose
 import net.fill1890.fabsit.error.PoseException
 import net.minecraft.entity.SpawnReason
 import net.minecraft.server.network.ServerPlayerEntity
+import net.minecraft.server.world.ServerWorld
 import net.minecraft.util.math.Vec3d
 import net.yukulab.fabpose.entity.FabSitEntities
 import net.yukulab.fabpose.entity.define.PoseManagerEntity
@@ -51,7 +52,7 @@ fun ServerPlayerEntity.pose(pose: Pose, targetSitPos: Vec3d? = null, chairPositi
             isSwimming = true
         } else {
             val chair = FabSitEntities.POSE_MANAGER.spawn(
-                serverWorld,
+                world as ServerWorld,
                 PoseManagerEntity.getInitializer(sitPos, this, chairPosition),
                 blockPos,
                 SpawnReason.COMMAND,
@@ -79,7 +80,7 @@ fun ServerPlayerEntity.canPose(): Result<Unit> = runCatching {
 
     val config = ConfigManager.getConfig()
     // check if underwater
-    if (isInsideWaterOrBubbleColumn && !config.allow_posing_underwater) {
+    if (isInFluid && !config.allow_posing_underwater) {
         throw PoseException.StateException("Cannot pose underwater")
     }
 

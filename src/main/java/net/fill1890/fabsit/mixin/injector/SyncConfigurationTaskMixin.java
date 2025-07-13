@@ -9,7 +9,6 @@ import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.network.ServerConfigurationNetworkHandler;
 import net.minecraft.util.Identifier;
 import net.yukulab.fabpose.entity.FabSitEntities;
-import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -25,6 +24,7 @@ import java.util.function.Consumer;
 @SuppressWarnings("UnstableApiUsage")
 @Mixin(RegistrySyncManager.SyncConfigurationTask.class)
 public abstract class SyncConfigurationTaskMixin {
+
     @Shadow
     public abstract ServerConfigurationNetworkHandler handler();
 

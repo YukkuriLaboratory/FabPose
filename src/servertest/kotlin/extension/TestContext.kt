@@ -5,12 +5,12 @@ import org.slf4j.Logger
 
 fun TestContext.addInstantFinalTask(logger: Logger, block: () -> Unit) {
     addInstantFinalTask {
-        runCatchingAssertion(logger, block)
+        runCatchingAssertion(logger, this, block)
     }
 }
 
 fun TestContext.waitAndRun(ticks: Long, logger: Logger, block: () -> Unit) {
     waitAndRun(ticks) {
-        runCatchingAssertion(logger, block)
+        runCatchingAssertion(logger, this, block)
     }
 }
