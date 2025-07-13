@@ -1,7 +1,6 @@
 package runner
 
 import io.kotest.matchers.nulls.shouldNotBeNull
-import kotlin.io.path.notExists
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
@@ -47,7 +46,7 @@ class ClientTest : ClientModInitializer {
         CoroutineScope(Dispatchers.Default).launch {
             waitForLoadingComplete()
 
-            if (FabricLoader.getInstance().gameDir.resolve("options.txt").notExists()) {
+            if (MinecraftClient.getInstance().options.onboardAccessibility) {
                 waitForScreen(AccessibilityOnboardingScreen::class.java)
                 clickScreenButton(ScreenTexts.CONTINUE)
             }
