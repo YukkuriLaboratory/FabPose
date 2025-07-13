@@ -6,37 +6,45 @@ on:
       - "v*"
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   check:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-      - name: Check environment variables
-        run: env
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
       - name: get release tag
         id: rawtag
-        uses: olegtarasov/get-tag@v2.1.2
+        uses: olegtarasov/get-tag@9a8716825750e73195b02db42777b92ffe960605 # v2.1.4
         with:
           tagRegex: "v(.*)"
-      - uses: winterjung/split@v2
+      - name: Split tag version
+        uses: winterjung/split@d5c148c702e3aacdf08a98e33407c5af75d71e1e # v2.1.1-rc1
         id: tag
         with:
           msg: ${{ steps.rawtag.outputs.tag }}
           separator: '+'
-      - uses: actions/setup-java@v4
+      - name: Setup java
+        uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
         with:
           java-version: '21'
           distribution: 'temurin'
-      - name: Build with Gradle
-        uses: gradle/actions/setup-gradle@v3
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@ac638b010cf58a27ee6c972d7336334ccaf61c96 # v4.4.1
         with:
-          arguments: build
+          cache-disabled: true
+      - name: Build with Gradle
+        run: ./gradlew build
         env:
           MOD_VERSION: ${{ steps.tag.outputs._0 }}
 
-      - uses: Kir-Antipov/mc-publish@v3.3
+      - name: Publish to CurseForge/Modrinth
+        uses: Kir-Antipov/mc-publish@995edadc13559a8b28d0b7e6571229f067ec7659 # v3.3.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           curseforge-id: ${{ secrets.CURSEFORGE_ID }}
