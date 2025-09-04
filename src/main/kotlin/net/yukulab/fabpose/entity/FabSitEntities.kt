@@ -25,6 +25,5 @@ object FabSitEntities {
         FabricDefaultAttributeRegistry.register(POSE_MANAGER, ArmorStandEntity.createLivingAttributes())
     }
 
-    private fun <T : Entity> register(id: String, entityType: EntityType<T>): EntityType<T> =
-        Registry.register(Registries.ENTITY_TYPE, Identifier.of(MOD_ID, id), entityType)
+    private fun <T : Entity> register(id: String, entityType: EntityType<T>): EntityType<T> = Registry.register(Registries.ENTITY_TYPE, Identifier.of(MOD_ID, id), entityType)
 }

@@ -48,7 +48,5 @@ object HandShakeS2CPacket {
         clientLoginNetworkHandler: ClientLoginNetworkHandler,
         bufs: PacketByteBuf,
         callbacksConsumer: Consumer<PacketCallbacks>,
-    ): CompletableFuture<PacketByteBuf?> {
-        return CompletableFuture.completedFuture(PacketByteBufs.empty())
-    }
+    ): CompletableFuture<PacketByteBuf?> = CompletableFuture.completedFuture(PacketByteBufs.empty())
 }

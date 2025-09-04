@@ -19,10 +19,10 @@ buildscript {
 }
 
 plugins {
-    id("fabric-loom") version "1.9-SNAPSHOT"
+    id("fabric-loom") version "1.11-SNAPSHOT"
     id("maven-publish")
-    kotlin("jvm") version "2.0.0"
-    id("org.jmailen.kotlinter") version "4.2.0"
+    kotlin("jvm") version "2.2.10"
+    id("org.jmailen.kotlinter") version "5.2.0"
 }
 
 val minecraftVersion = project.property("minecraft_version")

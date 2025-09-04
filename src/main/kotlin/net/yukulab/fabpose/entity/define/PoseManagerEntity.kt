@@ -36,8 +36,7 @@ import net.yukulab.fabpose.extension.currentPose
  * <br>
  * If needed, the player will then be made invisible and an NPC spawned to pose instead
  */
-class PoseManagerEntity(entityType: EntityType<out PoseManagerEntity>, world: World) :
-    ArmorStandEntity(entityType, world) {
+class PoseManagerEntity(entityType: EntityType<out PoseManagerEntity>, world: World) : ArmorStandEntity(entityType, world) {
     private var owner: PlayerEntity? = null
 
     // Storing pose data even if player reset pose from [ServerPlayerEntity.pose]
@@ -158,26 +157,25 @@ class PoseManagerEntity(entityType: EntityType<out PoseManagerEntity>, world: Wo
     override fun getControllingPassenger(): LivingEntity? = firstPassenger as? PlayerEntity
 
     companion object {
-        fun getInitializer(pos: Vec3d, playerEntity: ServerPlayerEntity, position: ChairPosition): (PoseManagerEntity) -> Unit =
-            {
-                it.setPosition(pos.x, pos.y - 1.88, pos.z)
-                it.yaw = playerEntity.yaw
-                it.chairPosition = position
-                it.selectedPose = playerEntity.currentPose
+        fun getInitializer(pos: Vec3d, playerEntity: ServerPlayerEntity, position: ChairPosition): (PoseManagerEntity) -> Unit = {
+            it.setPosition(pos.x, pos.y - 1.88, pos.z)
+            it.yaw = playerEntity.yaw
+            it.chairPosition = position
+            it.selectedPose = playerEntity.currentPose
 
-                // if the pose is more complex than sitting, create a posing npc
-                val pose = playerEntity.currentPose
-                if (pose in setOf(Pose.LAYING, Pose.SPINNING)) {
-                    val gameProfile = GameProfile(UUID.randomUUID(), playerEntity.nameForScoreboard)
-                    gameProfile.properties.putAll(playerEntity.gameProfile.properties)
+            // if the pose is more complex than sitting, create a posing npc
+            val pose = playerEntity.currentPose
+            if (pose in setOf(Pose.LAYING, Pose.SPINNING)) {
+                val gameProfile = GameProfile(UUID.randomUUID(), playerEntity.nameForScoreboard)
+                gameProfile.properties.putAll(playerEntity.gameProfile.properties)
 
-                    if (pose == Pose.LAYING) {
-                        it.poser = LayingEntity(playerEntity, gameProfile, SyncedClientOptions.createDefault())
-                    } else if (pose == Pose.SPINNING) {
-                        it.poser = SpinningEntity(playerEntity, gameProfile, SyncedClientOptions.createDefault())
-                    }
+                if (pose == Pose.LAYING) {
+                    it.poser = LayingEntity(playerEntity, gameProfile, SyncedClientOptions.createDefault())
+                } else if (pose == Pose.SPINNING) {
+                    it.poser = SpinningEntity(playerEntity, gameProfile, SyncedClientOptions.createDefault())
                 }
             }
+        }
 
         @JvmStatic
         fun isOccupied(world: World, pos: BlockPos): Boolean {
