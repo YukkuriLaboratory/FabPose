@@ -15,7 +15,7 @@
   "chat.fabsit.reload_success": "Конфигурация перезагружена!",
   "chat.fabsit.reload_error": "Ошибка при перезагрузки конфигурации. Проверьте консоль сервера!",
 
-  "key.fabsit.category": "FabSit",
+  "key.category.fabsit.category": "FabSit",
   "key.fabsit.sit": "Сидеть",
   "key.fabsit.lay": "Ползать",
   "key.fabsit.spin": "Крутиться",

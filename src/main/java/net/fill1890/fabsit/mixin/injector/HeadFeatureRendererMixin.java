@@ -2,6 +2,7 @@ package net.fill1890.fabsit.mixin.injector;
 
 import net.fill1890.fabsit.entity.Pose;
 import net.minecraft.client.render.VertexConsumerProvider;
+import net.minecraft.client.render.command.OrderedRenderCommandQueue;
 import net.minecraft.client.render.entity.feature.HeadFeatureRenderer;
 import net.minecraft.client.render.entity.state.LivingEntityRenderState;
 import net.minecraft.client.render.entity.state.PlayerEntityRenderState;
@@ -18,11 +19,11 @@ import java.util.EnumSet;
 @Mixin(HeadFeatureRenderer.class)
 abstract public class HeadFeatureRendererMixin<S extends LivingEntityRenderState> {
     @Inject(
-            method = "render(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;ILnet/minecraft/client/render/entity/state/LivingEntityRenderState;FF)V",
+            method = "render(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/command/OrderedRenderCommandQueue;ILnet/minecraft/client/render/entity/state/LivingEntityRenderState;FF)V",
             at = @At("HEAD"),
             cancellable = true
     )
-    private void preventInvisiblePlayerArmors(MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i, S livingEntityRenderState, float f, float g, CallbackInfo ci) {
+    private void preventInvisiblePlayerArmors(MatrixStack matrixStack, OrderedRenderCommandQueue orderedRenderCommandQueue, int i, S livingEntityRenderState, float f, float g, CallbackInfo ci) {
         if (livingEntityRenderState instanceof PlayerEntityRenderState player && EnumSet.of(Pose.LAYING, Pose.SPINNING).contains(player.fabSit$currentPose())) {
             ci.cancel();
         }

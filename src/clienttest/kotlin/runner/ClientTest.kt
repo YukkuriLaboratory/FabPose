@@ -12,6 +12,7 @@ import kotlinx.coroutines.withTimeout
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.client.MinecraftClient
+import net.minecraft.client.gui.Click
 import net.minecraft.client.gui.screen.AccessibilityOnboardingScreen
 import net.minecraft.client.gui.screen.GameMenuScreen
 import net.minecraft.client.gui.screen.Screen
@@ -23,6 +24,8 @@ import net.minecraft.client.gui.widget.ButtonWidget
 import net.minecraft.client.gui.widget.CyclingButtonWidget
 import net.minecraft.client.gui.widget.GridWidget
 import net.minecraft.client.gui.widget.PressableWidget
+import net.minecraft.client.gui.widget.Widget
+import net.minecraft.client.input.MouseInput
 import net.minecraft.client.option.Perspective
 import net.minecraft.screen.ScreenTexts
 import net.minecraft.text.Text
@@ -179,16 +182,18 @@ class ClientTest : ClientModInitializer {
             }
         }
 
+        private fun Click(widget: Widget) = Click(widget.x.toDouble(), widget.y.toDouble(), MouseInput(1, 0))
+
         private fun pressMatchingButton(widget: PressableWidget, text: String): Boolean {
             if (widget is ButtonWidget) {
                 if (text == widget.message.string) {
-                    widget.onPress()
+                    widget.onPress(Click(widget))
                     return true
                 }
             }
             if (widget is CyclingButtonWidget<*>) {
                 if (text == widget.accessor.optionText.string) {
-                    widget.onPress()
+                    widget.onPress(Click(widget))
                     return true
                 }
             }

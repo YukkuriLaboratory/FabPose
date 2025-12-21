@@ -9,6 +9,7 @@
     "accessor.EntitySpawnPacketAccessor",
     "accessor.LivingEntityAccessor",
     "accessor.PlayerEntityAccessor",
+    "accessor.PlayerLikeEntityAccessor",
     "accessor.PlayerListS2CPacketAccessor",
     "accessor.ServerCommonNetworkHandlerAccessor",
     "accessor.ServerLoginNetworkHandlerAccessor",

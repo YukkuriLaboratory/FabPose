@@ -1,31 +1,13 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
-buildscript {
-    configurations.classpath {
-        resolutionStrategy {
-            force(
-                "com.pinterest.ktlint:ktlint-rule-engine:1.0.0",
-                "com.pinterest.ktlint:ktlint-rule-engine-core:1.0.0",
-                "com.pinterest.ktlint:ktlint-cli-reporter-core:1.0.0",
-                "com.pinterest.ktlint:ktlint-cli-reporter-checkstyle:1.0.0",
-                "com.pinterest.ktlint:ktlint-cli-reporter-json:1.0.0",
-                "com.pinterest.ktlint:ktlint-cli-reporter-html:1.0.0",
-                "com.pinterest.ktlint:ktlint-cli-reporter-plain:1.0.0",
-                "com.pinterest.ktlint:ktlint-cli-reporter-sarif:1.0.0",
-                "com.pinterest.ktlint:ktlint-ruleset-standard:1.0.0",
-            )
-        }
-    }
-}
-
 plugins {
-    id("fabric-loom") version "1.11-SNAPSHOT"
+    id("fabric-loom") version "1.14-SNAPSHOT"
     id("maven-publish")
-    kotlin("jvm") version "2.0.0"
-    id("org.jmailen.kotlinter") version "4.2.0"
+    kotlin("jvm") version "2.3.0"
+    id("org.jmailen.kotlinter") version "5.2.0"
 }
 
-val minecraftVersion = project.property("minecraft_version")
+val minecraftVersion = project.property("minecraft_version").toString()
 val modVersion = System.getenv("MOD_VERSION") ?: "0.0.0"
 base {
     archivesName.set(project.property("archives_base_name") as? String)
@@ -68,14 +50,15 @@ repositories {
     maven("https://api.modrinth.com/maven")
 }
 
-val loaderVersion = project.property("loader_version")
-val fabricVersion = project.property("fabric_version")
-val flkVersion = project.property("flk_version")
+val loaderVersion = project.property("loader_version").toString()
+val fabricVersion = project.property("fabric_version").toString()
+val flkVersion = project.property("flk_version").toString()
 dependencies {
     // To change the versions see the gradle.properties file
     minecraft("com.mojang:minecraft:$minecraftVersion")
     mappings("net.fabricmc:yarn:${project.property("yarn_mappings")}:v2")
     modImplementation("net.fabricmc:fabric-loader:$loaderVersion")
+    compileOnly("com.mojang:authlib:3.13.56")
 
     setOf(
         "fabric-api-base",

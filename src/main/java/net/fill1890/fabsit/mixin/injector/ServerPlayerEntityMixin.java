@@ -26,7 +26,7 @@ public abstract class ServerPlayerEntityMixin {
         // if player is sitting on a fabsit chair, kick them off
         if(self.hasVehicle() && self.getVehicle() instanceof PoseManagerEntity chair) {
             self.stopRiding();
-            chair.kill(self.getWorld());
+            chair.kill(self.getEntityWorld());
         }
     }
 }

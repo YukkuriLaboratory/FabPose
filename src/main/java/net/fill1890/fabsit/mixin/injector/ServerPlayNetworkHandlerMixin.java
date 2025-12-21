@@ -86,7 +86,7 @@ public abstract class ServerPlayNetworkHandlerMixin extends ServerCommonNetworkH
         // check for entity attribute packets, and block for clients with fabsit
         // clients spit an error into logs when we try to update a non-living entity with living attributes
         if (packet instanceof EntityAttributesS2CPacket ap) {
-            Entity entity = player.getWorld().getEntityById(ap.getEntityId());
+            Entity entity = player.getEntityWorld().getEntityById(ap.getEntityId());
             if (entity == null) {
                 super.send(packet, callbacks);
                 return;

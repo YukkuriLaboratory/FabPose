@@ -47,12 +47,12 @@ abstract public class PlayerEntityMixin implements PosingFlag {
         } else {
             player.stopRiding();
         }
-        var server = player.getServer();
+        var server = player.getEntityWorld().getServer();
         if (server != null) {
-            var currentWorldKey = player.getWorld().getRegistryKey();
+            var currentWorldKey = player.getEntityWorld().getRegistryKey();
             var packet = new SyncPoseS2CPacket(player.getUuid(), posing);
             for (ServerPlayerEntity targetPlayer : server.getPlayerManager().getPlayerList()) {
-                if (targetPlayer.getWorld().getRegistryKey() == currentWorldKey) {
+                if (targetPlayer.getEntityWorld().getRegistryKey() == currentWorldKey) {
                     packet.send(targetPlayer);
                 }
             }

@@ -6,7 +6,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.enums.BedPart;
 import net.minecraft.entity.EntityPose;
-import net.minecraft.entity.player.PlayerPosition;
+import net.minecraft.entity.EntityPosition;
 import net.minecraft.network.packet.c2s.common.SyncedClientOptions;
 import net.minecraft.network.packet.s2c.play.BlockUpdateS2CPacket;
 import net.minecraft.network.packet.s2c.play.EntityPositionS2CPacket;
@@ -44,7 +44,7 @@ public class LayingEntity extends PosingEntity {
         this.getDataTracker().set(getPOSE(), EntityPose.SLEEPING);
 
         // lowest possible block to put the bed on (minimal interference)
-        int worldBottom = this.getWorld().getDimension().minY();
+        int worldBottom = this.getEntityWorld().getDimension().minY();
         BlockPos bedPos = getBlockPos().withY(worldBottom);
         // set the sleeping position of the poser to the bed
         this.getDataTracker().set(getSLEEPING_POSITION(), Optional.of(bedPos));
@@ -52,7 +52,7 @@ public class LayingEntity extends PosingEntity {
         // get the top half of a bed to replace the old block with
         BlockState bed = Blocks.WHITE_BED.getDefaultState().with(BedBlock.PART, BedPart.HEAD);
         // save the old block to restore it later
-        BlockState old = this.getWorld().getBlockState(bedPos);
+        BlockState old = this.getEntityWorld().getBlockState(bedPos);
 
         // update bed facing direction to match player
         bed = bed.with(BedBlock.FACING, this.initialDirection.getOpposite());
@@ -64,7 +64,7 @@ public class LayingEntity extends PosingEntity {
         this.removeBedPacket = new BlockUpdateS2CPacket(bedPos, old);
         // teleport the poser from the bed to the player, as the poser
         // spawns on the bed (mojang moment)
-        this.teleportPoserPacket = EntityPositionS2CPacket.create(getId(), PlayerPosition.fromEntity(this), Set.of(), isOnGround());
+        this.teleportPoserPacket = EntityPositionS2CPacket.create(getId(), EntityPosition.fromEntity(this), Set.of(), isOnGround());
         // refresh metadata so the bed is assigned correctly
         this.trackerPoserPacket = new EntityTrackerUpdateS2CPacket(this.getId(), this.getDataTracker().getChangedEntries());
 

@@ -16,6 +16,6 @@ abstract public class OtherClientPlayerEntityMixin {
             at = @At("TAIL")
     )
     private void requestPlayerCurrentPose(ClientWorld clientWorld, GameProfile gameProfile, CallbackInfo ci) {
-        new SyncRequestC2SPacket(gameProfile.getId()).send();
+        new SyncRequestC2SPacket(gameProfile.id()).send();
     }
 }

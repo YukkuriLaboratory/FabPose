@@ -14,5 +14,8 @@ fun runCatchingAssertion(logger: Logger, context: TestContext, block: () -> Unit
     } catch (e: AssertionError) {
         logger.error("Assertion failed", e)
         throw context.createError(Text.of(e.message ?: "Assertion Error"))
+    } catch (e: Throwable) {
+        logger.error("Failed to operate test", e)
+        throw e
     }
 }

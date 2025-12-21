@@ -27,8 +27,8 @@ import net.minecraft.util.math.Direction;
 import java.util.*;
 import java.util.concurrent.Executors;
 
-import static net.fill1890.fabsit.mixin.accessor.PlayerEntityAccessor.getMAIN_ARM;
-import static net.fill1890.fabsit.mixin.accessor.PlayerEntityAccessor.getPLAYER_MODEL_PARTS;
+import static net.fill1890.fabsit.mixin.accessor.PlayerLikeEntityAccessor.getMAIN_ARM_ID;
+import static net.fill1890.fabsit.mixin.accessor.PlayerLikeEntityAccessor.getPLAYER_MODE_CUSTOMIZATION_ID;
 import static net.minecraft.network.packet.s2c.play.PlayerListS2CPacket.Action.ADD_PLAYER;
 
 /**
@@ -81,11 +81,11 @@ public abstract class PosingEntity extends ServerPlayerEntity {
     @SuppressWarnings("UnreachableCode")
     public PosingEntity(ServerPlayerEntity player, GameProfile gameProfile, SyncedClientOptions clientOptions) {
         // method_48926 = getWorld
-        super(player.getWorld().getServer(), player.getWorld(), gameProfile, clientOptions);
+        super(player.getEntityWorld().getServer(), player.getEntityWorld(), gameProfile, clientOptions);
 
         this.player = player;
 
-        var hasSignature = gameProfile.getProperties().get(TEXTURES).stream().findFirst().map(Property::hasSignature).orElse(false);
+        var hasSignature = gameProfile.properties().get(TEXTURES).stream().findFirst().map(Property::hasSignature).orElse(false);
         if(FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT || !hasSignature) {
             FabSit.LOGGER.info("FabSit posing client side - attempting to fetch skin manually");
 
@@ -99,15 +99,15 @@ public abstract class PosingEntity extends ServerPlayerEntity {
         this.setInvulnerable(true);
 
         // update the player skin - uses a mixin to access private fields of PlayerEntity and superclasses
-        this.getDataTracker().set(getPLAYER_MODEL_PARTS(), player.getDataTracker().get(getPLAYER_MODEL_PARTS()));
-        this.getDataTracker().set(getMAIN_ARM(), player.getDataTracker().get(getMAIN_ARM()));
+        this.getDataTracker().set(getPLAYER_MODE_CUSTOMIZATION_ID(), player.getDataTracker().get(getPLAYER_MODE_CUSTOMIZATION_ID()));
+        this.getDataTracker().set(getMAIN_ARM_ID(), player.getDataTracker().get(getMAIN_ARM_ID()));
 
         // set the poser position
         if(ConfigManager.getConfig().centre_on_blocks) {
             BlockPos pos = player.getBlockPos();
             this.setPosition(pos.getX() + 0.5d, pos.getY(), pos.getZ() + 0.5d);
         } else {
-            this.setPosition(player.getPos());
+            this.setPosition(player.getEntityPos());
         }
 
         // set up direction
@@ -153,10 +153,10 @@ public abstract class PosingEntity extends ServerPlayerEntity {
         this.removingPlayers.clear();
 
         // get all players in the current world
-        this.getWorld().getPlayers().forEach(p -> {
+        this.getEntityWorld().getPlayers().forEach(p -> {
                     // check if they're being updated, in range of the poser, and can see the poser
                     boolean updating = this.updatingPlayers.contains(p);
-                    boolean inRange = p.getPos().isInRange(this.getPos(), 250);
+                    boolean inRange = p.getEntityPos().isInRange(this.getEntityPos(), 250);
                     boolean visible = p.canSee(this);
                     if(inRange && visible && !updating) {
                         // Is in range, but wasn't before now so add data
@@ -373,7 +373,7 @@ public abstract class PosingEntity extends ServerPlayerEntity {
         String value = skinNbt.getString("value").orElse("");
         String signature = skinNbt.getString("signature").orElse("");
 
-        PropertyMap properties = this.getGameProfile().getProperties();
+        PropertyMap properties = this.getGameProfile().properties();
         properties.removeAll(TEXTURES);
         properties.put(TEXTURES, new Property(TEXTURES, value, signature));
 

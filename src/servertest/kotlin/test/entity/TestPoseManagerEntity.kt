@@ -107,13 +107,13 @@ class TestPoseManagerEntity {
         )
         val mockPlayer = context.createMockServerPlayer(BlockPos(0, blockHeight + 1, 0))
         mockPlayer.updatePosition(mockPlayer.x, mockPlayer.y - 0.4, mockPlayer.z)
-        mockPlayer.pose(pose).shouldBeSuccess()
+        mockPlayer.pose(pose).getOrThrow()
         context.waitAndRun(2, logger) {
             checkPlayerPosing(mockPlayer, pose)
             if (removeWithSneak) {
                 mockPlayer.isSneaking = true
             } else {
-                mockPlayer.pose(pose, checkSpam = false).shouldBeSuccess()
+                mockPlayer.pose(pose, checkSpam = false).getOrThrow()
             }
             context.waitAndRun(2) {
                 context.addInstantFinalTask(logger) {

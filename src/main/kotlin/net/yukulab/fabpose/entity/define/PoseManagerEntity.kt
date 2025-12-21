@@ -1,6 +1,7 @@
 package net.yukulab.fabpose.entity.define
 
 import com.mojang.authlib.GameProfile
+import java.util.OptionalInt
 import java.util.UUID
 import net.fill1890.fabsit.config.ConfigManager
 import net.fill1890.fabsit.entity.ChairPosition
@@ -37,8 +38,7 @@ import net.yukulab.fabpose.extension.currentPose
  * <br>
  * If needed, the player will then be made invisible and an NPC spawned to pose instead
  */
-class PoseManagerEntity(entityType: EntityType<out PoseManagerEntity>, world: World) :
-    ArmorStandEntity(entityType, world) {
+class PoseManagerEntity(entityType: EntityType<out PoseManagerEntity>, world: World) : ArmorStandEntity(entityType, world) {
     private var owner: PlayerEntity? = null
 
     // Storing pose data even if player reset pose from [ServerPlayerEntity.pose]
@@ -67,13 +67,13 @@ class PoseManagerEntity(entityType: EntityType<out PoseManagerEntity>, world: Wo
 
                 val poserDataTracker = poseEntity.dataTracker
                 val passengerDataTracker = passenger.dataTracker
-                PlayerEntityAccessor.getLEFT_SHOULDER_ENTITY().also {
+                PlayerEntityAccessor.getLEFT_SHOULDER_PARROT_VARIANT_ID().also {
                     poserDataTracker.set(it, passengerDataTracker.get(it))
-                    passengerDataTracker.set(it, NbtCompound())
+                    passengerDataTracker.set(it, OptionalInt.empty())
                 }
-                PlayerEntityAccessor.getRIGHT_SHOULDER_ENTITY().also {
+                PlayerEntityAccessor.getRIGHT_SHOULDER_PARROT_VARIANT_ID().also {
                     poserDataTracker.set(it, passengerDataTracker.get(it))
-                    passengerDataTracker.set(it, NbtCompound())
+                    passengerDataTracker.set(it, OptionalInt.empty())
                 }
             }
 
@@ -94,13 +94,13 @@ class PoseManagerEntity(entityType: EntityType<out PoseManagerEntity>, world: Wo
 
                 val poserDataTracker = poseEntity.dataTracker
                 val passengerDataTracker = passenger.dataTracker
-                PlayerEntityAccessor.getLEFT_SHOULDER_ENTITY().also {
+                PlayerEntityAccessor.getLEFT_SHOULDER_PARROT_VARIANT_ID().also {
                     passengerDataTracker.set(it, poserDataTracker.get(it))
-                    poserDataTracker.set(it, NbtCompound())
+                    poserDataTracker.set(it, OptionalInt.empty())
                 }
-                PlayerEntityAccessor.getRIGHT_SHOULDER_ENTITY().also {
+                PlayerEntityAccessor.getRIGHT_SHOULDER_PARROT_VARIANT_ID().also {
                     passengerDataTracker.set(it, poserDataTracker.get(it))
-                    poserDataTracker.set(it, NbtCompound())
+                    poserDataTracker.set(it, OptionalInt.empty())
                 }
                 passenger.updatePosition(passenger.x, passenger.y + 0.5, passenger.z)
             }
@@ -127,7 +127,7 @@ class PoseManagerEntity(entityType: EntityType<out PoseManagerEntity>, world: Wo
         if (isRemoved) return
 
         // kill when the player stops posing
-        val world = world
+        val world = entityWorld
         if (passengerList.isEmpty() && owner != null && world is ServerWorld) {
             kill(world)
             return
@@ -160,26 +160,24 @@ class PoseManagerEntity(entityType: EntityType<out PoseManagerEntity>, world: Wo
     override fun getControllingPassenger(): LivingEntity? = firstPassenger as? PlayerEntity
 
     companion object {
-        fun getInitializer(pos: Vec3d, playerEntity: ServerPlayerEntity, position: ChairPosition): (PoseManagerEntity) -> Unit =
-            {
-                it.setPosition(pos.x, pos.y - 1.88, pos.z)
-                it.yaw = playerEntity.yaw
-                it.chairPosition = position
-                it.selectedPose = playerEntity.currentPose
+        fun getInitializer(pos: Vec3d, playerEntity: ServerPlayerEntity, position: ChairPosition): (PoseManagerEntity) -> Unit = {
+            it.setPosition(pos.x, pos.y - 1.88, pos.z)
+            it.yaw = playerEntity.yaw
+            it.chairPosition = position
+            it.selectedPose = playerEntity.currentPose
 
-                // if the pose is more complex than sitting, create a posing npc
-                val pose = playerEntity.currentPose
-                if (pose in setOf(Pose.LAYING, Pose.SPINNING)) {
-                    val gameProfile = GameProfile(UUID.randomUUID(), playerEntity.nameForScoreboard)
-                    gameProfile.properties.putAll(playerEntity.gameProfile.properties)
+            // if the pose is more complex than sitting, create a posing npc
+            val pose = playerEntity.currentPose
+            if (pose in setOf(Pose.LAYING, Pose.SPINNING)) {
+                val gameProfile = GameProfile(UUID.randomUUID(), playerEntity.nameForScoreboard, playerEntity.gameProfile.properties)
 
-                    if (pose == Pose.LAYING) {
-                        it.poser = LayingEntity(playerEntity, gameProfile, SyncedClientOptions.createDefault())
-                    } else if (pose == Pose.SPINNING) {
-                        it.poser = SpinningEntity(playerEntity, gameProfile, SyncedClientOptions.createDefault())
-                    }
+                if (pose == Pose.LAYING) {
+                    it.poser = LayingEntity(playerEntity, gameProfile, SyncedClientOptions.createDefault())
+                } else if (pose == Pose.SPINNING) {
+                    it.poser = SpinningEntity(playerEntity, gameProfile, SyncedClientOptions.createDefault())
                 }
             }
+        }
 
         @JvmStatic
         fun isOccupied(world: World, pos: BlockPos): Boolean {
