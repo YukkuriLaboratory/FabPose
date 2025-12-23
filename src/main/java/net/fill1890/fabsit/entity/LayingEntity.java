@@ -25,9 +25,14 @@ import static net.fill1890.fabsit.mixin.accessor.LivingEntityAccessor.getSLEEPIN
  * <br>
  * Subclasses posing entity and implements a sleeping pose
  * <br>
- * Note that to do this, a bed is inserted into the bottom of the world (bedrock in the overworld or
- * nether, void in the end) client-side and set as the poser's bed. This is packet-based only
- * and does not affect the world server-side, and is reset when the pose is left
+ * Note that to do this, a bed is placed one block below the player's feet client-side
+ * and set as the poser's bed. This is packet-based only and does not affect the world
+ * server-side, and is reset when the pose is left.
+ * <br>
+ * The bed position is set close to the player because Minecraft's client-side
+ * {@code LivingEntity.onTrackedDataSet()} calls {@code setPositionInBed()} when
+ * SLEEPING_POSITION is updated, which teleports the entity to the bed position.
+ * By placing the bed near the player, this teleportation has minimal effect.
  */
 public class LayingEntity extends PosingEntity {
     // replace a block with a bed
@@ -43,9 +48,14 @@ public class LayingEntity extends PosingEntity {
         // set sleeping pose; mixin is again used to access entity data
         this.getDataTracker().set(getPOSE(), EntityPose.SLEEPING);
 
-        // lowest possible block to put the bed on (minimal interference)
-        int worldBottom = this.getEntityWorld().getDimension().minY();
-        BlockPos bedPos = getBlockPos().withY(worldBottom);
+        // Place bed one block below the player's feet.
+        // This is important because Minecraft's client calls setPositionInBed() when
+        // SLEEPING_POSITION is updated via data tracker, which teleports the entity to:
+        // (bedPos.x + 0.5, bedPos.y + 0.6875, bedPos.z + 0.5)
+        // By placing the bed near the player, the resulting position stays close to
+        // the player's actual position, preventing them from being teleported to
+        // the world bottom (minY) and becoming invisible.
+        BlockPos bedPos = getBlockPos().down();
         // set the sleeping position of the poser to the bed
         this.getDataTracker().set(getSLEEPING_POSITION(), Optional.of(bedPos));
 
@@ -57,13 +67,17 @@ public class LayingEntity extends PosingEntity {
         // update bed facing direction to match player
         bed = bed.with(BedBlock.FACING, this.initialDirection.getOpposite());
 
-        // raise pose position to lie on the ground rather than in it
-        this.setPosition(this.getX(), this.getY() + 0.1, this.getZ());
+        // Set position to match where setPositionInBed() will place the entity.
+        // setPositionInBed() sets Y to bedPos.y + 0.6875 (bed height offset).
+        // This ensures the entity doesn't visibly jump when the client processes
+        // the SLEEPING_POSITION data tracker update.
+        double targetY = bedPos.getY() + 0.6875;
+        this.setPosition(this.getX(), targetY, this.getZ());
 
         this.addBedPacket = new BlockUpdateS2CPacket(bedPos, bed);
         this.removeBedPacket = new BlockUpdateS2CPacket(bedPos, old);
-        // teleport the poser from the bed to the player, as the poser
-        // spawns on the bed (mojang moment)
+        // teleport the poser to maintain the correct position after client-side
+        // setPositionInBed() is called
         this.teleportPoserPacket = EntityPositionS2CPacket.create(getId(), EntityPosition.fromEntity(this), Set.of(), isOnGround());
         // refresh metadata so the bed is assigned correctly
         this.trackerPoserPacket = new EntityTrackerUpdateS2CPacket(this.getId(), this.getDataTracker().getChangedEntries());

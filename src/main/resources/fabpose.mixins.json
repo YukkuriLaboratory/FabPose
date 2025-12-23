@@ -8,6 +8,7 @@
     "accessor.EntityAccessor",
     "accessor.EntitySpawnPacketAccessor",
     "accessor.LivingEntityAccessor",
+    "accessor.MannequinEntityAccessor",
     "accessor.PlayerEntityAccessor",
     "accessor.PlayerLikeEntityAccessor",
     "accessor.PlayerListS2CPacketAccessor",
