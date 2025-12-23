@@ -17,6 +17,9 @@ public abstract class MixinPlayerEntityRenderer<AvatarlikeEntity extends PlayerL
             at = @At("RETURN")
     )
     private void updatePoseState(AvatarlikeEntity playerLikeEntity, PlayerEntityRenderState playerEntityRenderState, float f, CallbackInfo ci) {
-        playerEntityRenderState.fabSit$setPosing(((PlayerEntity) playerLikeEntity).fabSit$currentPose());
+        // Only apply pose state for actual PlayerEntity instances (not MannequinEntity)
+        if (playerLikeEntity instanceof PlayerEntity player) {
+            playerEntityRenderState.fabSit$setPosing(player.fabSit$currentPose());
+        }
     }
 }
