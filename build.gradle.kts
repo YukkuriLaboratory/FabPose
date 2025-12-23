@@ -80,7 +80,7 @@ dependencies {
     // Kotlin
     modImplementation("net.fabricmc:fabric-language-kotlin:$flkVersion")
     // Permissions API
-    modImplementation(include("me.lucko:fabric-permissions-api:0.4.1")!!)
+    modImplementation(include("me.lucko:fabric-permissions-api:0.6.1")!!)
 
     // Uncomment the following line to enable the deprecated Fabric API modules.
     // These are included in the Fabric API production distribution and allow you to update your mod to the latest modules at a later more convenient time.

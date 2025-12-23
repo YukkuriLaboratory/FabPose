@@ -32,7 +32,7 @@ data class SyncRequestC2SPacket(val playerId: UUID) : CustomPayload {
         fun onReceive(payload: SyncRequestC2SPacket, context: ServerPlayNetworking.Context) {
             val targetId = payload.playerId
             val player = context.player()
-            val pose = player.entityWorld.server.playerManager?.getPlayer(targetId)?.currentPose
+            val pose = player.entityWorld.server?.playerManager?.getPlayer(targetId)?.currentPose
             SyncPoseS2CPacket(targetId, pose).send(player)
         }
     }

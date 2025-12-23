@@ -2,6 +2,7 @@ package net.fill1890.fabsit.mixin.accessor;
 
 import net.minecraft.entity.PlayerLikeEntity;
 import net.minecraft.entity.data.TrackedData;
+import net.minecraft.util.Arm;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
@@ -21,7 +22,7 @@ public interface PlayerLikeEntityAccessor {
      * @return NBT location of main arm selector
      */
     @Accessor("MAIN_ARM_ID")
-    static TrackedData<Byte> getMAIN_ARM_ID() {
+    static TrackedData<Arm> getMAIN_ARM_ID() {
         throw new AssertionError();
     }
 }
