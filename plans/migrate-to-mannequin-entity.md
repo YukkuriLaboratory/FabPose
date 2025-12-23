@@ -86,15 +86,24 @@ MannequinEntity (Minecraft's EntityType.MANNEQUIN)
 
 ## Implementation Tasks
 
-### Phase 1: Prototype & Validation
+### Phase 1: Prototype & Validation ✅ COMPLETE
 - [x] **Task 1.1**: Create minimal MannequinEntity spawn test ✅
   - Created `TestMannequinEntityPrototype.kt` with 12 tests
   - All poses (STANDING, SLEEPING, SWIMMING, CROUCHING, GLIDING) work
 - [x] **Task 1.2**: Create MannequinEntityAccessor for ProfileComponent ✅
   - Created `MannequinEntityAccessor.java` to access protected PROFILE field
   - ProfileComponent setting verified via tests
-- [x] **Task 1.3**: Verify SLEEPING pose renders correctly on MannequinEntity (NEEDS USER)
-- [x] **Task 1.4**: Verify equipment sync works with MannequinEntity
+- [x] **Task 1.3**: Verify SLEEPING pose renders correctly on MannequinEntity ✅
+  - Verified via `/fabpose debug mannequin SLEEPING` command
+  - Screenshot confirmation: renders correctly
+- [x] **Task 1.4**: Verify equipment sync works with MannequinEntity ✅
+  - Equipment (armor, held items) syncs correctly to MannequinEntity
+  - Screenshot confirmation: all equipment visible
+
+**Additional Phase 1 work:**
+- [x] Fixed `MixinPlayerEntityRenderer.java` - added instanceof check for MannequinEntity compatibility
+- [x] Added debug command `/fabpose debug mannequin <pose>` (dev environment only)
+- [x] Fixed `LayingEntity.java` bed position (use `getBlockPos().down()` instead of `minY`)
 
 ### Phase 2: Core Implementation
 - [ ] **Task 2.1**: Create new `PosingMannequin` helper class for MannequinEntity management
