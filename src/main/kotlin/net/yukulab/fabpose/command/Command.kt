@@ -10,6 +10,7 @@ import net.fabricmc.loader.api.FabricLoader
 import net.fill1890.fabsit.config.ConfigManager
 import net.fill1890.fabsit.entity.Pose
 import net.fill1890.fabsit.error.PoseException
+import net.fill1890.fabsit.mixin.accessor.LivingEntityAccessor
 import net.fill1890.fabsit.mixin.accessor.MannequinEntityAccessor
 import net.fill1890.fabsit.util.Messages
 import net.minecraft.component.type.ProfileComponent
@@ -136,6 +137,21 @@ object Command {
 
                                             // Set pose
                                             mannequin.pose = entityPose
+
+                                            // Hide the "NPC" label below the name tag
+                                            mannequin.dataTracker.set(MannequinEntityAccessor.getDESCRIPTION(), java.util.Optional.empty())
+
+                                            // Handle SPIN_ATTACK pose - set LIVING_FLAGS for riptide spinning
+                                            if (entityPose == EntityPose.SPIN_ATTACK) {
+                                                mannequin.dataTracker.set(LivingEntityAccessor.getLIVING_FLAGS(), 0x04.toByte())
+                                                // Set pitch to -90 degrees to make entity spin vertically (upward)
+                                                mannequin.pitch = -90f
+                                                // Don't show name for SPIN_ATTACK (position would be wrong due to rotation)
+                                            } else {
+                                                // Set player's name as custom name
+                                                mannequin.customName = player.name
+                                                mannequin.isCustomNameVisible = true
+                                            }
 
                                             // Sync equipment from player
                                             EquipmentSlot.entries.forEach { slot ->
