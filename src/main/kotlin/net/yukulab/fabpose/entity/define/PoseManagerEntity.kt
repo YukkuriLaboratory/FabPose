@@ -1,23 +1,15 @@
 package net.yukulab.fabpose.entity.define
 
-import com.mojang.authlib.GameProfile
-import java.util.OptionalInt
-import java.util.UUID
 import net.fill1890.fabsit.config.ConfigManager
 import net.fill1890.fabsit.entity.ChairPosition
-import net.fill1890.fabsit.entity.LayingEntity
 import net.fill1890.fabsit.entity.Pose
-import net.fill1890.fabsit.entity.PosingEntity
-import net.fill1890.fabsit.entity.SpinningEntity
-import net.fill1890.fabsit.mixin.accessor.PlayerEntityAccessor
 import net.fill1890.fabsit.util.Messages
 import net.minecraft.entity.Entity
+import net.minecraft.entity.EntityPose
 import net.minecraft.entity.EntityType
 import net.minecraft.entity.LivingEntity
 import net.minecraft.entity.decoration.ArmorStandEntity
 import net.minecraft.entity.player.PlayerEntity
-import net.minecraft.nbt.NbtCompound
-import net.minecraft.network.packet.c2s.common.SyncedClientOptions
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.server.world.ServerWorld
 import net.minecraft.text.Text
@@ -26,6 +18,7 @@ import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Box
 import net.minecraft.util.math.Vec3d
 import net.minecraft.world.World
+import net.yukulab.fabpose.entity.PosingMannequin
 import net.yukulab.fabpose.extension.currentPose
 
 /**
@@ -43,7 +36,10 @@ class PoseManagerEntity(entityType: EntityType<out PoseManagerEntity>, world: Wo
 
     // Storing pose data even if player reset pose from [ServerPlayerEntity.pose]
     private var selectedPose: Pose? = null
-    private var poser: PosingEntity? = null
+    private var posingMannequin: PosingMannequin? = null
+
+    // Track players who have received bed packets (for SLEEPING pose)
+    private val playersWithBedPacket = mutableSetOf<ServerPlayerEntity>()
 
     var chairPosition: ChairPosition? = null
         private set
@@ -61,20 +57,9 @@ class PoseManagerEntity(entityType: EntityType<out PoseManagerEntity>, world: Wo
         if (passenger is PlayerEntity) {
             owner = passenger
             val pose = selectedPose
-            val poseEntity = poser
-            if (poseEntity != null && pose in setOf(Pose.LAYING, Pose.SPINNING)) {
+            val mannequin = posingMannequin
+            if (mannequin != null && pose in setOf(Pose.LAYING, Pose.SPINNING)) {
                 passenger.isInvisible = true
-
-                val poserDataTracker = poseEntity.dataTracker
-                val passengerDataTracker = passenger.dataTracker
-                PlayerEntityAccessor.getLEFT_SHOULDER_PARROT_VARIANT_ID().also {
-                    poserDataTracker.set(it, passengerDataTracker.get(it))
-                    passengerDataTracker.set(it, OptionalInt.empty())
-                }
-                PlayerEntityAccessor.getRIGHT_SHOULDER_PARROT_VARIANT_ID().also {
-                    poserDataTracker.set(it, passengerDataTracker.get(it))
-                    passengerDataTracker.set(it, OptionalInt.empty())
-                }
             }
 
             if (passenger is ServerPlayerEntity && pose != null && ConfigManager.getConfig().enable_messages.action_bar) {
@@ -88,20 +73,9 @@ class PoseManagerEntity(entityType: EntityType<out PoseManagerEntity>, world: Wo
 
         if (passenger is PlayerEntity) {
             val pose = selectedPose
-            val poseEntity = poser
-            if (poseEntity != null && pose in setOf(Pose.LAYING, Pose.SPINNING)) {
+            val mannequin = posingMannequin
+            if (mannequin != null && pose in setOf(Pose.LAYING, Pose.SPINNING)) {
                 passenger.isInvisible = false
-
-                val poserDataTracker = poseEntity.dataTracker
-                val passengerDataTracker = passenger.dataTracker
-                PlayerEntityAccessor.getLEFT_SHOULDER_PARROT_VARIANT_ID().also {
-                    passengerDataTracker.set(it, poserDataTracker.get(it))
-                    poserDataTracker.set(it, OptionalInt.empty())
-                }
-                PlayerEntityAccessor.getRIGHT_SHOULDER_PARROT_VARIANT_ID().also {
-                    passengerDataTracker.set(it, poserDataTracker.get(it))
-                    poserDataTracker.set(it, OptionalInt.empty())
-                }
                 passenger.updatePosition(passenger.x, passenger.y + 0.5, passenger.z)
             }
             // Reset pose state for player sneaking
@@ -110,16 +84,15 @@ class PoseManagerEntity(entityType: EntityType<out PoseManagerEntity>, world: Wo
     }
 
     fun animate(id: Int) {
-        val pose = selectedPose
-        if (pose in setOf(Pose.LAYING, Pose.SPINNING)) {
-            poser?.animate(id)
-        }
+        // MannequinEntity handles animations automatically as a real entity
+        // No manual packet sending needed
     }
 
     override fun collidesWith(other: Entity?): Boolean = false
 
     override fun kill(world: ServerWorld) {
-        poser?.destroy()
+        posingMannequin?.destroy()
+        playersWithBedPacket.clear()
         super.kill(world)
     }
 
@@ -133,11 +106,39 @@ class PoseManagerEntity(entityType: EntityType<out PoseManagerEntity>, world: Wo
             return
         }
 
-        // if pose is npc-based, update players with npc info
+        // Handle MannequinEntity updates
         val pose = selectedPose
-        val poseEntity = poser
-        if (poseEntity != null && pose in setOf(Pose.LAYING, Pose.SPINNING)) {
-            poseEntity.sendUpdates()
+        val mannequin = posingMannequin
+        if (mannequin != null && pose in setOf(Pose.LAYING, Pose.SPINNING)) {
+            // Sync equipment and head rotation periodically
+            mannequin.syncEquipment()
+            mannequin.syncHeadRotation()
+
+            // For SLEEPING pose, send bed packets to nearby players
+            if (pose == Pose.LAYING && world is ServerWorld) {
+                val nearbyPlayers = world.players.filter {
+                    it.canSee(mannequin.mannequin) && it !in playersWithBedPacket
+                }
+                nearbyPlayers.forEach { player ->
+                    mannequin.sendBedPacket(player)
+                    playersWithBedPacket.add(player)
+                }
+
+                // Clean up players who left range
+                playersWithBedPacket.removeIf { !it.canSee(mannequin.mannequin) }
+            }
+
+            // For SPINNING pose, send pivot packets
+            if (pose == Pose.SPINNING && world is ServerWorld) {
+                val nearbyPlayers = world.players.filter {
+                    it.canSee(mannequin.mannequin) && it !in playersWithBedPacket
+                }
+                nearbyPlayers.forEach { player ->
+                    mannequin.sendPivotPacket(player)
+                    playersWithBedPacket.add(player)
+                }
+                playersWithBedPacket.removeIf { !it.canSee(mannequin.mannequin) }
+            }
         }
         super.tick()
     }
@@ -166,15 +167,16 @@ class PoseManagerEntity(entityType: EntityType<out PoseManagerEntity>, world: Wo
             it.chairPosition = position
             it.selectedPose = playerEntity.currentPose
 
-            // if the pose is more complex than sitting, create a posing npc
+            // if the pose is more complex than sitting, create a posing mannequin
             val pose = playerEntity.currentPose
             if (pose in setOf(Pose.LAYING, Pose.SPINNING)) {
-                val gameProfile = GameProfile(UUID.randomUUID(), playerEntity.nameForScoreboard, playerEntity.gameProfile.properties)
-
-                if (pose == Pose.LAYING) {
-                    it.poser = LayingEntity(playerEntity, gameProfile, SyncedClientOptions.createDefault())
-                } else if (pose == Pose.SPINNING) {
-                    it.poser = SpinningEntity(playerEntity, gameProfile, SyncedClientOptions.createDefault())
+                val entityPose = when (pose) {
+                    Pose.LAYING -> EntityPose.SLEEPING
+                    Pose.SPINNING -> EntityPose.SPIN_ATTACK
+                    else -> null
+                }
+                if (entityPose != null) {
+                    it.posingMannequin = PosingMannequin.create(playerEntity, entityPose)
                 }
             }
         }
