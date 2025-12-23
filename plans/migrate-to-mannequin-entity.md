@@ -105,25 +105,36 @@ MannequinEntity (Minecraft's EntityType.MANNEQUIN)
 - [x] Added debug command `/fabpose debug mannequin <pose>` (dev environment only)
 - [x] Fixed `LayingEntity.java` bed position (use `getBlockPos().down()` instead of `minY`)
 
-### Phase 2: Core Implementation
-- [ ] **Task 2.1**: Create new `PosingMannequin` helper class for MannequinEntity management
-- [ ] **Task 2.2**: Implement laying pose using MannequinEntity
-- [ ] **Task 2.3**: Implement spinning pose using MannequinEntity
-- [ ] **Task 2.4**: Update `PoseManagerEntity.kt` to use new implementation
+### Phase 2: Core Implementation ✅ COMPLETE
+- [x] **Task 2.1**: Create new `PosingMannequin` helper class for MannequinEntity management ✅
+  - Created `src/main/kotlin/net/yukulab/fabpose/entity/PosingMannequin.kt`
+  - Handles MannequinEntity creation, equipment sync, head rotation sync, bed packets
+- [x] **Task 2.2**: Implement laying pose using MannequinEntity ✅
+  - Bed placed at `world.bottomY + 1` for invisible SLEEPING pose support
+  - `DESCRIPTION` TrackedData set to `Optional.empty()` to hide "NPC" label
+- [x] **Task 2.3**: Implement spinning pose using MannequinEntity ✅
+  - `LIVING_FLAGS = 0x04` for riptide spinning
+  - `pitch = -90f` for vertical spin direction
+  - Name hidden for SPIN_ATTACK pose (position would be wrong due to rotation)
+- [x] **Task 2.4**: Update `PoseManagerEntity.kt` to use new implementation ✅
+  - Changed `poser: PosingEntity?` to `posingMannequin: PosingMannequin?`
+  - Added equipment and head rotation sync in tick()
 
-### Phase 3: Cleanup
-- [ ] **Task 3.1**: Remove old PosingEntity, LayingEntity, SpinningEntity
-- [ ] **Task 3.2**: Remove SkinUtil and LoadSkinException
-- [ ] **Task 3.3**: Remove PlayerListS2CPacketAccessor
-- [ ] **Task 3.4**: Clean up unused Mixins
+### Phase 3: Cleanup ✅ COMPLETE
+- [x] **Task 3.1**: Remove old PosingEntity, LayingEntity, SpinningEntity ✅
+- [x] **Task 3.2**: Remove SkinUtil and LoadSkinException ✅
+- [x] **Task 3.3**: Remove PlayerListS2CPacketAccessor ✅
+- [x] **Task 3.4**: Clean up unused Mixins ✅
+  - Verified ServerPlayerEntityMixin, ServerPlayNetworkHandlerMixin, OtherClientPlayerEntityMixin have no PosingEntity references
+  - Updated fabpose.mixins.json to remove PlayerListS2CPacketAccessor
 
-### Phase 4: Testing & Verification
-- [ ] **Task 4.1**: Test /sit command
-- [ ] **Task 4.2**: Test /lay command (the main issue)
-- [ ] **Task 4.3**: Test /spin command
-- [ ] **Task 4.4**: Test /swim command
-- [ ] **Task 4.5**: Multiplayer visibility test
-- [ ] **Task 4.6**: Vanilla client compatibility test
+### Phase 4: Testing & Verification ✅ COMPLETE
+- [x] **Task 4.1**: Test /sit command ✅
+- [x] **Task 4.2**: Test /lay command (the main issue) ✅
+- [x] **Task 4.3**: Test /spin command ✅
+- [x] **Task 4.4**: Test /swim command ✅
+- [x] **Task 4.5**: Multiplayer visibility test ✅
+- [x] **Task 4.6**: Vanilla client compatibility test ✅
 
 ---
 
