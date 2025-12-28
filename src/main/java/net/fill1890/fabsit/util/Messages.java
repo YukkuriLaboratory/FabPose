@@ -12,11 +12,8 @@ import net.fill1890.fabsit.mixin.accessor.ServerCommonPacketListenerImplAccessor
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.network.chat.Component;
 
-import static net.fill1890.fabsit.error.PoseException.*;
-
 // this may not be the best way of doing this kind of function
 // but it works for now
-
 /**
  * Message lookup functions
  *

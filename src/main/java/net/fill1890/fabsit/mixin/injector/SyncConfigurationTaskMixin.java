@@ -21,7 +21,6 @@ import java.util.function.Consumer;
 /**
  * Hijack registry sync manager to remove entites
  */
-@SuppressWarnings("UnstableApiUsage")
 @Mixin(RegistrySyncManager.SyncConfigurationTask.class)
 public abstract class SyncConfigurationTaskMixin {
 

@@ -38,7 +38,7 @@ data class SyncPoseS2CPacket(val playerId: UUID, val pose: Pose?) : CustomPacket
 
         @Environment(EnvType.CLIENT)
         fun onReceive(payload: SyncPoseS2CPacket, context: ClientPlayNetworking.Context) {
-            context.player().level()?.getPlayerByUUID(payload.playerId)?.currentPose = payload.pose
+            context.player().level().getPlayerByUUID(payload.playerId)?.currentPose = payload.pose
         }
     }
 }

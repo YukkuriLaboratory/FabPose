@@ -73,7 +73,7 @@ dependencies {
         "fabric-gametest-api-v1",
     ).forEach {
         // Fabric API. This is technically optional, but you probably want it anyway.
-        modImplementation(fabricApi.module(it, fabricVersion.toString()))
+        modImplementation(fabricApi.module(it, fabricVersion))
     }
     // For Gametests
     modLocalRuntime("net.fabricmc.fabric-api:fabric-api:$fabricVersion")

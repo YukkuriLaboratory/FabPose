@@ -5,10 +5,8 @@ import net.fill1890.fabsit.mixin.accessor.LivingEntityAccessor
 import net.fill1890.fabsit.mixin.accessor.MannequinAccessor
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
-import net.minecraft.network.chat.Component
 import net.minecraft.network.protocol.game.ClientboundBlockUpdatePacket
 import net.minecraft.network.protocol.game.ClientboundMoveEntityPacket
-import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.EntityType
@@ -122,7 +120,7 @@ class PosingMannequin private constructor(
          * @return The created PosingMannequin, or null if creation failed
          */
         fun create(player: ServerPlayer, pose: Pose): PosingMannequin? {
-            val world = player.level() as? ServerLevel ?: return null
+            val world = player.level()
             val mannequin = Mannequin.create(EntityType.MANNEQUIN, world) ?: return null
 
             // Set position (optionally centered on block)
