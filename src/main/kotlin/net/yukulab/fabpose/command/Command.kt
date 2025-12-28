@@ -11,15 +11,15 @@ import net.fill1890.fabsit.config.ConfigManager
 import net.fill1890.fabsit.entity.Pose
 import net.fill1890.fabsit.error.PoseException
 import net.fill1890.fabsit.mixin.accessor.LivingEntityAccessor
-import net.fill1890.fabsit.mixin.accessor.MannequinEntityAccessor
+import net.fill1890.fabsit.mixin.accessor.MannequinAccessor
 import net.fill1890.fabsit.util.Messages
-import net.minecraft.component.type.ProfileComponent
-import net.minecraft.entity.EntityPose
-import net.minecraft.entity.EntityType
-import net.minecraft.entity.EquipmentSlot
-import net.minecraft.entity.decoration.MannequinEntity
-import net.minecraft.server.command.ServerCommandSource
-import net.minecraft.text.Text
+import net.minecraft.commands.CommandSourceStack
+import net.minecraft.network.chat.Component
+import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.EquipmentSlot
+import net.minecraft.world.entity.Pose as EntityPose
+import net.minecraft.world.entity.decoration.Mannequin
+import net.minecraft.world.item.component.ResolvableProfile
 import net.yukulab.fabpose.DelegatedLogger
 import net.yukulab.fabpose.MOD_ID
 import net.yukulab.fabpose.extension.getPermissionName
@@ -39,15 +39,15 @@ object Command {
         }
     }
 
-    private fun registerPoseCommands(dispatcher: CommandDispatcher<ServerCommandSource>) {
+    private fun registerPoseCommands(dispatcher: CommandDispatcher<CommandSourceStack>) {
         Pose.entries.forEach { pose ->
             dispatcher.register(
-                literal<ServerCommandSource?>(pose.getStaticName())
+                literal<CommandSourceStack?>(pose.getStaticName())
                     .requires(Permissions.require(pose.getPermissionName(), true))
                     .executes { context ->
                         val source = context.source
                         val player = source?.player ?: run {
-                            source?.sendError(Text.of("You must be a player to run this command!"))
+                            source?.sendFailure(Component.nullToEmpty("You must be a player to run this command!"))
                             return@executes -1
                         }
                         player.pose(pose).fold(
@@ -65,11 +65,11 @@ object Command {
         }
     }
 
-    private fun registerReloadCommand(dispatcher: CommandDispatcher<ServerCommandSource>) {
+    private fun registerReloadCommand(dispatcher: CommandDispatcher<CommandSourceStack>) {
         dispatcher.register(
-            literal<ServerCommandSource?>(MOD_ID)
+            literal<CommandSourceStack?>(MOD_ID)
                 .then(
-                    literal<ServerCommandSource?>("reload")
+                    literal<CommandSourceStack?>("reload")
                         .requires(Permissions.require("$MOD_ID.reload", 2))
                         .executes {
                             val source = it.source
@@ -77,11 +77,11 @@ object Command {
                                 ConfigManager.loadConfig()
                             }.fold(
                                 {
-                                    source?.sendFeedback({ Messages.configLoadSuccess(source.player) }, false)
+                                    source?.sendSuccess({ Messages.configLoadSuccess(source.player) }, false)
                                     0
                                 },
                                 {
-                                    source?.sendError(Messages.configLoadError(source.player))
+                                    source?.sendFailure(Messages.configLoadError(source.player))
                                     -1
                                 },
                             )
@@ -90,17 +90,17 @@ object Command {
         )
     }
 
-    private fun registerDebugCommand(dispatcher: CommandDispatcher<ServerCommandSource>) {
+    private fun registerDebugCommand(dispatcher: CommandDispatcher<CommandSourceStack>) {
         val poses = listOf("STANDING", "SLEEPING", "SWIMMING", "CROUCHING", "GLIDING", "SPIN_ATTACK")
         dispatcher.register(
-            literal<ServerCommandSource?>(MOD_ID)
+            literal<CommandSourceStack?>(MOD_ID)
                 .then(
-                    literal<ServerCommandSource?>("debug")
+                    literal<CommandSourceStack?>("debug")
                         .requires(Permissions.require("$MOD_ID.debug", 2))
                         .then(
-                            literal<ServerCommandSource?>("mannequin")
+                            literal<CommandSourceStack?>("mannequin")
                                 .then(
-                                    argument<ServerCommandSource?, String?>("pose", StringArgumentType.word())
+                                    argument<CommandSourceStack?, String?>("pose", StringArgumentType.word())
                                         .suggests { _, builder ->
                                             poses.forEach { builder.suggest(it) }
                                             builder.buildFuture()
@@ -108,44 +108,44 @@ object Command {
                                         .executes { context ->
                                             val source = context.source
                                             val player = source?.player ?: run {
-                                                source?.sendError(Text.of("You must be a player to run this command!"))
+                                                source?.sendFailure(Component.nullToEmpty("You must be a player to run this command!"))
                                                 return@executes -1
                                             }
                                             val poseName = StringArgumentType.getString(context, "pose")
                                             val entityPose = runCatching {
                                                 EntityPose.valueOf(poseName.uppercase())
                                             }.getOrElse {
-                                                source.sendError(Text.of("Invalid pose: $poseName. Valid: ${poses.joinToString()}"))
+                                                source.sendFailure(Component.nullToEmpty("Invalid pose: $poseName. Valid: ${poses.joinToString()}"))
                                                 return@executes -1
                                             }
 
-                                            val world = source.world
-                                            val mannequin = MannequinEntity.create(EntityType.MANNEQUIN, world) ?: run {
-                                                source.sendError(Text.of("Failed to create MannequinEntity"))
+                                            val world = source.level
+                                            val mannequin = Mannequin.create(EntityType.MANNEQUIN, world) ?: run {
+                                                source.sendFailure(Component.nullToEmpty("Failed to create MannequinEntity"))
                                                 return@executes -1
                                             }
 
                                             // Set position in front of player (at foot level)
-                                            val direction = player.rotationVector.multiply(2.0)
+                                            val direction = player.lookAngle.scale(2.0)
                                             val spawnX = player.x + direction.x
                                             val spawnZ = player.z + direction.z
-                                            mannequin.refreshPositionAndAngles(spawnX, player.y, spawnZ, player.yaw, 0f)
+                                            mannequin.snapTo(spawnX, player.y, spawnZ, player.yRot, 0f)
 
                                             // Set player's profile for skin
-                                            val profileComponent = ProfileComponent.ofStatic(player.gameProfile)
-                                            mannequin.dataTracker.set(MannequinEntityAccessor.getPROFILE(), profileComponent)
+                                            val profileComponent = ResolvableProfile.createResolved(player.gameProfile)
+                                            mannequin.entityData.set(MannequinAccessor.getPROFILE(), profileComponent)
 
                                             // Set pose
                                             mannequin.pose = entityPose
 
                                             // Hide the "NPC" label below the name tag
-                                            mannequin.dataTracker.set(MannequinEntityAccessor.getDESCRIPTION(), java.util.Optional.empty())
+                                            mannequin.entityData.set(MannequinAccessor.getDESCRIPTION(), java.util.Optional.empty())
 
                                             // Handle SPIN_ATTACK pose - set LIVING_FLAGS for riptide spinning
                                             if (entityPose == EntityPose.SPIN_ATTACK) {
-                                                mannequin.dataTracker.set(LivingEntityAccessor.getLIVING_FLAGS(), 0x04.toByte())
+                                                mannequin.entityData.set(LivingEntityAccessor.getLIVING_FLAGS(), 0x04.toByte())
                                                 // Set pitch to -90 degrees to make entity spin vertically (upward)
-                                                mannequin.pitch = -90f
+                                                mannequin.setXRot(-90f)
                                                 // Don't show name for SPIN_ATTACK (position would be wrong due to rotation)
                                             } else {
                                                 // Set player's name as custom name
@@ -155,12 +155,12 @@ object Command {
 
                                             // Sync equipment from player
                                             EquipmentSlot.entries.forEach { slot ->
-                                                mannequin.equipStack(slot, player.getEquippedStack(slot).copy())
+                                                mannequin.setItemSlot(slot, player.getItemBySlot(slot).copy())
                                             }
 
-                                            world.spawnEntity(mannequin)
-                                            source.sendFeedback(
-                                                { Text.of("Spawned MannequinEntity with pose: $poseName") },
+                                            world.addFreshEntity(mannequin)
+                                            source.sendSuccess(
+                                                { Component.nullToEmpty("Spawned MannequinEntity with pose: $poseName") },
                                                 false,
                                             )
                                             0

@@ -8,7 +8,7 @@ import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry
 import net.fabricmc.fabric.api.networking.v1.ServerLoginConnectionEvents
 import net.fabricmc.fabric.api.networking.v1.ServerLoginNetworking
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
-import net.minecraft.util.Identifier
+import net.minecraft.resources.Identifier
 import net.yukulab.fabpose.MOD_ID
 import net.yukulab.fabpose.network.packet.HandShakeS2CPacket
 import net.yukulab.fabpose.network.packet.play.PoseRequestC2SPacket
@@ -38,5 +38,5 @@ object Networking {
         ClientPlayNetworking.registerGlobalReceiver(SyncPoseS2CPacket.ID, SyncPoseS2CPacket::onReceive)
     }
 
-    private fun id(name: String): Identifier = Identifier.of(MOD_ID, name)
+    private fun id(name: String): Identifier = Identifier.fromNamespaceAndPath(MOD_ID, name)
 }

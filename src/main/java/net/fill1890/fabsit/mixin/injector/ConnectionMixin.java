@@ -1,12 +1,12 @@
 package net.fill1890.fabsit.mixin.injector;
 
 import net.fill1890.fabsit.extension.ModFlag;
-import net.minecraft.network.ClientConnection;
+import net.minecraft.network.Connection;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
-@Mixin(ClientConnection.class)
-public abstract class ClientConnectionMixin implements ModFlag {
+@Mixin(Connection.class)
+public abstract class ConnectionMixin implements ModFlag {
     @Unique
     boolean fabSit$isModEnabled = false;
 

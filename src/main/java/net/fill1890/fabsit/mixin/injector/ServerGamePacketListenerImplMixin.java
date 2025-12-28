@@ -2,21 +2,21 @@ package net.fill1890.fabsit.mixin.injector;
 
 import io.netty.channel.ChannelFutureListener;
 import net.fill1890.fabsit.mixin.accessor.EntitySpawnPacketAccessor;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.network.ClientConnection;
-import net.minecraft.network.listener.ClientPlayPacketListener;
-import net.minecraft.network.packet.Packet;
-import net.minecraft.network.packet.c2s.play.HandSwingC2SPacket;
-import net.minecraft.network.packet.s2c.play.BundleS2CPacket;
-import net.minecraft.network.packet.s2c.play.EntityAnimationS2CPacket;
-import net.minecraft.network.packet.s2c.play.EntityAttributesS2CPacket;
-import net.minecraft.network.packet.s2c.play.EntitySpawnS2CPacket;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.network.Connection;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ServerboundSwingPacket;
+import net.minecraft.network.protocol.game.ClientboundBundlePacket;
+import net.minecraft.network.protocol.game.ClientboundAnimatePacket;
+import net.minecraft.network.protocol.game.ClientboundUpdateAttributesPacket;
+import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ConnectedClientData;
-import net.minecraft.server.network.ServerCommonNetworkHandler;
-import net.minecraft.server.network.ServerPlayNetworkHandler;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.network.CommonListenerCookie;
+import net.minecraft.server.network.ServerCommonPacketListenerImpl;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import net.minecraft.server.level.ServerPlayer;
 import net.yukulab.fabpose.entity.FabSitEntities;
 import net.yukulab.fabpose.entity.define.PoseManagerEntity;
 import org.jetbrains.annotations.Nullable;
@@ -30,11 +30,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 /**
  * Hijack the network handler for various reasons
  */
-@Mixin(ServerPlayNetworkHandler.class)
-public abstract class ServerPlayNetworkHandlerMixin extends ServerCommonNetworkHandler {
-    @Shadow public ServerPlayerEntity player;
+@Mixin(ServerGamePacketListenerImpl.class)
+public abstract class ServerGamePacketListenerImplMixin extends ServerCommonPacketListenerImpl {
+    @Shadow public ServerPlayer player;
 
-    public ServerPlayNetworkHandlerMixin(MinecraftServer server, ClientConnection connection, ConnectedClientData clientData) {
+    public ServerGamePacketListenerImplMixin(MinecraftServer server, Connection connection, CommonListenerCookie clientData) {
         super(server, connection, clientData);
     }
 
@@ -46,14 +46,14 @@ public abstract class ServerPlayNetworkHandlerMixin extends ServerCommonNetworkH
      * @param packet passed from mixin function
      * @param ci mixin callback info
      */
-    @Inject(method = "onHandSwing", at = @At("HEAD"))
-    private void copyHandSwing(HandSwingC2SPacket packet, CallbackInfo ci) {
+    @Inject(method = "handleAnimate", at = @At("HEAD"))
+    private void copyHandSwing(ServerboundSwingPacket packet, CallbackInfo ci) {
         // if player is currently posing
-        if(this.player.hasVehicle() && this.player.getVehicle() instanceof PoseManagerEntity poseManager) {
+        if(this.player.isPassenger() && this.player.getVehicle() instanceof PoseManagerEntity poseManager) {
             // animate if need be
             poseManager.animate(switch (packet.getHand()) {
-                case MAIN_HAND -> EntityAnimationS2CPacket.SWING_MAIN_HAND;
-                case OFF_HAND -> EntityAnimationS2CPacket.SWING_OFF_HAND;
+                case MAIN_HAND -> ClientboundAnimatePacket.SWING_MAIN_HAND;
+                case OFF_HAND -> ClientboundAnimatePacket.SWING_OFF_HAND;
             });
         }
     }
@@ -73,11 +73,11 @@ public abstract class ServerPlayNetworkHandlerMixin extends ServerCommonNetworkH
     @Override
     public void send(Packet<?> packet, @Nullable ChannelFutureListener callbacks) {
         // check for spawn packets, then spawn packets for the poser
-        if (packet instanceof EntitySpawnS2CPacket sp) {
+        if (packet instanceof ClientboundAddEntityPacket sp) {
             fabPose$modifySpawnPacket(sp);
-        } else if (packet instanceof BundleS2CPacket bp) {
-            for (Packet<? super ClientPlayPacketListener> p : bp.getPackets()) {
-                if (p instanceof EntitySpawnS2CPacket sp) {
+        } else if (packet instanceof ClientboundBundlePacket bp) {
+            for (Packet<? super ClientGamePacketListener> p : bp.subPackets()) {
+                if (p instanceof ClientboundAddEntityPacket sp) {
                     fabPose$modifySpawnPacket(sp);
                 }
             }
@@ -85,8 +85,8 @@ public abstract class ServerPlayNetworkHandlerMixin extends ServerCommonNetworkH
 
         // check for entity attribute packets, and block for clients with fabsit
         // clients spit an error into logs when we try to update a non-living entity with living attributes
-        if (packet instanceof EntityAttributesS2CPacket ap) {
-            Entity entity = player.getEntityWorld().getEntityById(ap.getEntityId());
+        if (packet instanceof ClientboundUpdateAttributesPacket ap) {
+            Entity entity = player.level().getEntity(ap.getEntityId());
             if (entity == null) {
                 super.send(packet, callbacks);
                 return;
@@ -107,8 +107,8 @@ public abstract class ServerPlayNetworkHandlerMixin extends ServerCommonNetworkH
     }
 
     @Unique
-    private void fabPose$modifySpawnPacket(EntitySpawnS2CPacket sp) {
-        if (sp.getEntityType() == FabSitEntities.POSE_MANAGER) {
+    private void fabPose$modifySpawnPacket(ClientboundAddEntityPacket sp) {
+        if (sp.getType() == FabSitEntities.POSE_MANAGER) {
 
             // if fabsit not loaded, replace PoseManager entity to vanilla ArmorStand
             if (!connection.fabSit$isModEnabled()) {

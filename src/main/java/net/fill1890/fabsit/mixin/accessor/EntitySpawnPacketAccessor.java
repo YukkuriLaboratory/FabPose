@@ -1,7 +1,7 @@
 package net.fill1890.fabsit.mixin.accessor;
 
-import net.minecraft.entity.EntityType;
-import net.minecraft.network.packet.s2c.play.EntitySpawnS2CPacket;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Mutable;
 import org.spongepowered.asm.mixin.gen.Accessor;
@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 /**
  * Updater for fields of EntitySpawnS2CPacket
  */
-@Mixin(EntitySpawnS2CPacket.class)
+@Mixin(ClientboundAddEntityPacket.class)
 public interface EntitySpawnPacketAccessor {
     /**
      * Modify type ID of entity
@@ -19,7 +19,7 @@ public interface EntitySpawnPacketAccessor {
      * @param type new entity type
      */
     @Mutable
-    @Accessor("entityType")
+    @Accessor("type")
     void setEntityTypeId(EntityType<?> type);
 
     /**

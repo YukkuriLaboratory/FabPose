@@ -3,96 +3,96 @@ package net.fill1890.fabsit.event;
 import net.fill1890.fabsit.config.ConfigManager;
 import net.fill1890.fabsit.entity.ChairPosition;
 import net.fill1890.fabsit.entity.Pose;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.SlabBlock;
-import net.minecraft.block.StairsBlock;
-import net.minecraft.block.enums.BlockHalf;
-import net.minecraft.block.enums.SlabType;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.SlabBlock;
+import net.minecraft.world.level.block.StairBlock;
+import net.minecraft.world.level.block.state.properties.Half;
+import net.minecraft.world.level.block.state.properties.SlabType;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.level.Level;
 import net.yukulab.fabpose.entity.define.PoseManagerEntity;
 import net.yukulab.fabpose.extension.ServerPlayerEntityKt;
 
 public class UseStairCallback {
-    public static ActionResult interact(PlayerEntity player, World world, Hand hand, BlockHitResult hitResult) {
-        if (!(player instanceof ServerPlayerEntity)) return ActionResult.PASS;
+    public static InteractionResult interact(Player player, Level world, InteractionHand hand, BlockHitResult hitResult) {
+        if (!(player instanceof ServerPlayer)) return InteractionResult.PASS;
         // only allow interaction if enabled
         if(!ConfigManager.getConfig().right_click_sit)
-            return ActionResult.PASS;
+            return InteractionResult.PASS;
 
         // check player isn't spectating, sneaking, currently riding
         if(player.isSpectator())
-            return ActionResult.PASS;
-        if(player.isSneaking())
-            return ActionResult.PASS;
-        if(player.hasVehicle())
-            return ActionResult.PASS;
+            return InteractionResult.PASS;
+        if(player.isShiftKeyDown())
+            return InteractionResult.PASS;
+        if(player.isPassenger())
+            return InteractionResult.PASS;
 
         // player needs to click on an up-facing face
-        if(hitResult.getSide() != Direction.UP)
-            return ActionResult.PASS;
+        if(hitResult.getDirection() != Direction.UP)
+            return InteractionResult.PASS;
 
         BlockPos pos = hitResult.getBlockPos();
         BlockState state = world.getBlockState(pos);
         Block block = state.getBlock();
 
         // check block is stair or slab
-        if(!(block instanceof SlabBlock || block instanceof StairsBlock))
-            return ActionResult.PASS;
+        if(!(block instanceof SlabBlock || block instanceof StairBlock))
+            return InteractionResult.PASS;
 
         // use the block occupation logic since this forces centering
         if (PoseManagerEntity.isOccupied(world, pos))
-            return ActionResult.PASS;
+            return InteractionResult.PASS;
 
         // player needs to click with an empty hand
-        if(!player.getStackInHand(Hand.MAIN_HAND).isEmpty())
-            return ActionResult.PASS;
+        if(!player.getItemInHand(InteractionHand.MAIN_HAND).isEmpty())
+            return InteractionResult.PASS;
 
         // bottom slab only
         if(block instanceof SlabBlock && !isBottomSlab(state))
-            return ActionResult.PASS;
+            return InteractionResult.PASS;
 
         // bottom stair only
-        if(block instanceof StairsBlock && !isBottomStair(state))
-            return ActionResult.PASS;
+        if(block instanceof StairBlock && !isBottomStair(state))
+            return InteractionResult.PASS;
 
         // check block above is empty
-        if(!world.getBlockState(pos.up()).isAir())
-            return ActionResult.PASS;
+        if(!world.getBlockState(pos.above()).isAir())
+            return InteractionResult.PASS;
 
         // nice looking position
-        Vec3d sitPos = new Vec3d(pos.getX() + 0.5, pos.getY() + 0.4d, pos.getZ() + 0.5d);
+        Vec3 sitPos = new Vec3(pos.getX() + 0.5, pos.getY() + 0.4d, pos.getZ() + 0.5d);
 
         // tweak block position for stairs
-        if (block instanceof StairsBlock) {
-            sitPos = sitPos.add(switch (state.get(StairsBlock.FACING)) {
-                case EAST -> new Vec3d(-0.1, 0, 0);
-                case SOUTH -> new Vec3d(0, 0, -0.1);
-                case WEST -> new Vec3d(0.1, 0, 0);
-                case NORTH -> new Vec3d(0, 0, 0.1);
-                default -> throw new IllegalStateException("Unexpected value: " + state.get(StairsBlock.FACING));
+        if (block instanceof StairBlock) {
+            sitPos = sitPos.add(switch (state.getValue(StairBlock.FACING)) {
+                case EAST -> new Vec3(-0.1, 0, 0);
+                case SOUTH -> new Vec3(0, 0, -0.1);
+                case WEST -> new Vec3(0.1, 0, 0);
+                case NORTH -> new Vec3(0, 0, 0.1);
+                default -> throw new IllegalStateException("Unexpected value: " + state.getValue(StairBlock.FACING));
             });
         }
 
         // set up the seat
-        ServerPlayerEntityKt.pose((ServerPlayerEntity) player, Pose.SITTING, sitPos, ChairPosition.IN_BLOCK);
+        ServerPlayerEntityKt.pose((ServerPlayer) player, Pose.SITTING, sitPos, ChairPosition.IN_BLOCK);
 
-        return ActionResult.PASS;
+        return InteractionResult.PASS;
     }
 
     private static boolean isBottomSlab(BlockState state) {
-        return state.getProperties().contains(SlabBlock.TYPE) && state.get(SlabBlock.TYPE) == SlabType.BOTTOM;
+        return state.getProperties().contains(SlabBlock.TYPE) && state.getValue(SlabBlock.TYPE) == SlabType.BOTTOM;
     }
 
     private static boolean isBottomStair(BlockState state) {
-        return state.getProperties().contains(StairsBlock.HALF) && state.get(StairsBlock.HALF) == BlockHalf.BOTTOM;
+        return state.getProperties().contains(StairBlock.HALF) && state.getValue(StairBlock.HALF) == Half.BOTTOM;
     }
 }

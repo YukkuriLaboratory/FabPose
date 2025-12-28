@@ -1,9 +1,9 @@
 package net.fill1890.fabsit.mixin.accessor;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityPose;
-import net.minecraft.entity.data.DataTracker;
-import net.minecraft.entity.data.TrackedData;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.Pose;
+import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.network.syncher.EntityDataAccessor;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
@@ -19,11 +19,11 @@ public interface EntityAccessor {
      *
      * @return NBT pose data
      */
-    @Accessor("POSE")
-    static TrackedData<EntityPose> getPOSE() {
+    @Accessor("DATA_POSE")
+    static EntityDataAccessor<Pose> getPOSE() {
         throw new AssertionError();
     }
 
-    @Accessor("dataTracker")
-    DataTracker getDataTracker();
+    @Accessor("entityData")
+    SynchedEntityData getEntityData();
 }

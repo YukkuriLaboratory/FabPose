@@ -1,6 +1,6 @@
 package mock
 
-import net.minecraft.network.ClientConnection
-import net.minecraft.network.NetworkSide
+import net.minecraft.network.Connection
+import net.minecraft.network.protocol.PacketFlow
 
-class MockClientConnection(side: NetworkSide?) : ClientConnection(side)
+class MockClientConnection(side: PacketFlow) : Connection(side)

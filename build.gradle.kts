@@ -56,7 +56,7 @@ val flkVersion = project.property("flk_version").toString()
 dependencies {
     // To change the versions see the gradle.properties file
     minecraft("com.mojang:minecraft:$minecraftVersion")
-    mappings("net.fabricmc:yarn:${project.property("yarn_mappings")}:v2")
+    mappings(loom.officialMojangMappings())
     modImplementation("net.fabricmc:fabric-loader:$loaderVersion")
     compileOnly("com.mojang:authlib:3.13.56")
 
@@ -73,7 +73,7 @@ dependencies {
         "fabric-gametest-api-v1",
     ).forEach {
         // Fabric API. This is technically optional, but you probably want it anyway.
-        modImplementation(fabricApi.module(it, fabricVersion.toString()))
+        modImplementation(fabricApi.module(it, fabricVersion))
     }
     // For Gametests
     modLocalRuntime("net.fabricmc.fabric-api:fabric-api:$fabricVersion")

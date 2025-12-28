@@ -7,19 +7,19 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
 import net.fill1890.fabsit.entity.Pose
 import net.fill1890.fabsit.error.PoseException
 import net.fill1890.fabsit.util.Messages
-import net.minecraft.network.RegistryByteBuf
-import net.minecraft.network.codec.PacketCodec
-import net.minecraft.network.packet.CustomPayload
-import net.minecraft.network.packet.CustomPayload.Id
+import net.minecraft.network.RegistryFriendlyByteBuf
+import net.minecraft.network.codec.StreamCodec
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload.Type
 import net.yukulab.fabpose.extension.pose
 import net.yukulab.fabpose.network.Networking
 
-data class PoseRequestC2SPacket(val pose: Pose) : CustomPayload {
+data class PoseRequestC2SPacket(val pose: Pose) : CustomPacketPayload {
     companion object {
-        val ID: Id<PoseRequestC2SPacket> = Id<PoseRequestC2SPacket>(Networking.POSE_REQUEST)
-        val CODEC: PacketCodec<RegistryByteBuf, PoseRequestC2SPacket> = PacketCodec.of({ value, buf ->
-            buf.writeEnumConstant(value.pose)
-        }, { buf -> PoseRequestC2SPacket(buf.readEnumConstant(Pose::class.java)) })
+        val ID: Type<PoseRequestC2SPacket> = Type<PoseRequestC2SPacket>(Networking.POSE_REQUEST)
+        val CODEC: StreamCodec<RegistryFriendlyByteBuf, PoseRequestC2SPacket> = StreamCodec.ofMember({ value, buf ->
+            buf.writeEnum(value.pose)
+        }, { buf -> PoseRequestC2SPacket(buf.readEnum(Pose::class.java)) })
 
         fun onReceive(
             payload: PoseRequestC2SPacket,
@@ -28,7 +28,7 @@ data class PoseRequestC2SPacket(val pose: Pose) : CustomPayload {
             val player = context.player()
             player.pose(payload.pose).onFailure {
                 if (it is PoseException.PermissionException) {
-                    player.sendMessage(Messages.getStateError(player, payload.pose), false)
+                    player.displayClientMessage(Messages.getStateError(player, payload.pose), false)
                 }
             }
         }
@@ -40,5 +40,5 @@ data class PoseRequestC2SPacket(val pose: Pose) : CustomPayload {
         }
     }
 
-    override fun getId(): Id<PoseRequestC2SPacket> = ID
+    override fun type(): Type<PoseRequestC2SPacket> = ID
 }

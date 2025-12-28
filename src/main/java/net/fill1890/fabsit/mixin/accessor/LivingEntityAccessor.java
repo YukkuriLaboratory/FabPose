@@ -1,8 +1,8 @@
 package net.fill1890.fabsit.mixin.accessor;
 
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.data.TrackedData;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.core.BlockPos;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
@@ -18,8 +18,8 @@ public interface LivingEntityAccessor {
      *
      * @return NBT location of sleeping position
      */
-    @Accessor("SLEEPING_POSITION")
-    static TrackedData<Optional<BlockPos>> getSLEEPING_POSITION() {
+    @Accessor("SLEEPING_POS_ID")
+    static EntityDataAccessor<Optional<BlockPos>> getSLEEPING_POSITION() {
         throw new AssertionError();
     }
 
@@ -28,6 +28,6 @@ public interface LivingEntityAccessor {
      *
      * @return NBT location of living flags
      */
-    @Accessor("LIVING_FLAGS")
-    static TrackedData<Byte> getLIVING_FLAGS() { throw new AssertionError(); }
+    @Accessor("DATA_LIVING_ENTITY_FLAGS")
+    static EntityDataAccessor<Byte> getLIVING_FLAGS() { throw new AssertionError(); }
 }

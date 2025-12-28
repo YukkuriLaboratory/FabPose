@@ -10,17 +10,17 @@ import net.fabricmc.fabric.api.networking.v1.PacketByteBufs
 import net.fabricmc.fabric.api.networking.v1.PacketSender
 import net.fabricmc.fabric.api.networking.v1.ServerLoginNetworking
 import net.fill1890.fabsit.extension.ModFlag
-import net.minecraft.client.MinecraftClient
-import net.minecraft.client.network.ClientLoginNetworkHandler
-import net.minecraft.network.PacketByteBuf
+import net.minecraft.client.Minecraft
+import net.minecraft.client.multiplayer.ClientHandshakePacketListenerImpl
+import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.server.MinecraftServer
-import net.minecraft.server.network.ServerLoginNetworkHandler
+import net.minecraft.server.network.ServerLoginPacketListenerImpl
 import net.yukulab.fabpose.extension.accessor
 import net.yukulab.fabpose.network.Networking
 
 object HandShakeS2CPacket {
     fun sendQuery(
-        handler: ServerLoginNetworkHandler,
+        handler: ServerLoginPacketListenerImpl,
         server: MinecraftServer,
         sender: LoginPacketSender,
         synchronizer: ServerLoginNetworking.LoginSynchronizer,
@@ -30,9 +30,9 @@ object HandShakeS2CPacket {
 
     fun onHandShakeServer(
         server: MinecraftServer,
-        handler: ServerLoginNetworkHandler,
+        handler: ServerLoginPacketListenerImpl,
         understood: Boolean,
-        buf: PacketByteBuf,
+        buf: FriendlyByteBuf,
         synchronizer: ServerLoginNetworking.LoginSynchronizer,
         responseSender: PacketSender,
     ) {
@@ -44,9 +44,9 @@ object HandShakeS2CPacket {
 
     @Environment(EnvType.CLIENT)
     fun onHandShakeClient(
-        client: MinecraftClient,
-        clientLoginNetworkHandler: ClientLoginNetworkHandler,
-        buf: PacketByteBuf,
+        client: Minecraft,
+        clientLoginNetworkHandler: ClientHandshakePacketListenerImpl,
+        buf: FriendlyByteBuf,
         callbacksConsumer: Consumer<ChannelFutureListener>,
-    ): CompletableFuture<PacketByteBuf?> = CompletableFuture.completedFuture(PacketByteBufs.empty())
+    ): CompletableFuture<FriendlyByteBuf?> = CompletableFuture.completedFuture(PacketByteBufs.empty())
 }

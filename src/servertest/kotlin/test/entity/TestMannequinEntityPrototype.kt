@@ -10,13 +10,13 @@ import io.kotest.matchers.shouldBe
 import java.util.UUID
 import mock.createMockServerPlayer
 import net.fabricmc.fabric.api.gametest.v1.GameTest
-import net.fill1890.fabsit.mixin.accessor.MannequinEntityAccessor
-import net.minecraft.component.type.ProfileComponent
-import net.minecraft.entity.EntityPose
-import net.minecraft.entity.EntityType
-import net.minecraft.entity.decoration.MannequinEntity
-import net.minecraft.test.TestContext
-import net.minecraft.util.math.BlockPos
+import net.fill1890.fabsit.mixin.accessor.MannequinAccessor
+import net.minecraft.core.BlockPos
+import net.minecraft.gametest.framework.GameTestHelper
+import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.Pose
+import net.minecraft.world.entity.decoration.Mannequin
+import net.minecraft.world.item.component.ResolvableProfile
 import net.yukulab.fabpose.DelegatedLogger
 
 /**
@@ -27,106 +27,106 @@ import net.yukulab.fabpose.DelegatedLogger
 class TestMannequinEntityPrototype {
 
     @GameTest
-    fun testSpawnMannequinEntity(context: TestContext) = runCatchingAssertion(logger, context) {
+    fun testSpawnMannequinEntity(context: GameTestHelper) = runCatchingAssertion(logger, context) {
         context.addInstantFinalTask(logger) {
-            val spawnPos = context.getAbsolutePos(BlockPos(0, 2, 0))
-            val mannequin = MannequinEntity.create(EntityType.MANNEQUIN, context.world)
+            val spawnPos = context.absolutePos(BlockPos(0, 2, 0))
+            val mannequin = Mannequin.create(EntityType.MANNEQUIN, context.level)
 
             mannequin.shouldNotBeNull()
-            mannequin.refreshPositionAndAngles(spawnPos, 0f, 0f)
+            mannequin.snapTo(spawnPos, 0f, 0f)
 
             // Verify basic spawning
-            context.world.spawnEntity(mannequin).shouldBeTrue()
+            context.level.addFreshEntity(mannequin).shouldBeTrue()
             mannequin.isAlive.shouldBeTrue()
         }
     }
 
     @GameTest
-    fun testSetProfileComponent(context: TestContext) = runCatchingAssertion(logger, context) {
+    fun testSetProfileComponent(context: GameTestHelper) = runCatchingAssertion(logger, context) {
         context.addInstantFinalTask(logger) {
-            val spawnPos = context.getAbsolutePos(BlockPos(0, 2, 0))
-            val mannequin = MannequinEntity.create(EntityType.MANNEQUIN, context.world)!!
+            val spawnPos = context.absolutePos(BlockPos(0, 2, 0))
+            val mannequin = Mannequin.create(EntityType.MANNEQUIN, context.level)!!
 
-            mannequin.refreshPositionAndAngles(spawnPos, 0f, 0f)
+            mannequin.snapTo(spawnPos, 0f, 0f)
 
             // Create a GameProfile and set it via ProfileComponent using our accessor
             val gameProfile = GameProfile(UUID.randomUUID(), "test-mannequin-player")
-            val profileComponent = ProfileComponent.ofStatic(gameProfile)
+            val profileComponent = ResolvableProfile.createResolved(gameProfile)
 
             // Set the profile using our MannequinEntityAccessor
-            mannequin.dataTracker.set(MannequinEntityAccessor.getPROFILE(), profileComponent)
+            mannequin.entityData.set(MannequinAccessor.getPROFILE(), profileComponent)
 
-            context.world.spawnEntity(mannequin).shouldBeTrue()
+            context.level.addFreshEntity(mannequin).shouldBeTrue()
 
             // Verify the profile was set
-            val retrievedProfile = mannequin.dataTracker.get(MannequinEntityAccessor.getPROFILE())
+            val retrievedProfile = mannequin.entityData.get(MannequinAccessor.getPROFILE())
             retrievedProfile.shouldNotBeNull()
-            retrievedProfile.gameProfile.name.shouldBe("test-mannequin-player")
+            retrievedProfile.partialProfile().name.shouldBe("test-mannequin-player")
         }
     }
 
     @GameTest
-    fun testMannequinWithPlayerProfile(context: TestContext) = runCatchingAssertion(logger, context) {
+    fun testMannequinWithPlayerProfile(context: GameTestHelper) = runCatchingAssertion(logger, context) {
         context.addInstantFinalTask(logger) {
             val mockPlayer = context.createMockServerPlayer(BlockPos(0, 2, 0))
-            val spawnPos = context.getAbsolutePos(BlockPos(3, 2, 3))
+            val spawnPos = context.absolutePos(BlockPos(3, 2, 3))
 
-            val mannequin = MannequinEntity.create(EntityType.MANNEQUIN, context.world)!!
-            mannequin.refreshPositionAndAngles(spawnPos, 0f, 0f)
+            val mannequin = Mannequin.create(EntityType.MANNEQUIN, context.level)!!
+            mannequin.snapTo(spawnPos, 0f, 0f)
 
             // Set the mannequin to use the player's profile
-            val profileComponent = ProfileComponent.ofStatic(mockPlayer.gameProfile)
-            mannequin.dataTracker.set(MannequinEntityAccessor.getPROFILE(), profileComponent)
+            val profileComponent = ResolvableProfile.createResolved(mockPlayer.gameProfile)
+            mannequin.entityData.set(MannequinAccessor.getPROFILE(), profileComponent)
 
             // Set a pose
-            mannequin.setPose(EntityPose.CROUCHING)
+            mannequin.setPose(Pose.CROUCHING)
 
-            context.world.spawnEntity(mannequin).shouldBeTrue()
+            context.level.addFreshEntity(mannequin).shouldBeTrue()
 
             // Verify the mannequin has the player's profile and correct pose
             mannequin.isAlive.shouldBeTrue()
-            mannequin.pose.shouldBe(EntityPose.CROUCHING)
-            val profile = mannequin.dataTracker.get(MannequinEntityAccessor.getPROFILE())
-            profile.gameProfile.id.shouldBe(mockPlayer.gameProfile.id)
+            mannequin.pose.shouldBe(Pose.CROUCHING)
+            val profile = mannequin.entityData.get(MannequinAccessor.getPROFILE())
+            profile.partialProfile().id.shouldBe(mockPlayer.gameProfile.id)
         }
     }
 
     @GameTest
-    fun testSetStandingPose(context: TestContext) = runCatchingAssertion(logger, context) {
-        testSetPose(context, EntityPose.STANDING)
+    fun testSetStandingPose(context: GameTestHelper) = runCatchingAssertion(logger, context) {
+        testSetPose(context, Pose.STANDING)
     }
 
     @GameTest
-    fun testSetSleepingPose(context: TestContext) = runCatchingAssertion(logger, context) {
-        testSetPose(context, EntityPose.SLEEPING)
+    fun testSetSleepingPose(context: GameTestHelper) = runCatchingAssertion(logger, context) {
+        testSetPose(context, Pose.SLEEPING)
     }
 
     @GameTest
-    fun testSetSwimmingPose(context: TestContext) = runCatchingAssertion(logger, context) {
-        testSetPose(context, EntityPose.SWIMMING)
+    fun testSetSwimmingPose(context: GameTestHelper) = runCatchingAssertion(logger, context) {
+        testSetPose(context, Pose.SWIMMING)
     }
 
     @GameTest
-    fun testSetCrouchingPose(context: TestContext) = runCatchingAssertion(logger, context) {
-        testSetPose(context, EntityPose.CROUCHING)
+    fun testSetCrouchingPose(context: GameTestHelper) = runCatchingAssertion(logger, context) {
+        testSetPose(context, Pose.CROUCHING)
     }
 
     @GameTest
-    fun testSetGlidingPose(context: TestContext) = runCatchingAssertion(logger, context) {
-        testSetPose(context, EntityPose.GLIDING)
+    fun testSetGlidingPose(context: GameTestHelper) = runCatchingAssertion(logger, context) {
+        testSetPose(context, Pose.FALL_FLYING)
     }
 
     @GameTest
-    fun testSetPositionAndRotation(context: TestContext) = runCatchingAssertion(logger, context) {
+    fun testSetPositionAndRotation(context: GameTestHelper) = runCatchingAssertion(logger, context) {
         context.addInstantFinalTask(logger) {
-            val spawnPos = context.getAbsolutePos(BlockPos(1, 3, 2))
+            val spawnPos = context.absolutePos(BlockPos(1, 3, 2))
             val yaw = 45.0f
             val pitch = 30.0f
 
-            val mannequin = MannequinEntity.create(EntityType.MANNEQUIN, context.world)!!
-            mannequin.refreshPositionAndAngles(spawnPos, yaw, pitch)
+            val mannequin = Mannequin.create(EntityType.MANNEQUIN, context.level)!!
+            mannequin.snapTo(spawnPos, yaw, pitch)
 
-            context.world.spawnEntity(mannequin).shouldBeTrue()
+            context.level.addFreshEntity(mannequin).shouldBeTrue()
 
             // Verify position (refreshPositionAndAngles sets to block center)
             mannequin.x.shouldBe(spawnPos.x.toDouble() + 0.5)
@@ -134,43 +134,43 @@ class TestMannequinEntityPrototype {
             mannequin.z.shouldBe(spawnPos.z.toDouble() + 0.5)
 
             // Verify rotation
-            mannequin.yaw.shouldBe(yaw)
-            mannequin.pitch.shouldBe(pitch)
+            mannequin.yRot.shouldBe(yaw)
+            mannequin.xRot.shouldBe(pitch)
         }
     }
 
     @GameTest
-    fun testMannequinPersistence(context: TestContext) = runCatchingAssertion(logger, context) {
-        val spawnPos = context.getAbsolutePos(BlockPos(0, 2, 0))
+    fun testMannequinPersistence(context: GameTestHelper) = runCatchingAssertion(logger, context) {
+        val spawnPos = context.absolutePos(BlockPos(0, 2, 0))
 
-        val mannequin = MannequinEntity.create(EntityType.MANNEQUIN, context.world)!!
-        mannequin.refreshPositionAndAngles(spawnPos, 90f, 0f)
-        mannequin.setPose(EntityPose.SWIMMING)
+        val mannequin = Mannequin.create(EntityType.MANNEQUIN, context.level)!!
+        mannequin.snapTo(spawnPos, 90f, 0f)
+        mannequin.setPose(Pose.SWIMMING)
 
-        context.world.spawnEntity(mannequin).shouldBeTrue()
+        context.level.addFreshEntity(mannequin).shouldBeTrue()
 
         // Wait a few ticks and verify the mannequin is still there with correct state
         context.waitAndRun(5, logger) {
             context.addInstantFinalTask(logger) {
                 mannequin.isAlive.shouldBeTrue()
-                mannequin.pose.shouldBe(EntityPose.SWIMMING)
-                mannequin.yaw.shouldBe(90f)
+                mannequin.pose.shouldBe(Pose.SWIMMING)
+                mannequin.yRot.shouldBe(90f)
             }
         }
     }
 
     @GameTest
-    fun testMannequinKill(context: TestContext) = runCatchingAssertion(logger, context) {
-        val spawnPos = context.getAbsolutePos(BlockPos(0, 2, 0))
+    fun testMannequinKill(context: GameTestHelper) = runCatchingAssertion(logger, context) {
+        val spawnPos = context.absolutePos(BlockPos(0, 2, 0))
 
-        val mannequin = MannequinEntity.create(EntityType.MANNEQUIN, context.world)!!
-        mannequin.refreshPositionAndAngles(spawnPos, 0f, 0f)
+        val mannequin = Mannequin.create(EntityType.MANNEQUIN, context.level)!!
+        mannequin.snapTo(spawnPos, 0f, 0f)
 
-        context.world.spawnEntity(mannequin).shouldBeTrue()
+        context.level.addFreshEntity(mannequin).shouldBeTrue()
         mannequin.isAlive.shouldBeTrue()
 
         // Kill the mannequin
-        mannequin.kill(context.world)
+        mannequin.kill(context.level)
 
         // Verify it's removed
         context.waitAndRun(2, logger) {
@@ -180,15 +180,15 @@ class TestMannequinEntityPrototype {
         }
     }
 
-    private fun testSetPose(context: TestContext, pose: EntityPose) {
+    private fun testSetPose(context: GameTestHelper, pose: Pose) {
         context.addInstantFinalTask(logger) {
-            val spawnPos = context.getAbsolutePos(BlockPos(0, 2, 0))
-            val mannequin = MannequinEntity.create(EntityType.MANNEQUIN, context.world)!!
+            val spawnPos = context.absolutePos(BlockPos(0, 2, 0))
+            val mannequin = Mannequin.create(EntityType.MANNEQUIN, context.level)!!
 
-            mannequin.refreshPositionAndAngles(spawnPos, 0f, 0f)
+            mannequin.snapTo(spawnPos, 0f, 0f)
             mannequin.setPose(pose)
 
-            context.world.spawnEntity(mannequin).shouldBeTrue()
+            context.level.addFreshEntity(mannequin).shouldBeTrue()
 
             // Verify the pose was set correctly
             mannequin.pose.shouldBe(pose)

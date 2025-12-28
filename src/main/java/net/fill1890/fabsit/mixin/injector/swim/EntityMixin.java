@@ -1,8 +1,8 @@
 package net.fill1890.fabsit.mixin.injector.swim;
 
 import net.fill1890.fabsit.entity.Pose;
-import net.minecraft.entity.Entity;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.server.level.ServerPlayer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -19,26 +19,26 @@ abstract public class EntityMixin {
     public abstract boolean isSprinting();
 
     @Shadow
-    public abstract boolean isTouchingWater();
+    public abstract boolean isInWater();
 
     @Shadow
-    public abstract boolean hasVehicle();
+    public abstract boolean isPassenger();
 
     @Inject(
             method = "updateSwimming",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/entity/Entity;setSwimming(Z)V",
+                    target = "Lnet/minecraft/world/entity/Entity;setSwimming(Z)V",
                     ordinal = 0
             ),
             cancellable = true
     )
     private void shouldForceSwimmingInLand(CallbackInfo ci) {
         var entity = (Entity) (Object) this;
-        if (entity instanceof ServerPlayerEntity player) {
+        if (entity instanceof ServerPlayer player) {
             var pose = player.fabSit$currentPose();
-            var generallyCanSwim = isSprinting() && isTouchingWater();
-            setSwimming((pose == Pose.SWIMMING || generallyCanSwim) && !hasVehicle());
+            var generallyCanSwim = isSprinting() && isInWater();
+            setSwimming((pose == Pose.SWIMMING || generallyCanSwim) && !isPassenger());
             ci.cancel();
         }
     }

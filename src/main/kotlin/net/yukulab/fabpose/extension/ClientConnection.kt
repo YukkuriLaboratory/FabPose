@@ -1,11 +1,11 @@
 package net.yukulab.fabpose.extension
 
 import net.fill1890.fabsit.extension.ModFlag
-import net.fill1890.fabsit.mixin.accessor.ClientConnectionAccessor
-import net.minecraft.network.ClientConnection
+import net.fill1890.fabsit.mixin.accessor.ConnectionAccessor
+import net.minecraft.network.Connection
 
-val ClientConnection.accessor: ClientConnectionAccessor
-    get() = this as ClientConnectionAccessor
+val Connection.accessor: ConnectionAccessor
+    get() = this as ConnectionAccessor
 
-val ClientConnection.isModEnabled: Boolean
+val Connection.isModEnabled: Boolean
     get() = (this as ModFlag).`fabSit$isModEnabled`()
