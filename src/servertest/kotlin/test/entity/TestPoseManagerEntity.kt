@@ -13,64 +13,64 @@ import mock.createMockServerPlayer
 import net.fabricmc.fabric.api.gametest.v1.GameTest
 import net.fill1890.fabsit.entity.Pose
 import net.fill1890.fabsit.error.PoseException.MidairException
-import net.minecraft.block.Blocks
-import net.minecraft.block.SlabBlock
-import net.minecraft.block.enums.SlabType
-import net.minecraft.server.network.ServerPlayerEntity
-import net.minecraft.test.TestContext
-import net.minecraft.util.math.BlockPos
+import net.minecraft.core.BlockPos
+import net.minecraft.gametest.framework.GameTestHelper
+import net.minecraft.server.level.ServerPlayer
+import net.minecraft.world.level.block.Blocks
+import net.minecraft.world.level.block.SlabBlock
+import net.minecraft.world.level.block.state.properties.SlabType
 import net.yukulab.fabpose.DelegatedLogger
 import net.yukulab.fabpose.extension.pose
 
 @Suppress("UNUSED")
 class TestPoseManagerEntity {
     @GameTest
-    fun checkSitOnSlabBlock(context: TestContext) = runCatchingAssertion(logger, context) {
+    fun checkSitOnSlabBlock(context: GameTestHelper) = runCatchingAssertion(logger, context) {
         poseOnSlabBlock(context, Pose.SITTING)
     }
 
     @GameTest
-    fun checkSitOnSlabBlockLowHeight(context: TestContext) = runCatchingAssertion(logger, context) {
+    fun checkSitOnSlabBlockLowHeight(context: GameTestHelper) = runCatchingAssertion(logger, context) {
         poseOnSlabBlock(context, Pose.SITTING, blockHeight = 2)
     }
 
     @GameTest
-    fun checkSitOnSlabBlockWithSneak(context: TestContext) = runCatchingAssertion(logger, context) {
+    fun checkSitOnSlabBlockWithSneak(context: GameTestHelper) = runCatchingAssertion(logger, context) {
         poseOnSlabBlock(context, Pose.SITTING, removeWithSneak = true)
     }
 
     @GameTest
-    fun checkLayOnSlabBlock(context: TestContext) = runCatchingAssertion(logger, context) {
+    fun checkLayOnSlabBlock(context: GameTestHelper) = runCatchingAssertion(logger, context) {
         poseOnSlabBlock(context, Pose.LAYING)
     }
 
     @GameTest
-    fun checkLayOnSlabBlockLowHeight(context: TestContext) = runCatchingAssertion(logger, context) {
+    fun checkLayOnSlabBlockLowHeight(context: GameTestHelper) = runCatchingAssertion(logger, context) {
         poseOnSlabBlock(context, Pose.SITTING, blockHeight = 2)
     }
 
     @GameTest
-    fun checkLayOnSlabBlockWithSneak(context: TestContext) = runCatchingAssertion(logger, context) {
+    fun checkLayOnSlabBlockWithSneak(context: GameTestHelper) = runCatchingAssertion(logger, context) {
         poseOnSlabBlock(context, Pose.SITTING, removeWithSneak = true)
     }
 
     @GameTest
-    fun checkSpinOnSlabBlock(context: TestContext) = runCatchingAssertion(logger, context) {
+    fun checkSpinOnSlabBlock(context: GameTestHelper) = runCatchingAssertion(logger, context) {
         poseOnSlabBlock(context, Pose.SPINNING)
     }
 
     @GameTest
-    fun checkSpinOnSlabBlockLowHeight(context: TestContext) = runCatchingAssertion(logger, context) {
+    fun checkSpinOnSlabBlockLowHeight(context: GameTestHelper) = runCatchingAssertion(logger, context) {
         poseOnSlabBlock(context, Pose.SITTING, blockHeight = 2)
     }
 
     @GameTest
-    fun checkSpinOnSlabBlockWithSneak(context: TestContext) = runCatchingAssertion(logger, context) {
+    fun checkSpinOnSlabBlockWithSneak(context: GameTestHelper) = runCatchingAssertion(logger, context) {
         poseOnSlabBlock(context, Pose.SITTING, removeWithSneak = true)
     }
 
     @GameTest
-    fun checkAirBockShouldFailed(context: TestContext) = runCatchingAssertion(logger, context) {
+    fun checkAirBockShouldFailed(context: GameTestHelper) = runCatchingAssertion(logger, context) {
         context.addInstantFinalTask(logger) {
             val mockPlayer = context.createMockServerPlayer(BlockPos(0, 3, 0))
             mockPlayer.pose(Pose.SITTING).shouldBeFailure<MidairException>()
@@ -79,20 +79,20 @@ class TestPoseManagerEntity {
     }
 
     @GameTest
-    fun checkBlockUpdated(context: TestContext) = runCatchingAssertion(logger, context) {
+    fun checkBlockUpdated(context: GameTestHelper) = runCatchingAssertion(logger, context) {
         val blockHeight = 4
-        context.setBlockState(
+        context.setBlock(
             BlockPos(0, blockHeight, 0),
-            Blocks.STONE_SLAB.defaultState.with(SlabBlock.TYPE, SlabType.BOTTOM),
+            Blocks.STONE_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.BOTTOM),
         )
         val mockPlayer = context.createMockServerPlayer(BlockPos(0, blockHeight + 1, 0))
-        mockPlayer.updatePosition(mockPlayer.x, mockPlayer.y - 0.5, mockPlayer.z)
+        mockPlayer.absSnapTo(mockPlayer.x, mockPlayer.y - 0.5, mockPlayer.z)
         val pose = Pose.SITTING
         mockPlayer.pose(pose).shouldBeSuccess()
         context.waitAndRun(2, logger) {
             checkPlayerPosing(mockPlayer, pose)
-            context.setBlockState(BlockPos(0, blockHeight, 0), Blocks.AIR)
-            context.waitAndRun(2) {
+            context.setBlock(BlockPos(0, blockHeight, 0), Blocks.AIR)
+            context.runAfterDelay(2) {
                 context.addInstantFinalTask(logger) {
                     checkPlayerNotPosing(mockPlayer)
                 }
@@ -100,22 +100,22 @@ class TestPoseManagerEntity {
         }
     }
 
-    private fun poseOnSlabBlock(context: TestContext, pose: Pose, blockHeight: Int = 4, removeWithSneak: Boolean = false) {
-        context.setBlockState(
+    private fun poseOnSlabBlock(context: GameTestHelper, pose: Pose, blockHeight: Int = 4, removeWithSneak: Boolean = false) {
+        context.setBlock(
             BlockPos(0, blockHeight, 0),
-            Blocks.STONE_SLAB.defaultState.with(SlabBlock.TYPE, SlabType.BOTTOM),
+            Blocks.STONE_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.BOTTOM),
         )
         val mockPlayer = context.createMockServerPlayer(BlockPos(0, blockHeight + 1, 0))
-        mockPlayer.updatePosition(mockPlayer.x, mockPlayer.y - 0.4, mockPlayer.z)
+        mockPlayer.absSnapTo(mockPlayer.x, mockPlayer.y - 0.4, mockPlayer.z)
         mockPlayer.pose(pose).getOrThrow()
         context.waitAndRun(2, logger) {
             checkPlayerPosing(mockPlayer, pose)
             if (removeWithSneak) {
-                mockPlayer.isSneaking = true
+                mockPlayer.setShiftKeyDown(true)
             } else {
                 mockPlayer.pose(pose, checkSpam = false).getOrThrow()
             }
-            context.waitAndRun(2) {
+            context.runAfterDelay(2) {
                 context.addInstantFinalTask(logger) {
                     checkPlayerNotPosing(mockPlayer)
                 }
@@ -123,7 +123,7 @@ class TestPoseManagerEntity {
         }
     }
 
-    private fun checkPlayerPosing(player: ServerPlayerEntity, pose: Pose) {
+    private fun checkPlayerPosing(player: ServerPlayer, pose: Pose) {
         player.vehicle.shouldNotBeNull().isAlive.shouldBeTrue()
         if (pose in setOf(Pose.LAYING, Pose.SPINNING)) {
             player.isInvisible.shouldBeTrue()
@@ -132,7 +132,7 @@ class TestPoseManagerEntity {
         }
     }
 
-    private fun checkPlayerNotPosing(player: ServerPlayerEntity) {
+    private fun checkPlayerNotPosing(player: ServerPlayer) {
         player.vehicle.shouldBeNull()
         player.isInvisible.shouldBeFalse()
     }

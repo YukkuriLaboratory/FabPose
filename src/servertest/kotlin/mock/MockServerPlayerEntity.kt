@@ -3,30 +3,30 @@ package mock
 import com.mojang.authlib.GameProfile
 import java.util.UUID
 import kotlinx.atomicfu.atomic
-import net.minecraft.network.NetworkSide
-import net.minecraft.network.packet.c2s.common.SyncedClientOptions
-import net.minecraft.server.network.ConnectedClientData
-import net.minecraft.server.network.ServerPlayNetworkHandler
-import net.minecraft.server.network.ServerPlayerEntity
-import net.minecraft.test.TestContext
-import net.minecraft.util.math.BlockPos
-import net.minecraft.world.GameMode
+import net.minecraft.core.BlockPos
+import net.minecraft.gametest.framework.GameTestHelper
+import net.minecraft.network.protocol.PacketFlow
+import net.minecraft.server.level.ClientInformation
+import net.minecraft.server.level.ServerPlayer
+import net.minecraft.server.network.CommonListenerCookie
+import net.minecraft.server.network.ServerGamePacketListenerImpl
+import net.minecraft.world.level.GameType
 
 private val playerId = atomic(0)
 
-fun TestContext.createMockServerPlayer(relativePos: BlockPos = BlockPos(0, 1, 0)) = ServerPlayerEntity(
-    world.server,
-    world,
+fun GameTestHelper.createMockServerPlayer(relativePos: BlockPos = BlockPos(0, 1, 0)) = ServerPlayer(
+    level.server,
+    level,
     GameProfile(UUID.randomUUID(), "test-mock-server-player-${playerId.getAndIncrement()}"),
-    SyncedClientOptions.createDefault(),
+    ClientInformation.createDefault(),
 ).also {
-    it.networkHandler = ServerPlayNetworkHandler(
-        world.server,
-        MockClientConnection(NetworkSide.SERVERBOUND),
+    it.connection = ServerGamePacketListenerImpl(
+        level.server,
+        MockClientConnection(PacketFlow.SERVERBOUND),
         it,
-        ConnectedClientData.createDefault(it.gameProfile, true),
+        CommonListenerCookie.createInitial(it.gameProfile, true),
     )
-    it.refreshPositionAndAngles(getAbsolutePos(relativePos), 0f, 0f)
-    it.changeGameMode(GameMode.CREATIVE)
-    world.onPlayerConnected(it)
+    it.snapTo(absolutePos(relativePos), 0f, 0f)
+    it.setGameMode(GameType.CREATIVE)
+    level.addNewPlayer(it)
 }

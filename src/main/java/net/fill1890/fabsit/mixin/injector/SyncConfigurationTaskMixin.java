@@ -2,12 +2,12 @@ package net.fill1890.fabsit.mixin.injector;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import net.fabricmc.fabric.impl.registry.sync.RegistrySyncManager;
-import net.fill1890.fabsit.mixin.accessor.ServerCommonNetworkHandlerAccessor;
-import net.minecraft.network.packet.Packet;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.server.network.ServerConfigurationNetworkHandler;
-import net.minecraft.util.Identifier;
+import net.fill1890.fabsit.mixin.accessor.ServerCommonPacketListenerImplAccessor;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.server.network.ServerConfigurationPacketListenerImpl;
+import net.minecraft.resources.Identifier;
 import net.yukulab.fabpose.entity.FabSitEntities;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -26,7 +26,7 @@ import java.util.function.Consumer;
 public abstract class SyncConfigurationTaskMixin {
 
     @Shadow(remap = false)
-    public abstract ServerConfigurationNetworkHandler handler();
+    public abstract ServerConfigurationPacketListenerImpl handler();
 
     @Shadow(remap = false)
     public abstract Map<Identifier, Object2IntMap<Identifier>> map();
@@ -40,18 +40,18 @@ public abstract class SyncConfigurationTaskMixin {
      * Injects just before sending the registry sync packet, checks if client has fabsit, and scrubs if not
      */
     @Inject(
-            method = "sendPacket",
+            method = "start",
             at = @At("HEAD")
     )
     private void removeFromSync(Consumer<Packet<?>> sender, CallbackInfo ci) {
         // if client does not have fabsit
-        var connection = ((ServerCommonNetworkHandlerAccessor) handler()).getConnection();
+        var connection = ((ServerCommonPacketListenerImplAccessor) handler()).getConnection();
         if (!connection.fabSit$isModEnabled()) {
 
-            var id = RegistryKeys.ENTITY_TYPE.getValue();
+            var id = Registries.ENTITY_TYPE.identifier();
             // scrub entities from the syncing registry
             var entityTypeMap = map().get(id);
-            entityTypeMap.removeInt(Registries.ENTITY_TYPE.getId(FabSitEntities.POSE_MANAGER));
+            entityTypeMap.removeInt(BuiltInRegistries.ENTITY_TYPE.getKey(FabSitEntities.POSE_MANAGER));
         }
     }
 

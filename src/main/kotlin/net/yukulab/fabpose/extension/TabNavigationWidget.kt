@@ -1,6 +1,6 @@
 package net.yukulab.fabpose.extension
 
 import net.fill1890.fabsit.mixin.accessor.TabButtonWidgetAccessor
-import net.minecraft.client.gui.widget.TabNavigationWidget
+import net.minecraft.client.gui.components.tabs.TabNavigationBar
 
-val TabNavigationWidget.accessor: TabButtonWidgetAccessor get() = this as TabButtonWidgetAccessor
+val TabNavigationBar.accessor: TabButtonWidgetAccessor get() = this as TabButtonWidgetAccessor

@@ -1,2 +1,2 @@
 accessWidener v2 named
-mutable      field    net/minecraft/network/packet/s2c/play/PlayerListS2CPacket    entries    Ljava/util/List;
+mutable      field    net/minecraft/network/protocol/game/ClientboundPlayerInfoUpdatePacket    entries    Ljava/util/List;

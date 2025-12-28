@@ -1,7 +1,7 @@
 package mixin;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.GameRenderer;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.GameRenderer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -12,10 +12,10 @@ public abstract class MixinGameRenderer {
             method = "render",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/client/MinecraftClient;isWindowFocused()Z"
+                    target = "Lnet/minecraft/client/Minecraft;isWindowActive()Z"
             )
     )
-    private boolean ignoreWindowFocus(MinecraftClient instance) {
+    private boolean ignoreWindowFocus(Minecraft instance) {
         return true;
     }
 }

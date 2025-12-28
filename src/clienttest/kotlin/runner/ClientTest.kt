@@ -11,25 +11,25 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.loader.api.FabricLoader
-import net.minecraft.client.MinecraftClient
-import net.minecraft.client.gui.Click
-import net.minecraft.client.gui.screen.AccessibilityOnboardingScreen
-import net.minecraft.client.gui.screen.GameMenuScreen
-import net.minecraft.client.gui.screen.Screen
-import net.minecraft.client.gui.screen.TitleScreen
-import net.minecraft.client.gui.screen.world.CreateWorldScreen
-import net.minecraft.client.gui.screen.world.LevelLoadingScreen
-import net.minecraft.client.gui.screen.world.SelectWorldScreen
-import net.minecraft.client.gui.widget.ButtonWidget
-import net.minecraft.client.gui.widget.CyclingButtonWidget
-import net.minecraft.client.gui.widget.GridWidget
-import net.minecraft.client.gui.widget.PressableWidget
-import net.minecraft.client.gui.widget.Widget
-import net.minecraft.client.input.MouseInput
-import net.minecraft.client.option.Perspective
-import net.minecraft.screen.ScreenTexts
-import net.minecraft.text.Text
-import net.minecraft.util.crash.CrashReport
+import net.minecraft.CrashReport
+import net.minecraft.client.CameraType
+import net.minecraft.client.Minecraft
+import net.minecraft.client.gui.components.AbstractButton
+import net.minecraft.client.gui.components.Button
+import net.minecraft.client.gui.components.CycleButton
+import net.minecraft.client.gui.layouts.GridLayout
+import net.minecraft.client.gui.layouts.LayoutElement
+import net.minecraft.client.gui.screens.AccessibilityOnboardingScreen
+import net.minecraft.client.gui.screens.LevelLoadingScreen
+import net.minecraft.client.gui.screens.PauseScreen
+import net.minecraft.client.gui.screens.Screen
+import net.minecraft.client.gui.screens.TitleScreen
+import net.minecraft.client.gui.screens.worldselection.CreateWorldScreen
+import net.minecraft.client.gui.screens.worldselection.SelectWorldScreen
+import net.minecraft.client.input.MouseButtonEvent
+import net.minecraft.client.input.MouseButtonInfo
+import net.minecraft.network.chat.CommonComponents
+import net.minecraft.network.chat.Component
 import net.yukulab.fabpose.DelegatedLogger
 import net.yukulab.fabpose.extension.accessor
 import net.yukulab.fabpose.extension.loop
@@ -49,9 +49,9 @@ class ClientTest : ClientModInitializer {
         CoroutineScope(Dispatchers.Default).launch {
             waitForLoadingComplete()
 
-            if (MinecraftClient.getInstance().options.onboardAccessibility) {
+            if (Minecraft.getInstance().options.onboardAccessibility) {
                 waitForScreen(AccessibilityOnboardingScreen::class.java)
-                clickScreenButton(ScreenTexts.CONTINUE)
+                clickScreenButton(CommonComponents.GUI_CONTINUE)
             }
 
             waitForScreen(TitleScreen::class.java)
@@ -72,12 +72,12 @@ class ClientTest : ClientModInitializer {
             clickScreenButton("options.difficulty")
 
             waitFor("Click World Tab") {
-                val createWorldScreen = it.currentScreen as CreateWorldScreen
-                val tabNavigation = createWorldScreen.accessor.tabNavigation
+                val createWorldScreen = it.screen as CreateWorldScreen
+                val tabNavigation = createWorldScreen.accessor.tabNavigationBar
                 tabNavigation.selectTab(1, false)
-                val targetTabText = Text.translatable("createWorld.tab.world.title")
+                val targetTabText = Component.translatable("createWorld.tab.world.title")
                 val tabManager = tabNavigation.accessor.tabManager
-                tabManager.currentTab?.title?.string == targetTabText.string
+                tabManager.currentTab?.tabTitle?.string == targetTabText.string
             }
             // WorldType: Superflat
             clickScreenButton("selectWorld.mapType")
@@ -90,12 +90,12 @@ class ClientTest : ClientModInitializer {
             MixinEnvironment.getCurrentEnvironment().audit()
 
             withContext(clientDispatcher) {
-                MinecraftClient.getInstance().options.perspective = Perspective.THIRD_PERSON_BACK
+                Minecraft.getInstance().options.setCameraType(CameraType.THIRD_PERSON_BACK)
             }
             waitForWorldTicks(100)
             val result = tests.map {
                 runCatching {
-                    it(MinecraftClient.getInstance())
+                    it(Minecraft.getInstance())
                 }.onFailure {
                     logger.error("Failed to execute client test", it)
                 }
@@ -113,8 +113,8 @@ class ClientTest : ClientModInitializer {
             if (failure != 0) {
                 withContext(clientDispatcher) {
                     val crashReport =
-                        CrashReport.create(RuntimeException("$failure Tests failed"), "$failure Tests failed")
-                    MinecraftClient.getInstance().setCrashReportSupplier(crashReport)
+                        CrashReport.forThrowable(RuntimeException("$failure Tests failed"), "$failure Tests failed")
+                    Minecraft.getInstance().delayCrashRaw(crashReport)
                 }
             }
             clickScreenButton("menu.quit")
@@ -125,16 +125,16 @@ class ClientTest : ClientModInitializer {
         private val logger by DelegatedLogger()
 
         private suspend fun openGameMenu() {
-            setScreen { GameMenuScreen(true) }
-            waitForScreen(GameMenuScreen::class.java)
+            setScreen { PauseScreen(true) }
+            waitForScreen(PauseScreen::class.java)
         }
 
         private suspend fun closeScreen() {
             setScreen { null }
         }
 
-        private suspend fun setScreen(screen: (MinecraftClient) -> Screen?) = withContext(clientDispatcher) {
-            val client = MinecraftClient.getInstance()
+        private suspend fun setScreen(screen: (Minecraft) -> Screen?) = withContext(clientDispatcher) {
+            val client = Minecraft.getInstance()
             client.setScreen(screen(client))
         }
 
@@ -146,29 +146,29 @@ class ClientTest : ClientModInitializer {
 
         private suspend fun waitForScreen(screen: Class<out Screen>) {
             waitFor("Screen ${screen.name}") {
-                it.currentScreen?.javaClass == screen
+                it.screen?.javaClass == screen
             }
         }
 
         private suspend fun clickScreenButton(translationKey: String) {
-            clickScreenButton(Text.translatable(translationKey))
+            clickScreenButton(Component.translatable(translationKey))
         }
 
-        private suspend fun clickScreenButton(translationKey: Text) {
+        private suspend fun clickScreenButton(translationKey: Component) {
             val buttonText = translationKey.string
 
             waitFor("Click button $buttonText") { client ->
-                val screen = client.currentScreen ?: return@waitFor false
+                val screen = client.screen ?: return@waitFor false
 
-                screen.accessor.drawables.forEach { drawable ->
-                    if (drawable is PressableWidget && pressMatchingButton(drawable, buttonText)) {
+                screen.accessor.renderables.forEach { drawable ->
+                    if (drawable is AbstractButton && pressMatchingButton(drawable, buttonText)) {
                         return@waitFor true
                     }
 
-                    if (drawable is GridWidget) {
+                    if (drawable is GridLayout) {
                         var result = false
-                        drawable.forEachChild {
-                            if (it is PressableWidget && pressMatchingButton(it, buttonText)) {
+                        drawable.visitWidgets {
+                            if (it is AbstractButton && pressMatchingButton(it, buttonText)) {
                                 result = true
                             }
                         }
@@ -182,17 +182,18 @@ class ClientTest : ClientModInitializer {
             }
         }
 
-        private fun Click(widget: Widget) = Click(widget.x.toDouble(), widget.y.toDouble(), MouseInput(1, 0))
+        @Suppress("ktlint:standard:function-naming")
+        private fun Click(widget: LayoutElement) = MouseButtonEvent(widget.x.toDouble(), widget.y.toDouble(), MouseButtonInfo(1, 0))
 
-        private fun pressMatchingButton(widget: PressableWidget, text: String): Boolean {
-            if (widget is ButtonWidget) {
+        private fun pressMatchingButton(widget: AbstractButton, text: String): Boolean {
+            if (widget is Button) {
                 if (text == widget.message.string) {
                     widget.onPress(Click(widget))
                     return true
                 }
             }
-            if (widget is CyclingButtonWidget<*>) {
-                if (text == widget.accessor.optionText.string) {
+            if (widget is CycleButton<*>) {
+                if (text == widget.accessor.name.string) {
                     widget.onPress(Click(widget))
                     return true
                 }
@@ -203,19 +204,19 @@ class ClientTest : ClientModInitializer {
 
         private suspend fun waitForWorldTicks(ticks: Long) {
             waitFor("World load", 30.minutes) {
-                it.world != null && it.currentScreen !is LevelLoadingScreen
+                it.level != null && it.screen !is LevelLoadingScreen
             }
             val startTicks = withContext(clientDispatcher) {
-                MinecraftClient.getInstance().world?.time.shouldNotBeNull()
+                Minecraft.getInstance().level?.gameTime.shouldNotBeNull()
             }
             waitFor("World load", 10.minutes) {
-                it.world.shouldNotBeNull().time > startTicks + ticks
+                it.level.shouldNotBeNull().gameTime > startTicks + ticks
             }
         }
 
-        private suspend fun waitFor(target: String, timeout: Duration = 10.seconds, block: suspend (MinecraftClient) -> Boolean) {
+        private suspend fun waitFor(target: String, timeout: Duration = 10.seconds, block: suspend (Minecraft) -> Boolean) {
             withContext(clientDispatcher) {
-                val client = MinecraftClient.getInstance()
+                val client = Minecraft.getInstance()
                 try {
                     withTimeout(timeout) {
                         loop(1.seconds) {
@@ -223,7 +224,7 @@ class ClientTest : ClientModInitializer {
                         }
                     }
                 } catch (e: Exception) {
-                    client.setCrashReportSupplier(CrashReport.create(e, "Error occurred on waiting for $target"))
+                    client.delayCrashRaw(CrashReport.forThrowable(e, "Error occurred on waiting for $target"))
                 }
             }
         }

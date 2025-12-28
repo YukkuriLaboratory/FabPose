@@ -1,16 +1,16 @@
 package extension
 
-import net.minecraft.test.TestContext
+import net.minecraft.gametest.framework.GameTestHelper
 import org.slf4j.Logger
 
-fun TestContext.addInstantFinalTask(logger: Logger, block: () -> Unit) {
-    addInstantFinalTask {
+fun GameTestHelper.addInstantFinalTask(logger: Logger, block: () -> Unit) {
+    succeedWhen {
         runCatchingAssertion(logger, this, block)
     }
 }
 
-fun TestContext.waitAndRun(ticks: Long, logger: Logger, block: () -> Unit) {
-    waitAndRun(ticks) {
+fun GameTestHelper.waitAndRun(ticks: Long, logger: Logger, block: () -> Unit) {
+    runAfterDelay(ticks) {
         runCatchingAssertion(logger, this, block)
     }
 }

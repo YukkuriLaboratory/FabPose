@@ -1,28 +1,28 @@
 package net.fill1890.fabsit.mixin.injector;
 
-import net.minecraft.client.gui.hud.InGameHud;
-import net.minecraft.entity.LivingEntity;
+import net.minecraft.client.gui.Gui;
+import net.minecraft.world.entity.LivingEntity;
 import net.yukulab.fabpose.entity.define.PoseManagerEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
-@Mixin(InGameHud.class)
-public abstract class InGameHudMixin {
+@Mixin(Gui.class)
+public abstract class GuiMixin {
     @Redirect(
-            method = "getHeartCount",
+            method = "getVehicleMaxHearts",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/entity/LivingEntity;isLiving()Z"
+                    target = "Lnet/minecraft/world/entity/LivingEntity;showVehicleHealth()Z"
             )
     )
     private boolean ignorePoseManagerEntity(LivingEntity instance) {
-        return instance.isLiving() && !(instance instanceof PoseManagerEntity);
+        return instance.showVehicleHealth() && !(instance instanceof PoseManagerEntity);
     }
 
     @ModifyVariable(
-            method = "renderMountHealth",
+            method = "renderVehicleHealth",
             at = @At("STORE")
     )
     private LivingEntity ignorePoseManagerEntityHealthRendering(LivingEntity entity) {

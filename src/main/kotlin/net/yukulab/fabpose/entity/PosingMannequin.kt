@@ -2,23 +2,23 @@ package net.yukulab.fabpose.entity
 
 import net.fill1890.fabsit.config.ConfigManager
 import net.fill1890.fabsit.mixin.accessor.LivingEntityAccessor
-import net.fill1890.fabsit.mixin.accessor.MannequinEntityAccessor
-import net.minecraft.block.BedBlock
-import net.minecraft.block.Blocks
-import net.minecraft.block.enums.BedPart
-import net.minecraft.component.type.ProfileComponent
-import net.minecraft.entity.EntityPose
-import net.minecraft.entity.EntityType
-import net.minecraft.entity.EquipmentSlot
-import net.minecraft.entity.decoration.MannequinEntity
-import net.minecraft.network.packet.s2c.play.BlockUpdateS2CPacket
-import net.minecraft.network.packet.s2c.play.EntityS2CPacket
-import net.minecraft.network.packet.s2c.play.EntityTrackerUpdateS2CPacket
-import net.minecraft.server.network.ServerPlayerEntity
-import net.minecraft.server.world.ServerWorld
-import net.minecraft.text.Text
-import net.minecraft.util.math.BlockPos
-import net.minecraft.util.math.Direction
+import net.fill1890.fabsit.mixin.accessor.MannequinAccessor
+import net.minecraft.core.BlockPos
+import net.minecraft.core.Direction
+import net.minecraft.network.chat.Component
+import net.minecraft.network.protocol.game.ClientboundBlockUpdatePacket
+import net.minecraft.network.protocol.game.ClientboundMoveEntityPacket
+import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
+import net.minecraft.server.level.ServerLevel
+import net.minecraft.server.level.ServerPlayer
+import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.EquipmentSlot
+import net.minecraft.world.entity.Pose
+import net.minecraft.world.entity.decoration.Mannequin
+import net.minecraft.world.item.component.ResolvableProfile
+import net.minecraft.world.level.block.BedBlock
+import net.minecraft.world.level.block.Blocks
+import net.minecraft.world.level.block.state.properties.BedPart
 
 /**
  * Helper class for managing a MannequinEntity that visually represents a posing player.
@@ -30,13 +30,13 @@ import net.minecraft.util.math.Direction
  * - Supports poses natively (SLEEPING, SWIMMING, CROUCHING, GLIDING, SPIN_ATTACK)
  */
 class PosingMannequin private constructor(
-    val mannequin: MannequinEntity,
-    val player: ServerPlayerEntity,
-    val pose: EntityPose,
-    private val world: ServerWorld,
+    val mannequin: Mannequin,
+    val player: ServerPlayer,
+    val pose: Pose,
+    private val world: ServerLevel,
     private val bedPos: BlockPos?,
-    private val originalBedState: net.minecraft.block.BlockState?,
-    private val bedState: net.minecraft.block.BlockState?,
+    private val originalBedState: net.minecraft.world.level.block.state.BlockState?,
+    private val bedState: net.minecraft.world.level.block.state.BlockState?,
 ) {
 
     /**
@@ -44,7 +44,7 @@ class PosingMannequin private constructor(
      */
     fun syncEquipment() {
         EquipmentSlot.entries.forEach { slot ->
-            mannequin.equipStack(slot, player.getEquippedStack(slot).copy())
+            mannequin.setItemSlot(slot, player.getItemBySlot(slot).copy())
         }
     }
 
@@ -53,39 +53,39 @@ class PosingMannequin private constructor(
      * For SPIN_ATTACK pose, only sync yaw since pitch is fixed at -90.
      */
     fun syncHeadRotation() {
-        if (pose == EntityPose.SPIN_ATTACK) {
+        if (pose == Pose.SPIN_ATTACK) {
             // For spin attack, keep pitch at -90 but sync yaw
-            mannequin.headYaw = player.headYaw
+            mannequin.yHeadRot = player.yHeadRot
         } else {
-            mannequin.headYaw = player.headYaw
-            mannequin.pitch = player.pitch
+            mannequin.yHeadRot = player.yHeadRot
+            mannequin.setXRot(player.xRot)
         }
     }
 
     /**
      * Send bed block update packet to a player (for SLEEPING pose).
      */
-    fun sendBedPacket(target: ServerPlayerEntity) {
+    fun sendBedPacket(target: ServerPlayer) {
         if (bedPos != null && bedState != null) {
-            target.networkHandler.sendPacket(BlockUpdateS2CPacket(bedPos, bedState))
+            target.connection.send(ClientboundBlockUpdatePacket(bedPos, bedState))
         }
     }
 
     /**
      * Send bed removal packet to a player (for SLEEPING pose cleanup).
      */
-    fun sendBedRemovalPacket(target: ServerPlayerEntity) {
+    fun sendBedRemovalPacket(target: ServerPlayer) {
         if (bedPos != null && originalBedState != null) {
-            target.networkHandler.sendPacket(BlockUpdateS2CPacket(bedPos, originalBedState))
+            target.connection.send(ClientboundBlockUpdatePacket(bedPos, originalBedState))
         }
     }
 
     /**
      * Send pivot packet to a player (for SPIN_ATTACK pose).
      */
-    fun sendPivotPacket(target: ServerPlayerEntity) {
-        if (pose == EntityPose.SPIN_ATTACK) {
-            val pivotPacket = EntityS2CPacket.RotateAndMoveRelative(
+    fun sendPivotPacket(target: ServerPlayer) {
+        if (pose == Pose.SPIN_ATTACK) {
+            val pivotPacket = ClientboundMoveEntityPacket.PosRot(
                 mannequin.id,
                 0.toShort(),
                 0.toShort(),
@@ -94,7 +94,7 @@ class PosingMannequin private constructor(
                 (-90.0f * 256.0f / 360.0f).toInt().toByte(),
                 true,
             )
-            target.networkHandler.sendPacket(pivotPacket)
+            target.connection.send(pivotPacket)
         }
     }
 
@@ -104,7 +104,7 @@ class PosingMannequin private constructor(
     fun destroy() {
         // Send bed removal to all nearby players
         if (bedPos != null && originalBedState != null) {
-            world.players.filter { it.canSee(mannequin) }.forEach { p ->
+            world.players().filter { it.hasLineOfSight(mannequin) }.forEach { p ->
                 sendBedRemovalPacket(p)
             }
         }
@@ -121,36 +121,36 @@ class PosingMannequin private constructor(
          * @param pose The pose the mannequin should take
          * @return The created PosingMannequin, or null if creation failed
          */
-        fun create(player: ServerPlayerEntity, pose: EntityPose): PosingMannequin? {
-            val world = player.entityWorld as? ServerWorld ?: return null
-            val mannequin = MannequinEntity.create(EntityType.MANNEQUIN, world) ?: return null
+        fun create(player: ServerPlayer, pose: Pose): PosingMannequin? {
+            val world = player.level() as? ServerLevel ?: return null
+            val mannequin = Mannequin.create(EntityType.MANNEQUIN, world) ?: return null
 
             // Set position (optionally centered on block)
             val pos = if (ConfigManager.getConfig().centre_on_blocks) {
-                val blockPos = player.blockPos
+                val blockPos = player.blockPosition()
                 Triple(blockPos.x + 0.5, blockPos.y.toDouble(), blockPos.z + 0.5)
             } else {
                 Triple(player.x, player.y, player.z)
             }
 
-            mannequin.refreshPositionAndAngles(pos.first, pos.second, pos.third, player.yaw, 0f)
+            mannequin.snapTo(pos.first, pos.second, pos.third, player.yRot, 0f)
 
             // Set player's profile for skin
-            val profileComponent = ProfileComponent.ofStatic(player.gameProfile)
-            mannequin.dataTracker.set(MannequinEntityAccessor.getPROFILE(), profileComponent)
+            val profileComponent = ResolvableProfile.createResolved(player.gameProfile)
+            mannequin.entityData.set(MannequinAccessor.getPROFILE(), profileComponent)
 
             // Set pose
             mannequin.pose = pose
 
             // Hide the "NPC" label below the name tag by setting description to empty
-            mannequin.dataTracker.set(MannequinEntityAccessor.getDESCRIPTION(), java.util.Optional.empty())
+            mannequin.entityData.set(MannequinAccessor.getDESCRIPTION(), java.util.Optional.empty())
 
             // Handle SPIN_ATTACK pose - need to set LIVING_FLAGS for riptide spinning
-            if (pose == EntityPose.SPIN_ATTACK) {
+            if (pose == Pose.SPIN_ATTACK) {
                 // 0x04 = using riptide flag, makes the entity spin
-                mannequin.dataTracker.set(LivingEntityAccessor.getLIVING_FLAGS(), 0x04.toByte())
+                mannequin.entityData.set(LivingEntityAccessor.getLIVING_FLAGS(), 0x04.toByte())
                 // Set pitch to -90 degrees to make entity spin vertically (upward)
-                mannequin.pitch = -90f
+                mannequin.setXRot(-90f)
                 // Don't show name for SPIN_ATTACK (position would be wrong due to rotation)
             } else {
                 // Set player's name as custom name (visible like player name tag)
@@ -160,28 +160,28 @@ class PosingMannequin private constructor(
 
             // Sync equipment
             EquipmentSlot.entries.forEach { slot ->
-                mannequin.equipStack(slot, player.getEquippedStack(slot).copy())
+                mannequin.setItemSlot(slot, player.getItemBySlot(slot).copy())
             }
 
             // Handle SLEEPING pose specific logic
             var bedPos: BlockPos? = null
-            var originalBedState: net.minecraft.block.BlockState? = null
-            var bedState: net.minecraft.block.BlockState? = null
+            var originalBedState: net.minecraft.world.level.block.state.BlockState? = null
+            var bedState: net.minecraft.world.level.block.state.BlockState? = null
 
-            if (pose == EntityPose.SLEEPING) {
+            if (pose == Pose.SLEEPING) {
                 // Place bed at world bottom + 1 to hide it completely
-                bedPos = BlockPos(player.blockX, world.bottomY + 1, player.blockZ)
+                bedPos = BlockPos(player.blockX, world.minY + 1, player.blockZ)
                 originalBedState = world.getBlockState(bedPos)
 
                 // Create bed state facing player's direction
-                val direction = getCardinal(player.headYaw)
-                bedState = Blocks.WHITE_BED.defaultState
-                    .with(BedBlock.PART, BedPart.HEAD)
-                    .with(BedBlock.FACING, direction.opposite)
+                val direction = getCardinal(player.yHeadRot)
+                bedState = Blocks.WHITE_BED.defaultBlockState()
+                    .setValue(BedBlock.PART, BedPart.HEAD)
+                    .setValue(BedBlock.FACING, direction.opposite)
             }
 
             // Spawn the mannequin
-            world.spawnEntity(mannequin)
+            world.addFreshEntity(mannequin)
 
             return PosingMannequin(
                 mannequin = mannequin,

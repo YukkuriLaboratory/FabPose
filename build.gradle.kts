@@ -56,7 +56,7 @@ val flkVersion = project.property("flk_version").toString()
 dependencies {
     // To change the versions see the gradle.properties file
     minecraft("com.mojang:minecraft:$minecraftVersion")
-    mappings("net.fabricmc:yarn:${project.property("yarn_mappings")}:v2")
+    mappings(loom.officialMojangMappings())
     modImplementation("net.fabricmc:fabric-loader:$loaderVersion")
     compileOnly("com.mojang:authlib:3.13.56")
 

@@ -1,6 +1,6 @@
 package net.yukulab.fabpose.extension
 
-import net.fill1890.fabsit.mixin.accessor.CyclingButtonWidgetAccessor
-import net.minecraft.client.gui.widget.CyclingButtonWidget
+import net.fill1890.fabsit.mixin.accessor.CycleButtonAccessor
+import net.minecraft.client.gui.components.CycleButton
 
-val CyclingButtonWidget<*>.accessor: CyclingButtonWidgetAccessor get() = this as CyclingButtonWidgetAccessor
+val CycleButton<*>.accessor: CycleButtonAccessor get() = this as CycleButtonAccessor

@@ -2,9 +2,8 @@ package net.fill1890.fabsit.mixin.injector;
 
 import net.fill1890.fabsit.entity.Pose;
 import net.fill1890.fabsit.extension.PosingFlag;
-import net.minecraft.entity.EntityPose;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
 import net.yukulab.fabpose.network.packet.play.SyncPoseS2CPacket;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
@@ -15,8 +14,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.time.Instant;
 
-@Mixin(PlayerEntity.class)
-abstract public class PlayerEntityMixin implements PosingFlag {
+@Mixin(Player.class)
+abstract public class PlayerMixin implements PosingFlag {
     @Unique
     Pose fabsit$pose;
 
@@ -25,14 +24,14 @@ abstract public class PlayerEntityMixin implements PosingFlag {
 
     @SuppressWarnings("UnreachableCode")
     @Inject(
-            method = "updatePose",
+            method = "updatePlayerPose",
             at = @At("HEAD"),
             cancellable = true
     )
     private void checkForceSwim(CallbackInfo ci) {
-        var player = ((PlayerEntity) (Object) this);
+        var player = ((Player) (Object) this);
         if (fabSit$currentPose() == Pose.SWIMMING) {
-            player.setPose(EntityPose.SWIMMING);
+            player.setPose(net.minecraft.world.entity.Pose.SWIMMING);
             ci.cancel();
         }
     }
@@ -41,18 +40,18 @@ abstract public class PlayerEntityMixin implements PosingFlag {
     @Override
     public void fabSit$setPosing(@Nullable Pose posing) {
         fabsit$pose = posing;
-        var player = (PlayerEntity) (Object) this;
+        var player = (Player) (Object) this;
         if (posing != null) {
             fabSit$lastPoseTime = Instant.now();
         } else {
             player.stopRiding();
         }
-        var server = player.getEntityWorld().getServer();
+        var server = player.level().getServer();
         if (server != null) {
-            var currentWorldKey = player.getEntityWorld().getRegistryKey();
-            var packet = new SyncPoseS2CPacket(player.getUuid(), posing);
-            for (ServerPlayerEntity targetPlayer : server.getPlayerManager().getPlayerList()) {
-                if (targetPlayer.getEntityWorld().getRegistryKey() == currentWorldKey) {
+            var currentWorldKey = player.level().dimension();
+            var packet = new SyncPoseS2CPacket(player.getUUID(), posing);
+            for (ServerPlayer targetPlayer : server.getPlayerList().getPlayers()) {
+                if (targetPlayer.level().dimension() == currentWorldKey) {
                     packet.send(targetPlayer);
                 }
             }
