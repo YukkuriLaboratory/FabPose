@@ -1,3 +1,4 @@
+import java.util.concurrent.TimeUnit
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -193,5 +194,93 @@ publishing {
         // Notice: This block does NOT have the same function as the block in the top level.
         // The repositories here will be used for publishing your artifact, not for
         // retrieving dependencies.
+    }
+}
+
+// Auto-start Xvfb for headless client test execution (Wayland / headless environments)
+// Shared state for Xvfb process between run task and cleanup task
+val xvfbState = objects.property<Process>()
+
+fun needsXvfb(): Boolean {
+    val display = System.getenv("DISPLAY")
+    if (display.isNullOrBlank()) return true
+    // For remote displays (e.g., SSH X11 forwarding like localhost:10.0), trust the env
+    if (display.contains(":") && !display.startsWith(":")) return false
+    // For local displays, verify the X11 socket is alive (not stale)
+    val displayNum = display.removePrefix(":").takeWhile { it.isDigit() }
+    val socket = File("/tmp/.X11-unix/X$displayNum")
+    return !socket.exists()
+}
+
+fun findXvfb(): String? {
+    val candidates = listOf("Xvfb", "/usr/bin/Xvfb")
+    return candidates.firstOrNull { name ->
+        runCatching {
+            ProcessBuilder("which", name)
+                .redirectErrorStream(true)
+                .start()
+                .waitFor() == 0
+        }.getOrDefault(false)
+    }
+}
+
+fun startXvfb(xvfb: String): Pair<Process, String> {
+    // Try multiple display numbers to handle concurrent usage
+    for (displayNum in 99..199) {
+        val display = ":$displayNum"
+        if (File("/tmp/.X11-unix/X$displayNum").exists()) continue
+
+        val process = ProcessBuilder(xvfb, display, "-screen", "0", "1280x1024x24", "-nolisten", "tcp")
+            .redirectErrorStream(true)
+            .start()
+
+        // Poll for X11 socket to appear (readiness check)
+        val socketFile = File("/tmp/.X11-unix/X$displayNum")
+        val deadline = System.currentTimeMillis() + 5_000
+        while (System.currentTimeMillis() < deadline) {
+            if (!process.isAlive) break
+            if (socketFile.exists()) return process to display
+            Thread.sleep(100)
+        }
+
+        // This display didn't work, clean up and try next
+        if (process.isAlive) process.destroyForcibly()
+    }
+    error("Failed to start Xvfb: no available display number in :99..:199")
+}
+
+val cleanupXvfbTask = tasks.register("cleanupXvfb") {
+    doLast {
+        xvfbState.orNull?.let { process ->
+            if (process.isAlive) {
+                logger.lifecycle("Stopping Xvfb (pid: ${process.pid()})")
+                process.destroy()
+                process.waitFor(5, TimeUnit.SECONDS)
+                if (process.isAlive) process.destroyForcibly()
+            }
+        }
+    }
+}
+
+val clientTestTaskName = "run${clientTest.replaceFirstChar(Char::uppercaseChar)}"
+tasks.named<JavaExec>(clientTestTaskName) {
+    finalizedBy(cleanupXvfbTask)
+
+    doFirst {
+        if (!needsXvfb()) return@doFirst
+
+        val xvfb = findXvfb() ?: error(
+            "No usable DISPLAY found and Xvfb is not installed. " +
+                "Install Xvfb or run with a display server (e.g., xvfb-run ./gradlew $clientTestTaskName)",
+        )
+
+        val (process, display) = startXvfb(xvfb)
+        xvfbState.set(process)
+        // Last-resort cleanup for JVM crash (daemon shutdown)
+        val shutdownHook = Thread { if (process.isAlive) process.destroyForcibly() }
+        Runtime.getRuntime().addShutdownHook(shutdownHook)
+
+        logger.lifecycle("Started Xvfb on display $display (pid: ${process.pid()})")
+        environment("DISPLAY", display)
     }
 }
