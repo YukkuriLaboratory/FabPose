@@ -63,7 +63,7 @@ val loaderVersion = project.property("loader_version").toString()
 val fabricVersion = project.property("fabric_version").toString()
 val flkVersion = project.property("flk_version").toString()
 dependencies {
-    // To change the versions see the gradle.properties file
+    // To change the versions see versions/<mc>/gradle.properties
     minecraft("com.mojang:minecraft:$minecraftVersion")
     mappings(loom.officialMojangMappings())
     modImplementation("net.fabricmc:fabric-loader:$loaderVersion")
@@ -124,7 +124,7 @@ loom {
             configName = clientTest
             vmArgs(
                 "-Dfabric-api.gametest",
-                "-Dfabric.api.gametest.report-file=${project.layout.buildDirectory}/$name/junit.xml",
+                "-Dfabric.api.gametest.report-file=${project.layout.buildDirectory.get()}/$name/junit.xml",
             )
             runDir = "build/$clientTest"
             setSource(clientTestSourceSet)

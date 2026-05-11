@@ -27,7 +27,8 @@ Build outputs land in `versions/<mc>/build/libs/`.
 1. Add the version string to `versions(...)` in `settings.gradle.kts`.
 2. Create `versions/<new-mc>/gradle.properties` mirroring an existing one with `minecraft_version` / `loader_version` / `fabric_version` / `flk_version` adjusted.
 3. Add the version to `matrix.version` in `.github/workflows/build.yml`.
-4. Run `./gradlew :<new-mc>:build` to validate locally.
+4. (Optional) Update the active version pointer in `stonecutter.gradle.kts` (`stonecutter active "<mc>"`) if you want IDE imports and bare `./gradlew build` to target the new version by default.
+5. Run `./gradlew :<new-mc>:build` to validate locally.
 
 ### Code Quality
 ```bash
@@ -46,7 +47,7 @@ Build outputs land in `versions/<mc>/build/libs/`.
 1. **Pose Management**: Uses invisible armor stand entities to handle player poses
 2. **Command System**: Brigadier-based commands with permission checks
 3. **Networking**: Custom packets for client-server synchronization
-4. **Configuration**: JSON5 config at `config/fabsit.json`, reloadable via `/fabpose reload`
+4. **Configuration**: JSON config at `config/fabsit.json` (Gson-based), reloadable via `/fabpose reload`
 
 ### Key Components
 - `PoseManager`: Central pose state management

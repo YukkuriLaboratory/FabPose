@@ -201,11 +201,13 @@ FabPose/
 
   stonecutter active "1.21.11"
 
-  stonecutter registerChiseled tasks.register("chiseledBuild", stonecutter.chiseled) {
+  tasks.register("chiseledBuild") {
       group = "project"
-      ofTask("build")
+      dependsOn(stonecutter.tasks.named("build"))
   }
   ```
+  > **注**: Stonecutter 0.9.x で chiseled タスク登録 API は `stonecutter registerChiseled ... ofTask(...)` から
+  > `tasks.register { dependsOn(stonecutter.tasks.named("...")) }` 方式に変更されている。
   - **QA 使用ツール**: `bash` (gradle)
   - **手順**: `./gradlew tasks --group project -q | grep chiseledBuild`
   - **期待結果**: `chiseledBuild` の行が 1 件出力される。
@@ -229,22 +231,22 @@ FabPose/
 - [ ] **C-3** `loom { accessWidenerPath.set(...) }` を以下に変更:
   ```kts
   loom {
-      val awSrc = rootProject.file("src/main/resources/fabpose.accesswidener")
-      accessWidenerPath.set(stonecutter.current.process(awSrc, "build/processed.accesswidener"))
+      accessWidenerPath.set(rootProject.file("src/main/resources/fabpose.accesswidener"))
       runtimeOnlyLog4j.set(true)
       // runs { ... } はそのまま
   }
   ```
-  - **QA 使用ツール**: `bash` (gradle, ls)
+  > **注**: 1.21.11 単独構成では AW に条件分岐コメントを入れる必要がないため、
+  > `stonecutter.current.process()` を経由せず `rootProject.file()` を直接渡す最小構成とする。
+  > 将来複数バージョンを Stonecutter 化したタイミングで AW 内に条件分岐が必要になった場合は
+  > `stonecutter.current.process(awSrc, "build/processed.accesswidener")` 経由に切替える。
+  - **QA 使用ツール**: `bash` (gradle, diff)
   - **手順**:
     1. `./gradlew :1.21.11:processResources -q`
-    2. `ls versions/1.21.11/build/processed.accesswidener`
-    3. `diff src/main/resources/fabpose.accesswidener versions/1.21.11/build/processed.accesswidener`
+    2. `diff src/main/resources/fabpose.accesswidener versions/1.21.11/build/resources/main/fabpose.accesswidener`
   - **期待結果**:
     - 手順 1: BUILD SUCCESSFUL。
-    - 手順 2: 処理済 AW ファイルが存在。
-    - 手順 3: 1.21.11 単独構成では条件分岐コメント未使用のため diff 出力 0 行
-      (パススルー)。
+    - 手順 2: AW がパススルーで一致 (diff 出力 0 行)。
 
 - [ ] **C-4** `tasks.processResources { filesMatching("fabric.mod.json") { expand(...) } }`
   はそのまま使用。
@@ -300,23 +302,32 @@ FabPose/
   - **期待結果**: exit 0。`~/.m2/repository/net/yukulab/fabpose/<version>/` に jar/pom が配置。
 
 ### Phase E: CI / リリースワークフロー対応
-- [ ] **E-1** `.github/workflows/` を grep で全件確認し、build コマンドを置換。
+- [ ] **E-1** `.github/workflows/build.yml` の matrix を Stonecutter サブプロジェクト指定に書き換え。
+  - **方針**: タスク名 (`build` / `runServertest` / `runClienttest`) と MC バージョンを
+    matrix 2軸 (`version × task`) で展開し、各ジョブは
+    `./gradlew :${{ matrix.version }}:${{ matrix.task }}` を実行する。
+    `chiseledBuild` 置換ではなく per-version 実行とすることで、将来 MC バージョンを
+    追加した際に CI 行列を `version` 配列に追記するだけで拡張できる。
   - **QA 使用ツール**: `bash` (grep), `read`
   - **手順**:
     1. `grep -rn 'gradlew' .github/workflows/`
-    2. ヒットした各ファイルで `./gradlew build` → `./gradlew chiseledBuild`、
-       `./gradlew runServertest` → `./gradlew :1.21.11:runServertest` 等に置換。
-    3. 再度 `grep -rn 'gradlew build\|gradlew runServertest\|gradlew runClienttest' .github/workflows/`
-  - **期待結果**: 手順 3 で grep ヒット 0。
+    2. matrix 形式に書き換え (`version: ['1.21.11']`, `task: ['build', 'runServertest', 'runClienttest']`)。
+    3. `grep -rnE './gradlew (build|runServertest|runClienttest)\b' .github/workflows/`
+  - **期待結果**: 手順 3 で `:<version>:` プレフィックスなしの直接呼び出しが 0 件。
 
 - [ ] **E-2** リリースワークフロー (タグ → publish) の jar パスを修正。
+  - **方針**: タグ形式 `v<modver>+<mcver>` から `steps.tag.outputs._0` (modver) と
+    `steps.tag.outputs._1` (mcver) を取り出し、ビルドは
+    `./gradlew :${{ steps.tag.outputs._1 }}:build`、jar パスは
+    `versions/${{ steps.tag.outputs._1 }}/build/libs/fabpose-${{ steps.tag.outputs._0 }}+${{ steps.tag.outputs._1 }}.jar`
+    に書き換える。
   - **QA 使用ツール**: `bash` (grep)
   - **手順**:
     1. `grep -rn 'build/libs' .github/workflows/`
-    2. ヒットした行を `versions/1.21.11/build/libs/` に書き換え。
-    3. `grep -rn 'build/libs' .github/workflows/` で旧パス残存をチェック。
+    2. ヒットした行を `versions/<mc>/build/libs/` に書き換え。
+    3. `grep -rnE '(^|[^/])build/libs' .github/workflows/` で旧パス残存をチェック。
   - **期待結果**: 手順 3 でルート `build/libs` への参照が 0 件
-    (`versions/1.21.11/build/libs` のみヒット)。
+    (`versions/<mc>/build/libs` のみヒット)。
 
 - [ ] **E-3** Gradle キャッシュキーを Stonecutter 構成に合わせて更新。
   - **QA 使用ツール**: `bash` (grep)
@@ -405,7 +416,8 @@ Phase D で致命的な問題が発生した場合:
 
 ## 7. 次計画への引き継ぎ事項 (legacy グループ向け)
 
-本計画完了後、別計画書 `plans/stonecutter-migration-legacy.md` で扱う:
+本計画完了後、別途作成予定の legacy グループ計画書 (`plans/stonecutter-migration-legacy.md`,
+未作成) で扱う想定:
 - 新ブランチ `legacy/1.21` を切る (`1.21.10` ブランチを起点)
 - Yarn mappings 統一 (or 各バージョンで `yarn_mappings` プロパティ管理)
 - 旧 PosingEntity システムを正とする
