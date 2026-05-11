@@ -52,6 +52,8 @@ jobs:
         java: [
           21,    # Current Java LTS & minimum supported by Minecraft
         ]
+        # Stonecutter-managed Minecraft versions. Add new versions here.
+        version: [ '1.21.11' ]
         task: [ build, runServertest, runClienttest ]
     runs-on: ubuntu-latest
     steps:
@@ -71,10 +73,10 @@ jobs:
       - name: build
         uses: coactions/setup-xvfb@b6b4fcfb9f5a895edadc3bc76318fae0ac17c8b3 # v1.0.1
         with:
-          run: ./gradlew ${{ matrix.task }} --stacktrace
+          run: ./gradlew :${{ matrix.version }}:${{ matrix.task }} --stacktrace
       - name: capture build artifacts
-        if: ${{ matrix.task == 'build' && matrix.java == '17' }} # Only upload artifacts built from latest java on one OS
+        if: ${{ matrix.task == 'build' }}
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
-          name: Artifacts
-          path: build/libs/
+          name: Artifacts-${{ matrix.version }}
+          path: versions/${{ matrix.version }}/build/libs/

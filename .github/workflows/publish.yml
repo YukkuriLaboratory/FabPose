@@ -39,7 +39,7 @@ jobs:
         with:
           cache-disabled: true
       - name: Build with Gradle
-        run: ./gradlew build
+        run: ./gradlew :${{ steps.tag.outputs._1 }}:build
         env:
           MOD_VERSION: ${{ steps.tag.outputs._0 }}
 
@@ -78,5 +78,5 @@ jobs:
           loaders: fabric
           game-versions: ${{ steps.tag.outputs._1 }}
           files: |
-            build/libs/fabpose-${{ steps.tag.outputs._0 }}+${{ steps.tag.outputs._1 }}.jar
-            build/libs/fabpose-${{ steps.tag.outputs._0 }}+${{ steps.tag.outputs._1 }}-sources.jar
+            versions/${{ steps.tag.outputs._1 }}/build/libs/fabpose-${{ steps.tag.outputs._0 }}+${{ steps.tag.outputs._1 }}.jar
+            versions/${{ steps.tag.outputs._1 }}/build/libs/fabpose-${{ steps.tag.outputs._0 }}+${{ steps.tag.outputs._1 }}-sources.jar
