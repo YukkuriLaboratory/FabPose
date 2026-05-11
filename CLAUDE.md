@@ -36,6 +36,13 @@ Build outputs land in `versions/<mc>/build/libs/`.
 ./gradlew formatKotlin   # Auto-format Kotlin code
 ```
 
+### Release Tags
+Releases are triggered by pushing tags matching `v<modver>+<mcver>` (e.g. `v1.4.2+1.21.11`).
+The `publish.yml` workflow validates the tag with the regex
+`^v[0-9A-Za-z._-]+\+[0-9]+\.[0-9]+(\.[0-9]+)?$` and uploads
+`versions/<mcver>/build/libs/fabpose-<modver>+<mcver>.jar` (and `-sources.jar`).
+The `<mcver>` segment must match an existing `versions/<mcver>/gradle.properties`.
+
 ## Architecture Overview
 
 ### Language Structure

@@ -8,6 +8,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: publish-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -45,8 +49,8 @@ jobs:
           MC_VERSION: ${{ steps.tag.outputs._1 }}
         run: |
           set -euo pipefail
-          if ! [[ "${GITHUB_REF_NAME}" =~ ^v[^+]+\+[0-9]+\.[0-9]+(\.[0-9]+)?$ ]]; then
-            echo "::error::Tag '${GITHUB_REF_NAME}' is not in the expected 'v<modver>+<mcver>' format (e.g. v0.0.1+1.21.11)."
+          if ! [[ "${GITHUB_REF_NAME}" =~ ^v[0-9A-Za-z._-]+\+[0-9]+\.[0-9]+(\.[0-9]+)?$ ]]; then
+            echo "::error::Tag '${GITHUB_REF_NAME}' is not in the expected 'v<modver>+<mcver>' format (e.g. v0.0.1+1.21.11). The mod version must consist of [0-9A-Za-z._-]."
             exit 1
           fi
           if [ -z "${MOD_VERSION}" ] || [ -z "${MC_VERSION}" ]; then
@@ -91,7 +95,7 @@ jobs:
           modrinth-id: ${{ secrets.MODRINTH_ID }}
           modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
           name: ${{ steps.rawtag.outputs.tag }}
-          version: ${{ steps.tag.outputs._0 }}
+          version: ${{ steps.tag.outputs._0 }}+${{ steps.tag.outputs._1 }}
           version-type: release
           changelog: ${{ steps.tag_message.outputs.message }}
           java: 21
