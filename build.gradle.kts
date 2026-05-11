@@ -20,6 +20,8 @@ val serverTest = "servertest"
 val clientTest = "clienttest"
 sourceSets {
     val main by main
+    main.java.srcDirs(rootProject.file("src/main/java"))
+    main.resources.srcDirs(rootProject.file("src/main/resources"))
     val classPathConfig =
         closureOf<SourceSet> {
             compileClasspath += main.compileClasspath
@@ -27,8 +29,14 @@ sourceSets {
             runtimeClasspath += main.runtimeClasspath
             runtimeClasspath += main.output
         }
-    create(serverTest, classPathConfig)
-    create(clientTest, classPathConfig)
+    create(serverTest, classPathConfig).apply {
+        java.srcDirs(rootProject.file("src/$serverTest/java"))
+        resources.srcDirs(rootProject.file("src/$serverTest/resources"))
+    }
+    create(clientTest, classPathConfig).apply {
+        java.srcDirs(rootProject.file("src/$clientTest/java"))
+        resources.srcDirs(rootProject.file("src/$clientTest/resources"))
+    }
 }
 val serverTestSourceSet = sourceSets.getByName(serverTest)
 val clientTestSourceSet = sourceSets.getByName(clientTest)
@@ -96,7 +104,7 @@ dependencies {
 }
 
 loom {
-    accessWidenerPath.set(file("src/main/resources/fabpose.accesswidener"))
+    accessWidenerPath.set(rootProject.file("src/main/resources/fabpose.accesswidener"))
     runtimeOnlyLog4j.set(true)
 
     runs {
@@ -131,6 +139,10 @@ loom {
             isIdeConfigGenerated = true
         }
     }
+}
+
+tasks.withType<AbstractCopyTask>().configureEach {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 
 tasks.processResources {
@@ -172,10 +184,21 @@ kotlin {
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_21)
     }
+    sourceSets {
+        named("main") {
+            kotlin.srcDirs(rootProject.file("src/main/kotlin"))
+        }
+        named(serverTest) {
+            kotlin.srcDirs(rootProject.file("src/$serverTest/kotlin"))
+        }
+        named(clientTest) {
+            kotlin.srcDirs(rootProject.file("src/$clientTest/kotlin"))
+        }
+    }
 }
 
 tasks.jar {
-    from("LICENSE") {
+    from(rootProject.file("LICENSE")) {
         rename { "${it}_${project.base.archivesName}" }
     }
 }
@@ -250,6 +273,8 @@ fun startXvfb(xvfb: String): Pair<Process, String> {
 }
 
 val cleanupXvfbTask = tasks.register("cleanupXvfb") {
+    group = "verification"
+    description = "Stops the Xvfb process started for runClienttest, if any."
     doLast {
         xvfbState.orNull?.let { process ->
             if (process.isAlive) {
