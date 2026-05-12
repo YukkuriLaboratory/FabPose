@@ -3,10 +3,14 @@ name: Publish on GitHub, CurseForge & Modrinth
 on:
   push:
     tags:
-      - "v*"
+      - "v*+*"
 
 permissions:
   contents: read
+
+concurrency:
+  group: publish-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   check:
@@ -38,8 +42,28 @@ jobs:
         uses: gradle/actions/setup-gradle@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2 # v5.0.0
         with:
           cache-disabled: true
+      - name: Validate tag format and version mapping
+        env:
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+          MOD_VERSION: ${{ steps.tag.outputs._0 }}
+          MC_VERSION: ${{ steps.tag.outputs._1 }}
+        run: |
+          set -euo pipefail
+          if ! [[ "${GITHUB_REF_NAME}" =~ ^v[0-9A-Za-z._-]+\+[0-9]+\.[0-9]+(\.[0-9]+)?$ ]]; then
+            echo "::error::Tag '${GITHUB_REF_NAME}' is not in the expected 'v<modver>+<mcver>' format (e.g. v0.0.1+1.21.11). The mod version must consist of [0-9A-Za-z._-]."
+            exit 1
+          fi
+          if [ -z "${MOD_VERSION}" ] || [ -z "${MC_VERSION}" ]; then
+            echo "::error::Failed to split tag into mod version ('${MOD_VERSION}') and Minecraft version ('${MC_VERSION}')."
+            exit 1
+          fi
+          if [ ! -f "versions/${MC_VERSION}/gradle.properties" ]; then
+            echo "::error::versions/${MC_VERSION}/gradle.properties not found. Make sure the Minecraft version is registered in settings.gradle.kts."
+            exit 1
+          fi
+          echo "Tag OK: mod=${MOD_VERSION}, mc=${MC_VERSION}"
       - name: Build with Gradle
-        run: ./gradlew build
+        run: ./gradlew :${{ steps.tag.outputs._1 }}:build
         env:
           MOD_VERSION: ${{ steps.tag.outputs._0 }}
 
@@ -71,12 +95,12 @@ jobs:
           modrinth-id: ${{ secrets.MODRINTH_ID }}
           modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
           name: ${{ steps.rawtag.outputs.tag }}
-          version: ${{ steps.tag.outputs._0 }}
+          version: ${{ steps.tag.outputs._0 }}+${{ steps.tag.outputs._1 }}
           version-type: release
           changelog: ${{ steps.tag_message.outputs.message }}
           java: 21
           loaders: fabric
           game-versions: ${{ steps.tag.outputs._1 }}
           files: |
-            build/libs/fabpose-${{ steps.tag.outputs._0 }}+${{ steps.tag.outputs._1 }}.jar
-            build/libs/fabpose-${{ steps.tag.outputs._0 }}+${{ steps.tag.outputs._1 }}-sources.jar
+            versions/${{ steps.tag.outputs._1 }}/build/libs/fabpose-${{ steps.tag.outputs._0 }}+${{ steps.tag.outputs._1 }}.jar
+            versions/${{ steps.tag.outputs._1 }}/build/libs/fabpose-${{ steps.tag.outputs._0 }}+${{ steps.tag.outputs._1 }}-sources.jar
