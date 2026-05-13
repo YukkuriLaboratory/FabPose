@@ -1,6 +1,6 @@
 # Stonecutter Migration: Add Minecraft 26.1 Support
 
-**ステータス**: 計画段階 (branch `feat/stonecutter-mc26`)。実装前。Momus 承認待ち → ユーザー承認 → 実装着手。
+**ステータス**: 実装完了 (branch `feat/stonecutter-mc26`)。Phase A〜H は shipped (commits `441b209` / `f5f27c4` / `23c0ae8`)。本ファイルは実装後の実行ログを兼ねている (DoD のうち実行可能なものは ✅、CI green / PR マージ待ちは未チェックのまま)。
 
 **前提となる完了済み作業**: PR #23 (`Introduce Stonecutter` series, 1d443dbd) で 1.21.11 単一バージョンの Stonecutter 化は shipped。本計画はその上に **26.1 を 2 つ目のバージョンとして追加**する。
 
@@ -400,21 +400,21 @@ FabPose/
 
 ## 6. Definition of Done
 
-- [ ] Phase A〜H の全タスクが完了 (チェックボックスは shipped 状態)
-- [ ] `./gradlew :1.21.11:build` SUCCESSFUL
-- [ ] `./gradlew :26.1:build` SUCCESSFUL
-- [ ] `./gradlew chiseledBuild` SUCCESSFUL (両 jar 生成)
-- [ ] `./gradlew :1.21.11:runServertest` 12/12 pass
-- [ ] `./gradlew :26.1:runServertest` 12/12 pass
-- [ ] `./gradlew :1.21.11:lintKotlin` クリーン
-- [ ] `./gradlew :26.1:lintKotlin` クリーン
-- [ ] 1.21.11 jar 内容がベースライン (`temp/baseline-1.21.11-fabpose.jar`) と一致 (version フィールド除く)
-  - `jar tf | sort | diff` で一致
-  - `unzip -p ... fabric.mod.json | jq -S | diff` で一致
-  - `unzip -p ... fabpose.accesswidener | diff` で一致
-- [ ] CI build job が `matrix.version=['1.21.11', '26.1']` で両方 green
+- [x] Phase A〜H の全タスクが完了 (チェックボックスは shipped 状態)
+- [x] `./gradlew :1.21.11:build` SUCCESSFUL
+- [x] `./gradlew :26.1:build` SUCCESSFUL
+- [x] `./gradlew chiseledBuild` SUCCESSFUL (両 jar 生成)
+- [x] `./gradlew :1.21.11:runServertest` 12/12 pass
+- [x] `./gradlew :26.1:runServertest` 12/12 pass
+- [x] `./gradlew :1.21.11:lintKotlin` クリーン
+- [x] `./gradlew :26.1:lintKotlin` クリーン
+- [x] 1.21.11 jar 内容がベースライン (`temp/baseline-1.21.11.jar`) と一致 (`injected_interfaces` 削除分は意図差分)
+  - `find . -type f | sort` で一致
+  - AW (`fabpose.accesswidener`), mixins (`fabpose.mixins.json`) は完全一致
+  - `fabric.mod.json` は `custom.loom:injected_interfaces` ブロックのみ削除 (cast 方式へ移行のため)
+- [ ] CI build job が `matrix.include=[1.21.11+JDK21, 26.1+JDK25]` で両方 green
 - [ ] CI publish job が `v0.0.0-test+26.1` の dry-run タグで validate 通過 (regex 確認)
-- [ ] CLAUDE.md / AGENTS.md が新コマンド体系を反映
+- [x] CLAUDE.md / AGENTS.md が新コマンド体系を反映
 - [ ] PR がレビュー承認され main にマージ
 
 ---
