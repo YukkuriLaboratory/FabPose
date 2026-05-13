@@ -1,0 +1,270 @@
+import java.util.concurrent.TimeUnit
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
+plugins {
+    // 26.1+ ships un-obfuscated → use the new fabric-loom plugin id (no remap pipeline).
+    id("net.fabricmc.fabric-loom") version "1.16-SNAPSHOT"
+    id("maven-publish")
+    kotlin("jvm") version "2.3.0"
+    id("org.jmailen.kotlinter") version "5.2.0"
+}
+
+val minecraftVersion = project.property("minecraft_version").toString()
+val modVersion = System.getenv("MOD_VERSION") ?: "0.0.0"
+base {
+    archivesName.set(project.property("archives_base_name") as? String)
+    version = "$modVersion+$minecraftVersion"
+    group = project.property("maven_group")!!
+}
+
+val serverTest = "servertest"
+val clientTest = "clienttest"
+sourceSets {
+    val main by main
+    val classPathConfig =
+        closureOf<SourceSet> {
+            compileClasspath += main.compileClasspath
+            compileClasspath += main.output
+            runtimeClasspath += main.runtimeClasspath
+            runtimeClasspath += main.output
+        }
+    create(serverTest, classPathConfig)
+    create(clientTest, classPathConfig)
+}
+val serverTestSourceSet = sourceSets.getByName(serverTest)
+val clientTestSourceSet = sourceSets.getByName(clientTest)
+
+configurations {
+    val implementation = "Implementation"
+    val testImplementation = testImplementation.get().exclude("org.slf4j", "slf4j-simple")
+    getByName("$serverTest$implementation").extendsFrom(testImplementation)
+    getByName("$clientTest$implementation").extendsFrom(testImplementation)
+}
+
+repositories {
+    maven("https://oss.sonatype.org/content/repositories/snapshots")
+    maven("https://api.modrinth.com/maven")
+}
+
+val loaderVersion = project.property("loader_version").toString()
+val fabricVersion = project.property("fabric_version").toString()
+val flkVersion = project.property("flk_version").toString()
+dependencies {
+    // To change the versions see versions/<mc>/gradle.properties
+    minecraft("com.mojang:minecraft:$minecraftVersion")
+    // 26.1+ is shipped un-obfuscated; no `mappings(...)` declaration needed.
+    implementation("net.fabricmc:fabric-loader:$loaderVersion")
+    compileOnly("com.mojang:authlib:3.13.56")
+
+    setOf(
+        "fabric-api-base",
+        "fabric-command-api-v2",
+        "fabric-events-interaction-v0",
+        // 1.21.11 still uses fabric-key-binding-api-v1; 26.1 renamed it to fabric-key-mapping-api-v1.
+        "fabric-key-mapping-api-v1",
+        "fabric-lifecycle-events-v1",
+        "fabric-networking-api-v1",
+        "fabric-registry-sync-v0",
+        "fabric-rendering-v1",
+        "fabric-object-builder-api-v1",
+        "fabric-gametest-api-v1",
+    ).forEach {
+        implementation(fabricApi.module(it, fabricVersion))
+    }
+    // For Gametests
+    runtimeOnly("net.fabricmc.fabric-api:fabric-api:$fabricVersion")
+    // Kotlin
+    implementation("net.fabricmc:fabric-language-kotlin:$flkVersion")
+    // Permissions API (un-obfuscated build that targets 26.1+)
+    implementation(include("me.lucko:fabric-permissions-api:0.7.0")!!)
+
+    testImplementation("io.kotest:kotest-runner-junit5:5.6.2")?.version?.also { kotestVersion ->
+        testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
+        testImplementation("io.kotest:kotest-property:$kotestVersion")
+        testImplementation("io.kotest:kotest-framework-datatest:$kotestVersion")
+    }
+}
+
+loom {
+    accessWidenerPath.set(rootProject.file("src/main/resources/fabpose.official.accesswidener"))
+    runtimeOnlyLog4j.set(true)
+
+    runs {
+        create(serverTest) {
+            server()
+            configName = serverTest
+            vmArgs(
+                "-Dfabric-api.gametest",
+                "-Dfabric.api.gametest.report-file=${project.layout.buildDirectory.get()}/$name/junit.xml",
+            )
+            runDir = "build/$serverTest"
+            setSource(serverTestSourceSet)
+            isIdeConfigGenerated = true
+        }
+        create(clientTest) {
+            client()
+            configName = clientTest
+            vmArgs(
+                "-Dfabric-api.gametest",
+                "-Dfabric.api.gametest.report-file=${project.layout.buildDirectory.get()}/$name/junit.xml",
+            )
+            runDir = "build/$clientTest"
+            setSource(clientTestSourceSet)
+            isIdeConfigGenerated = true
+        }
+        create("manual$serverTest") {
+            server()
+            configName = "Manual $serverTest"
+            runDir = "build/$serverTest"
+            vmArgs("-Dfabric-api.gametest.command=true")
+            setSource(serverTestSourceSet)
+            isIdeConfigGenerated = true
+        }
+    }
+}
+
+tasks.withType<AbstractCopyTask>().configureEach {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+
+tasks.processResources {
+    inputs.properties(
+        "loader_version" to loaderVersion,
+        "version" to project.version,
+        "fabric_version" to fabricVersion,
+        "minecraft_version" to minecraftVersion,
+        "flk_version" to flkVersion,
+    )
+
+    filesMatching("fabric.mod.json") {
+        expand(
+            "loader_version" to loaderVersion,
+            "version" to project.version,
+            "fabric_version" to fabricVersion,
+            "minecraft_version" to minecraftVersion,
+            "flk_version" to flkVersion,
+        )
+    }
+
+    // Use the un-obfuscated AccessWidener (namespace `official`) for 26.1+, exposing it
+    // under the canonical `fabpose.accesswidener` name referenced by fabric.mod.json.
+    exclude("fabpose.accesswidener")
+    rename("fabpose\\.official\\.accesswidener", "fabpose.accesswidener")
+}
+
+tasks.withType<JavaCompile>().configureEach {
+    // Minecraft 26.1+ requires Java 25
+    options.release = 25
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
+    withSourcesJar()
+}
+
+kotlin {
+    jvmToolchain(25)
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_25)
+    }
+}
+
+tasks.jar {
+    from(rootProject.file("LICENSE")) {
+        rename { "${it}_${project.base.archivesName}" }
+    }
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("mavenJava") {
+            from(components.getByName("java"))
+        }
+    }
+    repositories {
+    }
+}
+
+// Auto-start Xvfb for headless client test execution (Wayland / headless environments)
+val xvfbState = objects.property<Process>()
+
+fun needsXvfb(): Boolean {
+    val display = System.getenv("DISPLAY")
+    if (display.isNullOrBlank()) return true
+    if (display.contains(":") && !display.startsWith(":")) return false
+    val displayNum = display.removePrefix(":").takeWhile { it.isDigit() }
+    val socket = File("/tmp/.X11-unix/X$displayNum")
+    return !socket.exists()
+}
+
+fun findXvfb(): String? {
+    val candidates = listOf("Xvfb", "/usr/bin/Xvfb")
+    return candidates.firstOrNull { name ->
+        runCatching {
+            ProcessBuilder("which", name)
+                .redirectErrorStream(true)
+                .start()
+                .waitFor() == 0
+        }.getOrDefault(false)
+    }
+}
+
+fun startXvfb(xvfb: String): Pair<Process, String> {
+    for (displayNum in 99..199) {
+        val display = ":$displayNum"
+        if (File("/tmp/.X11-unix/X$displayNum").exists()) continue
+
+        val process = ProcessBuilder(xvfb, display, "-screen", "0", "1280x1024x24", "-nolisten", "tcp")
+            .redirectErrorStream(true)
+            .start()
+
+        val socketFile = File("/tmp/.X11-unix/X$displayNum")
+        val deadline = System.currentTimeMillis() + 5_000
+        while (System.currentTimeMillis() < deadline) {
+            if (!process.isAlive) break
+            if (socketFile.exists()) return process to display
+            Thread.sleep(100)
+        }
+
+        if (process.isAlive) process.destroyForcibly()
+    }
+    error("Failed to start Xvfb: no available display number in :99..:199")
+}
+
+val cleanupXvfbTask = tasks.register("cleanupXvfb") {
+    group = "verification"
+    description = "Stops the Xvfb process started for runClienttest, if any."
+    doLast {
+        xvfbState.orNull?.let { process ->
+            if (process.isAlive) {
+                logger.lifecycle("Stopping Xvfb (pid: ${process.pid()})")
+                process.destroy()
+                process.waitFor(5, TimeUnit.SECONDS)
+                if (process.isAlive) process.destroyForcibly()
+            }
+        }
+    }
+}
+
+val clientTestTaskName = "run${clientTest.replaceFirstChar(Char::uppercaseChar)}"
+tasks.named<JavaExec>(clientTestTaskName) {
+    finalizedBy(cleanupXvfbTask)
+
+    doFirst {
+        if (!needsXvfb()) return@doFirst
+
+        val xvfb = findXvfb() ?: error(
+            "No usable DISPLAY found and Xvfb is not installed. " +
+                "Install Xvfb or run with a display server (e.g., xvfb-run ./gradlew $clientTestTaskName)",
+        )
+
+        val (process, display) = startXvfb(xvfb)
+        xvfbState.set(process)
+        val shutdownHook = Thread { if (process.isAlive) process.destroyForcibly() }
+        Runtime.getRuntime().addShutdownHook(shutdownHook)
+
+        logger.lifecycle("Started Xvfb on display $display (pid: ${process.pid()})")
+        environment("DISPLAY", display)
+    }
+}

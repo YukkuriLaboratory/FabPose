@@ -20,8 +20,6 @@ val serverTest = "servertest"
 val clientTest = "clienttest"
 sourceSets {
     val main by main
-    main.java.srcDirs(rootProject.file("src/main/java"))
-    main.resources.srcDirs(rootProject.file("src/main/resources"))
     val classPathConfig =
         closureOf<SourceSet> {
             compileClasspath += main.compileClasspath
@@ -29,14 +27,8 @@ sourceSets {
             runtimeClasspath += main.runtimeClasspath
             runtimeClasspath += main.output
         }
-    create(serverTest, classPathConfig).apply {
-        java.srcDirs(rootProject.file("src/$serverTest/java"))
-        resources.srcDirs(rootProject.file("src/$serverTest/resources"))
-    }
-    create(clientTest, classPathConfig).apply {
-        java.srcDirs(rootProject.file("src/$clientTest/java"))
-        resources.srcDirs(rootProject.file("src/$clientTest/resources"))
-    }
+    create(serverTest, classPathConfig)
+    create(clientTest, classPathConfig)
 }
 val serverTestSourceSet = sourceSets.getByName(serverTest)
 val clientTestSourceSet = sourceSets.getByName(clientTest)
@@ -163,6 +155,10 @@ tasks.processResources {
             "flk_version" to flkVersion,
         )
     }
+
+    // 26.1+ ships an additional AccessWidener with namespace `official`. It is unused
+    // (and rejected) by Loom on intermediary-mapped versions, so drop it from the jar.
+    exclude("fabpose.official.accesswidener")
 }
 
 tasks.withType<JavaCompile>().configureEach {
@@ -183,17 +179,6 @@ kotlin {
     jvmToolchain(21)
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_21)
-    }
-    sourceSets {
-        named("main") {
-            kotlin.srcDirs(rootProject.file("src/main/kotlin"))
-        }
-        named(serverTest) {
-            kotlin.srcDirs(rootProject.file("src/$serverTest/kotlin"))
-        }
-        named(clientTest) {
-            kotlin.srcDirs(rootProject.file("src/$clientTest/kotlin"))
-        }
     }
 }
 

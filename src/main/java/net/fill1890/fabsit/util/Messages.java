@@ -8,6 +8,7 @@ import net.fill1890.fabsit.error.PoseException.MidairException;
 import net.fill1890.fabsit.error.PoseException.PoseDisabled;
 import net.fill1890.fabsit.error.PoseException.SpectatorException;
 import net.fill1890.fabsit.error.PoseException.StateException;
+import net.fill1890.fabsit.extension.ModFlag;
 import net.fill1890.fabsit.mixin.accessor.ServerCommonPacketListenerImplAccessor;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.network.chat.Component;
@@ -29,7 +30,7 @@ public class Messages {
     // stop posing action message
     public static Component getPoseStopMessage(ServerPlayer player, Pose pose) {
         var connection = ((ServerCommonPacketListenerImplAccessor) player.connection).getConnection();
-        if (connection.fabSit$isModEnabled()) {
+        if (((ModFlag) connection).fabSit$isModEnabled()) {
             return Component.translatable(ACTION + "stop_" + pose, Component.keybind("key.sneak"));
         } else {
             return Component.nullToEmpty(ConfigManager.LANG.get(ACTION + "stop_" + pose).formatted(ConfigManager.LANG.get("key.fabsit.sneak")));
@@ -39,7 +40,7 @@ public class Messages {
     // get either a server or client translated string based on whether the player has the mod
     private static Component getChatMessageByKey(ServerPlayer player, String key_base) {
         var connection = ((ServerCommonPacketListenerImplAccessor) player.connection).getConnection();
-        if (connection.fabSit$isModEnabled()) {
+        if (((ModFlag) connection).fabSit$isModEnabled()) {
             return Component.translatable(CHAT + key_base);
         } else {
             return Component.nullToEmpty(ConfigManager.LANG.get(CHAT + key_base));

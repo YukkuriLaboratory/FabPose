@@ -1,6 +1,7 @@
 package net.fill1890.fabsit.mixin.injector;
 
 import net.fill1890.fabsit.entity.Pose;
+import net.fill1890.fabsit.extension.PosingFlag;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.layers.CustomHeadLayer;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
@@ -21,7 +22,7 @@ abstract public class CustomHeadLayerMixin<S extends LivingEntityRenderState> {
             cancellable = true
     )
     private void preventInvisiblePlayerArmors(PoseStack matrixStack, SubmitNodeCollector orderedRenderCommandQueue, int i, S livingEntityRenderState, float f, float g, CallbackInfo ci) {
-        if (livingEntityRenderState instanceof AvatarRenderState player && EnumSet.of(Pose.LAYING, Pose.SPINNING).contains(player.fabSit$currentPose())) {
+        if (livingEntityRenderState instanceof AvatarRenderState player && EnumSet.of(Pose.LAYING, Pose.SPINNING).contains(((PosingFlag) player).fabSit$currentPose())) {
             ci.cancel();
         }
     }

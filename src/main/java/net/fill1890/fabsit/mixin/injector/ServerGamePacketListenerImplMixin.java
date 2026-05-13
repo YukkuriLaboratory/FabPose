@@ -1,6 +1,7 @@
 package net.fill1890.fabsit.mixin.injector;
 
 import io.netty.channel.ChannelFutureListener;
+import net.fill1890.fabsit.extension.ModFlag;
 import net.fill1890.fabsit.mixin.accessor.EntitySpawnPacketAccessor;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -99,7 +100,7 @@ public abstract class ServerGamePacketListenerImplMixin extends ServerCommonPack
             }
 
             // cancel packet if player has fabsit loaded
-            if (connection.fabSit$isModEnabled()) {
+            if (((ModFlag) connection).fabSit$isModEnabled()) {
                 return;
             }
         }
@@ -111,7 +112,7 @@ public abstract class ServerGamePacketListenerImplMixin extends ServerCommonPack
         if (sp.getType() == FabSitEntities.POSE_MANAGER) {
 
             // if fabsit not loaded, replace PoseManager entity to vanilla ArmorStand
-            if (!connection.fabSit$isModEnabled()) {
+            if (!((ModFlag) connection).fabSit$isModEnabled()) {
                 ((EntitySpawnPacketAccessor) sp).setEntityTypeId(EntityType.ARMOR_STAND);
             }
         }

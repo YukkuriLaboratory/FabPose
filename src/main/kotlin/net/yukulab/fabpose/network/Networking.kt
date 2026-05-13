@@ -22,9 +22,15 @@ object Networking {
     val SYNC_POSE: Identifier = id("syncpose")
 
     fun registerServerHandlers() {
+        //? if <26.1 {
         PayloadTypeRegistry.playC2S().register(PoseRequestC2SPacket.ID, PoseRequestC2SPacket.CODEC)
         PayloadTypeRegistry.playC2S().register(SyncRequestC2SPacket.ID, SyncRequestC2SPacket.CODEC)
         PayloadTypeRegistry.playS2C().register(SyncPoseS2CPacket.ID, SyncPoseS2CPacket.CODEC)
+        //?} else {
+        /*PayloadTypeRegistry.serverboundPlay().register(PoseRequestC2SPacket.ID, PoseRequestC2SPacket.CODEC)
+        PayloadTypeRegistry.serverboundPlay().register(SyncRequestC2SPacket.ID, SyncRequestC2SPacket.CODEC)
+        PayloadTypeRegistry.clientboundPlay().register(SyncPoseS2CPacket.ID, SyncPoseS2CPacket.CODEC)*/
+        //?}
 
         ServerLoginConnectionEvents.QUERY_START.register(HandShakeS2CPacket::sendQuery)
         ServerLoginNetworking.registerGlobalReceiver(HANDSHAKE, HandShakeS2CPacket::onHandShakeServer)

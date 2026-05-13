@@ -28,7 +28,11 @@ data class PoseRequestC2SPacket(val pose: Pose) : CustomPacketPayload {
             val player = context.player()
             player.pose(payload.pose).onFailure {
                 if (it is PoseException.PermissionException) {
+                    //? if <26.1 {
                     player.displayClientMessage(Messages.getStateError(player, payload.pose), false)
+                    //?} else {
+                    /*player.sendSystemMessage(Messages.getStateError(player, payload.pose))*/
+                    //?}
                 }
             }
         }

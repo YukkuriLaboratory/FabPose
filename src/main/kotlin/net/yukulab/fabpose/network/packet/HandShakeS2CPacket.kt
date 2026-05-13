@@ -6,10 +6,15 @@ import java.util.function.Consumer
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.fabricmc.fabric.api.networking.v1.LoginPacketSender
+//? if <26.1 {
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs
+//?}
 import net.fabricmc.fabric.api.networking.v1.PacketSender
 import net.fabricmc.fabric.api.networking.v1.ServerLoginNetworking
 import net.fill1890.fabsit.extension.ModFlag
+//? if >=26.1 {
+/*import io.netty.buffer.Unpooled*/
+//?}
 import net.minecraft.client.Minecraft
 import net.minecraft.client.multiplayer.ClientHandshakePacketListenerImpl
 import net.minecraft.network.FriendlyByteBuf
@@ -25,7 +30,15 @@ object HandShakeS2CPacket {
         sender: LoginPacketSender,
         synchronizer: ServerLoginNetworking.LoginSynchronizer,
     ) {
-        sender.sendPacket(Networking.HANDSHAKE, PacketByteBufs.empty())
+        sender.sendPacket(
+            Networking.HANDSHAKE,
+            //? if <26.1 {
+            PacketByteBufs.empty(),
+            //?}
+            //? if >=26.1 {
+            /*FriendlyByteBuf(Unpooled.buffer()),*/
+            //?}
+        )
     }
 
     fun onHandShakeServer(
@@ -48,5 +61,12 @@ object HandShakeS2CPacket {
         clientLoginNetworkHandler: ClientHandshakePacketListenerImpl,
         buf: FriendlyByteBuf,
         callbacksConsumer: Consumer<ChannelFutureListener>,
-    ): CompletableFuture<FriendlyByteBuf?> = CompletableFuture.completedFuture(PacketByteBufs.empty())
+    ): CompletableFuture<FriendlyByteBuf?> = CompletableFuture.completedFuture(
+        //? if <26.1 {
+        PacketByteBufs.empty(),
+        //?}
+        //? if >=26.1 {
+        /*FriendlyByteBuf(Unpooled.buffer()),*/
+        //?}
+    )
 }
