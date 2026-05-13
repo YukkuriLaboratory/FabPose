@@ -272,6 +272,19 @@ val cleanupXvfbTask = tasks.register("cleanupXvfb") {
     }
 }
 
+// Disable Loom's built-in `xvfb-run` wrapping for every run task. We manage Xvfb
+// ourselves (only for runClienttest, see below). Without this, Loom auto-wraps
+// even runServertest with `xvfb-run` on Linux + CI environments, which crashes
+// when xvfb-run is not on PATH. `useXvfb` is protected in Loom 1.14, so go
+// through reflection (it became `public` in Loom 1.16+ via PR #1508 but we
+// keep one form that works on both).
+tasks.withType<net.fabricmc.loom.task.AbstractRunTask>().configureEach {
+    @Suppress("UNCHECKED_CAST")
+    val getter = javaClass.methods.firstOrNull { it.name == "getUseXvfb" }
+        ?: error("AbstractRunTask#getUseXvfb not found on ${javaClass.name}")
+    (getter.invoke(this) as org.gradle.api.provider.Property<Boolean>).set(false)
+}
+
 val clientTestTaskName = "run${clientTest.replaceFirstChar(Char::uppercaseChar)}"
 tasks.named<JavaExec>(clientTestTaskName) {
     finalizedBy(cleanupXvfbTask)

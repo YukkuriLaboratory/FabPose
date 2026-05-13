@@ -35,6 +35,7 @@
             bashInteractive
             xrandr
             xorg-server # Provides Xvfb for headless client tests
+            xvfb-run # `xvfb-run` wrapper used by Loom 1.16's auto-xvfb integration
             pinact
             zizmor
           ];
