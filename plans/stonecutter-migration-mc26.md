@@ -39,7 +39,7 @@
 
 ### 1.2 Stonecutter buildscript 分離の構文
 
-settings.gradle.kts:
+settings.gradle.kts (例示。**現行実装では `centralScript` 行は省略**しており、`versions(...).buildscript(...)` のみで per-version 切替している):
 ```kotlin
 stonecutter {
     kotlinController = true
