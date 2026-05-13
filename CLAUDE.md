@@ -7,6 +7,13 @@ FabPose is a Minecraft mod for Fabric servers that allows players to take variou
 
 The `main` branch manages modern Minecraft versions (1.21.11+) via [Stonecutter](https://stonecutter.kikugie.dev/). Legacy versions (1.21.10 and earlier) remain on their dedicated branches and are not Stonecutter-managed.
 
+Each Stonecutter-managed version uses one of two buildscripts, picked per version in `settings.gradle.kts`:
+
+- `build.fabric.gradle.kts` — obfuscated Fabric Loom pipeline (mappings + remap). Used for 1.21.x.
+- `build.fabric.unobfuscated.gradle.kts` — un-obfuscated Loom pipeline (no `mappings()`, plugin id `net.fabricmc.fabric-loom`). Used for 26.1+.
+
+The two scripts also pin different JDKs (1.21.x = JDK 21, 26.1+ = JDK 25). The Nix dev shell (`flake.nix`) provides both JDKs and `xvfb-run`; enter it with `nix develop` before invoking Gradle.
+
 ## Key Development Commands
 
 ### Build and Run
@@ -24,9 +31,9 @@ Stonecutter exposes a subproject per Minecraft version under `versions/<mc>`. Pr
 Build outputs land in `versions/<mc>/build/libs/`.
 
 ### Adding a new Minecraft version
-1. Add the version string to `versions(...)` in `settings.gradle.kts`.
+1. Add the version string to `versions(...)` in `settings.gradle.kts`. Pick the appropriate buildscript (`build.fabric.gradle.kts` for 1.21.x, `build.fabric.unobfuscated.gradle.kts` for 26.1+) via `versions("<mc>").buildscript("...")`.
 2. Create `versions/<new-mc>/gradle.properties` mirroring an existing one with `minecraft_version` / `loader_version` / `fabric_version` / `flk_version` adjusted.
-3. Add the version to `matrix.version` in `.github/workflows/build.yml`.
+3. Add the version to `matrix.include` in `.github/workflows/build.yml`, pinning the right JDK (21 for 1.21.x, 25 for 26.1+). Update the `case` in `publish.yml` (`Determine Java version for MC`) the same way.
 4. (Optional) Update the active version pointer in `stonecutter.gradle.kts` (`stonecutter active "<mc>"`) if you want IDE imports and bare `./gradlew build` to target the new version by default.
 5. Run `./gradlew :<new-mc>:build` to validate locally.
 

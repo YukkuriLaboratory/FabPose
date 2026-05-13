@@ -33,15 +33,6 @@ jobs:
         with:
           msg: ${{ steps.rawtag.outputs.tag }}
           separator: '+'
-      - name: Setup java
-        uses: actions/setup-java@f2beeb24e141e01a676f977032f5a29d81c9e27e # v5.1.0
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2 # v5.0.0
-        with:
-          cache-disabled: true
       - name: Validate tag format and version mapping
         env:
           GITHUB_REF_NAME: ${{ github.ref_name }}
@@ -62,6 +53,27 @@ jobs:
             exit 1
           fi
           echo "Tag OK: mod=${MOD_VERSION}, mc=${MC_VERSION}"
+      - name: Determine Java version for MC
+        id: jdk
+        env:
+          MC_VERSION: ${{ steps.tag.outputs._1 }}
+        run: |
+          set -euo pipefail
+          case "${MC_VERSION}" in
+            26.*) JAVA=25 ;;
+            *)    JAVA=21 ;;
+          esac
+          echo "java=${JAVA}" >> "$GITHUB_OUTPUT"
+          echo "Selected JDK ${JAVA} for MC ${MC_VERSION}"
+      - name: Setup java
+        uses: actions/setup-java@f2beeb24e141e01a676f977032f5a29d81c9e27e # v5.1.0
+        with:
+          java-version: ${{ steps.jdk.outputs.java }}
+          distribution: 'temurin'
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2 # v5.0.0
+        with:
+          cache-disabled: true
       - name: Build with Gradle
         run: ./gradlew :${{ steps.tag.outputs._1 }}:build
         env:
@@ -98,7 +110,7 @@ jobs:
           version: ${{ steps.tag.outputs._0 }}+${{ steps.tag.outputs._1 }}
           version-type: release
           changelog: ${{ steps.tag_message.outputs.message }}
-          java: 21
+          java: ${{ steps.jdk.outputs.java }}
           loaders: fabric
           game-versions: ${{ steps.tag.outputs._1 }}
           files: |

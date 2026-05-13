@@ -48,12 +48,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Use these Java versions
-        java: [
-          21,    # Current Java LTS & minimum supported by Minecraft
-        ]
-        # Stonecutter-managed Minecraft versions. Add new versions here.
-        version: [ '1.21.11' ]
+        # Stonecutter-managed Minecraft versions. Each entry pins the JDK
+        # required by that Minecraft version (1.21.x = JDK 21, 26.1+ = JDK 25).
+        include:
+          - version: '1.21.11'
+            java: 21
+          - version: '26.1'
+            java: 25
         task: [ build, runServertest, runClienttest ]
     runs-on: ubuntu-latest
     steps:
