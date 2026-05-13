@@ -12,7 +12,7 @@ Each Stonecutter-managed version uses one of two buildscripts, picked per versio
 - `build.fabric.gradle.kts` — obfuscated Fabric Loom pipeline (mappings + remap). Used for 1.21.x.
 - `build.fabric.unobfuscated.gradle.kts` — un-obfuscated Loom pipeline (no `mappings()`, plugin id `net.fabricmc.fabric-loom`). Used for 26.1+.
 
-The two scripts also pin different JDKs (1.21.x = JDK 21, 26.1+ = JDK 25). The Nix dev shell (`flake.nix`) provides both JDKs and `xvfb-run`; enter it with `nix develop` before invoking Gradle.
+The two scripts also pin different JDKs (1.21.x = JDK 21, 26.1+ = JDK 25); they are provisioned automatically by Gradle's `foojay-resolver-convention` toolchain plugin. The Nix dev shell (`flake.nix`) provides `Xvfb` (via `xorg-server`) and the `xvfb-run` wrapper for headless `runClienttest`; enter it with `nix develop` before invoking Gradle.
 
 ## Key Development Commands
 
@@ -22,6 +22,7 @@ Stonecutter exposes a subproject per Minecraft version under `versions/<mc>`. Pr
 ```bash
 ./gradlew chiseledBuild              # Build every active version
 ./gradlew :1.21.11:build             # Build a specific version
+./gradlew :26.1:build                # Build the 26.1 (un-obfuscated) version
 ./gradlew :1.21.11:runServer         # Start development server
 ./gradlew :1.21.11:runClient         # Start development client
 ./gradlew :1.21.11:runServertest     # Run server-side tests
@@ -49,6 +50,7 @@ The `publish.yml` workflow validates the tag with the regex
 `^v[0-9A-Za-z._-]+\+[0-9]+\.[0-9]+(\.[0-9]+)?$` and uploads
 `versions/<mcver>/build/libs/fabpose-<modver>+<mcver>.jar` (and `-sources.jar`).
 The `<mcver>` segment must match an existing `versions/<mcver>/gradle.properties`.
+The JDK is selected automatically from the MC version (`26.*` → JDK 25, otherwise → JDK 21).
 
 ## Architecture Overview
 

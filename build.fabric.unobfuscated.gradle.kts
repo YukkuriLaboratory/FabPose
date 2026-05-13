@@ -49,6 +49,7 @@ repositories {
 val loaderVersion = project.property("loader_version").toString()
 val fabricVersion = project.property("fabric_version").toString()
 val flkVersion = project.property("flk_version").toString()
+val javaVersion = project.property("java_version").toString()
 dependencies {
     // To change the versions see versions/<mc>/gradle.properties
     minecraft("com.mojang:minecraft:$minecraftVersion")
@@ -134,6 +135,7 @@ tasks.processResources {
         "fabric_version" to fabricVersion,
         "minecraft_version" to minecraftVersion,
         "flk_version" to flkVersion,
+        "java_version" to javaVersion,
     )
 
     filesMatching("fabric.mod.json") {
@@ -143,6 +145,7 @@ tasks.processResources {
             "fabric_version" to fabricVersion,
             "minecraft_version" to minecraftVersion,
             "flk_version" to flkVersion,
+            "java_version" to javaVersion,
         )
     }
 

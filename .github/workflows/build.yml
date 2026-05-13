@@ -48,14 +48,29 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Stonecutter-managed Minecraft versions. Each entry pins the JDK
-        # required by that Minecraft version (1.21.x = JDK 21, 26.1+ = JDK 25).
+        # Full include cross product: mixing a base `task` axis with
+        # `include` entries that add new keys does NOT cross-multiply on
+        # GitHub Actions. Each MC version (1.21.x=JDK21, 26.1+=JDK25) is
+        # listed explicitly per task.
         include:
           - version: '1.21.11'
             java: 21
+            task: build
+          - version: '1.21.11'
+            java: 21
+            task: runServertest
+          - version: '1.21.11'
+            java: 21
+            task: runClienttest
           - version: '26.1'
             java: 25
-        task: [ build, runServertest, runClienttest ]
+            task: build
+          - version: '26.1'
+            java: 25
+            task: runServertest
+          - version: '26.1'
+            java: 25
+            task: runClienttest
     runs-on: ubuntu-latest
     steps:
       - name: checkout repository

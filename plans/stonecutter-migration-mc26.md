@@ -59,10 +59,10 @@ stonecutter {
 
 librarian + explore 調査結果より、本 mod の 26.1 移行で対応が必要な項目:
 
-1. **`UseBlockCallback` → `BlockUseCallback`** にリネーム (1 ヒット: `src/main/java/net/fill1890/fabsit/FabSit.java`)
+1. ~~**`UseBlockCallback` → `BlockUseCallback`** にリネーム~~ → **実装結果**: 26.1 でも `UseBlockCallback` がそのまま生存しておりコンパイル成功。切替不要。
 2. **`fabric-key-binding-api-v1` → `fabric-key-mapping-api-v1`** モジュール名変更
 3. **`modImplementation` → `implementation`**, **`remapJar` → `jar`** (新 Loom)
-4. **fabric.mod.json `loom:injected_interfaces` の intermediary class 名 (class_1657 等) → Mojmap 名** (`net/minecraft/world/entity/player/Player` 等)。26.1 は un-obfuscated で intermediary 自体が無いため。
+4. ~~**fabric.mod.json `loom:injected_interfaces` の intermediary class 名 → Mojmap 名**~~ → **実装結果**: injected_interfaces 自体を**削除**し、利用箇所 (8 mixin Java ファイル) で explicit cast 方式 (`((PosingFlag) instance).fabSit$xxx()`) に統一。intermediary が無い 26.1 と obfuscated な 1.21.11 の両方で同一ソースから動くため、ブロック自体を消す方が単純。
 5. **Java 21 → Java 25** (toolchain)
 6. **Mixin ターゲット**: librarian 検証で全 31 クラス EXISTS 確認済 (Avatar/Mannequin は 25w36a で追加。AvatarRenderState 等も存続)。**コード変更不要**の見込み。
 7. **AccessWidener (`ClientboundPlayerInfoUpdatePacket entries`)**: フィールド存続。形式変更不要 (元から Mojmap)。
@@ -141,9 +141,9 @@ FabPose/
 - **失敗時**: Stonecutter 公式 docs (https://stonecutter.kikugie.dev/wiki/start/builds) を再読し、正しい構文を確定する。
 
 #### A-5. ベースライン jar 保存
-- **使用ツール**: `./gradlew :1.21.11:build` + `cp` で `temp/baseline-1.21.11-fabpose.jar` に保存
+- **使用ツール**: `./gradlew :1.21.11:build` + `cp` で `temp/baseline-1.21.11.jar` に保存
 - **手順**: 現状 (mc26 ブランチ作成直後 = main 状態) で 1.21.11 ビルドを実行し、jar を保存。実装後の DoD 検証で「1.21.11 jar が同等」確認に使用。
-- **期待結果**: `temp/baseline-1.21.11-fabpose.jar` 存在。`temp/` は .gitignore 済 (PR #23 で追加済)。
+- **期待結果**: `temp/baseline-1.21.11.jar` 存在。`temp/` は .gitignore 済 (PR #23 で追加済)。
 
 ### Phase B — settings.gradle.kts と buildscript 分離
 
@@ -207,12 +207,9 @@ FabPose/
 - **手順**: 1.21.11 版を雛形にして上記 16 点を適用。kotlin block と sourceSets block は 1.21.11 版から丸ごとコピー。
 - **QA**: `./gradlew :26.1:build --dry-run` で task graph が出ること。実 build はまだ失敗してよい。
 
-#### C-3. fabric.mod.json の `loom:injected_interfaces` を `?if` で切替
-- **使用ツール**: `read src/main/resources/fabric.mod.json` → `edit`
-- **変更**: JSON5 コメント形式の Stonecutter プリプロセッサで以下を切替:
-  - 1.21.11: 現行の `class_1657`, `class_2535`, `class_10055` (intermediary)
-  - 26.1: `net/minecraft/world/entity/player/Player`, `net/minecraft/network/Connection`, `net/minecraft/world/entity/decoration/Mannequin` (Mojmap)
-- **QA**: 1.21.11 ビルド後に `unzip -p versions/1.21.11/build/libs/*.jar fabric.mod.json | jq .custom` で 1.21.11 側の値が intermediary、26.1 ビルド後で同操作で Mojmap 値が取れること。
+#### C-3. fabric.mod.json の `loom:injected_interfaces` を削除し cast 方式へ移行
+- **実装結果**: 当初は `?if` 切替を予定していたが、より単純な解として `custom.loom:injected_interfaces` ブロック自体を削除し、利用箇所 (8 mixin Java ファイル) で explicit cast (`((PosingFlag) instance).fabSit$xxx()`) に書き換えた。これにより 1.21.11 / 26.1 双方で同一の fabric.mod.json が使える。
+- **QA**: 1.21.11 / 26.1 双方の jar の fabric.mod.json に `custom` キーが存在しないこと、両 build が成功すること。
 
 #### C-4. fabric.mod.json の depends 切替 (必要なら)
 - **使用ツール**: `read` で現在の depends 確認
@@ -226,11 +223,8 @@ FabPose/
 
 ### Phase D — Java/Kotlin ソースの 26.1 対応
 
-#### D-1. UseBlockCallback → BlockUseCallback の切替
-- **使用ツール**: `read src/main/java/net/fill1890/fabsit/FabSit.java` → Stonecutter `?if` で import と使用箇所を切替
-- **手順**: explore で 1 ヒットのみ確認済。該当 import 行と参照行に `//? if mc>="26.1" { ... //?} else { /*? if mc<"26.1" { ... }?*/ //?}` を入れる。
-- **検証要**: Stonecutter の version 比較構文 (`mc>="26.1"` か `>=26.1` か) は公式 docs に従う。
-- **QA**: 1.21.11 ビルドで現行コードが残ること、26.1 ビルドで `BlockUseCallback` 版が選択されること。`./gradlew :1.21.11:compileJava` と `:26.1:compileJava` 両方が成功。
+#### D-1. UseBlockCallback の動作確認
+- **実装結果**: `UseBlockCallback` は 26.1 でも生存していたためコード変更不要。`src/main/java/net/fill1890/fabsit/FabSit.java` は両 MC で同一コードのままコンパイル・ロード成功。当初想定していた `BlockUseCallback` への切替は不要。
 
 #### D-2. その他のコンパイルエラー対応 (random fix)
 - **使用ツール**: `./gradlew :26.1:compileJava :26.1:compileKotlin` を実行 → エラー出たら 1 件ずつ対応
@@ -278,7 +272,7 @@ FabPose/
 
 #### F-5. :1.21.11 ビルド jar non-regression diff
 - **使用ツール**: `./gradlew :1.21.11:build` + `unzip` + `jq` + `diff`
-- **手順**: ベースライン jar (`temp/baseline-1.21.11-fabpose.jar`、Phase A-5 で保存) と新 jar (`versions/1.21.11/build/libs/fabpose-...+1.21.11.jar`) を `/tmp/jar-compare/old` `/tmp/jar-compare/new` に解凍 → 以下の diff:
+- **手順**: ベースライン jar (`temp/baseline-1.21.11.jar`、Phase A-5 で保存) と新 jar (`versions/1.21.11/build/libs/fabpose-...+1.21.11.jar`) を `/tmp/jar-compare/old` `/tmp/jar-compare/new` に解凍 → 以下の diff:
   - `(cd /tmp/jar-compare/old && find . -type f | sort) > /tmp/old.list; (cd /tmp/jar-compare/new && find . -type f | sort) > /tmp/new.list; diff /tmp/old.list /tmp/new.list` でファイル一覧一致 (Stonecutter メタファイル追加は許容)
   - `diff <(jq -S 'del(.version)' /tmp/jar-compare/old/fabric.mod.json) <(jq -S 'del(.version)' /tmp/jar-compare/new/fabric.mod.json)` で fabric.mod.json 一致
   - `diff /tmp/jar-compare/old/fabpose.mixins.json /tmp/jar-compare/new/fabpose.mixins.json` で mixins 設定一致
