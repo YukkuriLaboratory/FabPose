@@ -313,8 +313,10 @@ fun ensurePulseStub(): File? {
         ProcessBuilder("which", "gcc").redirectErrorStream(true).start().waitFor() == 0
     }.getOrDefault(false)
     if (!hasGcc) {
-        logger.warn("gcc not found on PATH; cannot build PulseAudio stub. " +
-            "runClienttest may abort with SIGABRT if PulseAudio daemon is reachable but unwritable.")
+        logger.warn(
+            "gcc not found on PATH; cannot build PulseAudio stub. " +
+                "runClienttest may abort with SIGABRT if PulseAudio daemon is reachable but unwritable.",
+        )
         return null
     }
 
