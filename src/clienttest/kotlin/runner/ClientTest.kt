@@ -114,7 +114,11 @@ class ClientTest : ClientModInitializer {
                 withContext(clientDispatcher) {
                     val crashReport =
                         CrashReport.forThrowable(RuntimeException("$failure Tests failed"), "$failure Tests failed")
+                    //? if <26.1 {
                     Minecraft.getInstance().delayCrashRaw(crashReport)
+                    //?} else {
+                    /*Minecraft.getInstance().delayCrash(crashReport)*/
+                    //?}
                 }
             }
             clickScreenButton("menu.quit")
@@ -224,7 +228,11 @@ class ClientTest : ClientModInitializer {
                         }
                     }
                 } catch (e: Exception) {
+                    //? if <26.1 {
                     client.delayCrashRaw(CrashReport.forThrowable(e, "Error occurred on waiting for $target"))
+                    //?} else {
+                    /*client.delayCrash(CrashReport.forThrowable(e, "Error occurred on waiting for $target"))*/
+                    //?}
                 }
             }
         }

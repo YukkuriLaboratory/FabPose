@@ -13,7 +13,8 @@ public abstract class MixinGameRenderer {
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/client/Minecraft;isWindowActive()Z"
-            )
+            ),
+            require = 0
     )
     private boolean ignoreWindowFocus(Minecraft instance) {
         return true;
