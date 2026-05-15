@@ -281,5 +281,69 @@ tasks.named<JavaExec>(clientTestTaskName) {
 
         logger.lifecycle("Started Xvfb on display $display (pid: ${process.pid()})")
         environment("DISPLAY", display)
+        environment("ALSOFT_DRIVERS", "null")
+        environment("SDL_AUDIODRIVER", "dummy")
+        environment("PULSE_SERVER", "/dev/null")
+        // 26.1 Blaze3D requires an OpenGL backend. Xvfb only provides software GLX,
+        // so force Mesa's llvmpipe software rasterizer for headless test runs.
+        environment("LIBGL_ALWAYS_SOFTWARE", "1")
+        // flite (TTS) calls pa_simple_write() without null-checking pa_simple_new()'s
+        // return value. When PulseAudio daemon is unavailable, that triggers
+        // `Assertion 'p' failed at simple.c:273` and SIGABRT before tests can run.
+        // Inject a stub libpulse-simple that returns dummy handles to keep flite alive.
+        ensurePulseStub()?.let { stub ->
+            environment("LD_PRELOAD", stub.absolutePath)
+            logger.lifecycle("Using PulseAudio stub: ${stub.absolutePath}")
+        }
     }
+}
+
+/**
+ * Compile a stub libpulse-simple.so that returns dummy handles to prevent
+ * flite (TTS) from crashing with SIGABRT when PulseAudio daemon is unavailable.
+ * Returns null if gcc is not available (e.g., on minimal CI images), in which
+ * case the run task proceeds without LD_PRELOAD and may hit the assertion.
+ */
+fun ensurePulseStub(): File? {
+    val stubDir = layout.buildDirectory.dir("pulse-stub").get().asFile
+    val stubLib = File(stubDir, "libpulse-simple-stub.so")
+    if (stubLib.exists()) return stubLib
+
+    val hasGcc = runCatching {
+        ProcessBuilder("which", "gcc").redirectErrorStream(true).start().waitFor() == 0
+    }.getOrDefault(false)
+    if (!hasGcc) {
+        logger.warn("gcc not found on PATH; cannot build PulseAudio stub. " +
+            "runClienttest may abort with SIGABRT if PulseAudio daemon is reachable but unwritable.")
+        return null
+    }
+
+    stubDir.mkdirs()
+    val stubSrc = File(stubDir, "pulse_stub.c")
+    stubSrc.writeText(
+        """
+        #include <stddef.h>
+        void *pa_simple_new(const void *s, const char *n, int d,
+                            const char *dev, const char *sn,
+                            const void *ss, const void *map, int *e) {
+            static char dummy; return &dummy;
+        }
+        int pa_simple_write(void *p, const void *data, size_t bytes, int *e) { return 0; }
+        int pa_simple_drain(void *p, int *e) { return 0; }
+        void pa_simple_free(void *p) {}
+        int pa_simple_read(void *p, void *data, size_t bytes, int *e) { return 0; }
+        size_t pa_simple_get_latency(void *p, int *e) { return 0; }
+        int pa_simple_flush(void *p, int *e) { return 0; }
+        """.trimIndent(),
+    )
+    val result = ProcessBuilder("gcc", "-shared", "-fPIC", "-o", stubLib.absolutePath, stubSrc.absolutePath)
+        .redirectErrorStream(true)
+        .start()
+    val output = result.inputStream.bufferedReader().readText()
+    val exit = result.waitFor()
+    if (exit != 0 || !stubLib.exists()) {
+        logger.warn("Failed to compile PulseAudio stub (exit $exit): $output")
+        return null
+    }
+    return stubLib
 }

@@ -308,5 +308,7 @@ tasks.named<JavaExec>(clientTestTaskName) {
 
         logger.lifecycle("Started Xvfb on display $display (pid: ${process.pid()})")
         environment("DISPLAY", display)
+        environment("ALSOFT_DRIVERS", "null")
+        environment("SDL_AUDIODRIVER", "dummy")
     }
 }

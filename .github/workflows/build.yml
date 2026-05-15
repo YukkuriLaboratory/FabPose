@@ -98,6 +98,9 @@ jobs:
           # Prevent OpenAL / SDL audio init crashes in headless CI clients.
           ALSOFT_DRIVERS: "null"
           SDL_AUDIODRIVER: "dummy"
+          # 26.1 Blaze3D requires a real OpenGL backend; Xvfb only provides
+          # software GLX, so force Mesa's llvmpipe software rasterizer.
+          LIBGL_ALWAYS_SOFTWARE: "1"
         with:
           run: ./gradlew :${{ matrix.version }}:${{ matrix.task }} --stacktrace
       - name: capture build artifacts
