@@ -1,6 +1,13 @@
 import java.util.concurrent.TimeUnit
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
+// NOTE: This buildscript and build.fabric.gradle.kts share large structural
+// overlap. See the header of build.fabric.gradle.kts for the list of
+// intentional differences (Loom plugin id/version, mappings, configuration
+// names, Java/Kotlin target, AccessWidener variant, permissions-api version,
+// and the PulseAudio stub specific to this 26.1+ buildscript). Keep
+// behavioural fixes (e.g., headless hardening) in sync across both files.
+
 plugins {
     // 26.1+ ships un-obfuscated → use the new fabric-loom plugin id (no remap pipeline).
     id("net.fabricmc.fabric-loom") version "1.16-SNAPSHOT"

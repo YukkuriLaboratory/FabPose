@@ -12,7 +12,7 @@ Each Stonecutter-managed version uses one of two buildscripts, picked per versio
 - `build.fabric.gradle.kts` — obfuscated Fabric Loom pipeline (mappings + remap). Used for 1.21.x.
 - `build.fabric.unobfuscated.gradle.kts` — un-obfuscated Loom pipeline (no `mappings()`, plugin id `net.fabricmc.fabric-loom`). Used for 26.1+.
 
-The two scripts also pin different JDKs (1.21.x = JDK 21, 26.1+ = JDK 25); they are provisioned automatically by Gradle's `foojay-resolver-convention` toolchain plugin. The Nix dev shell (`flake.nix`) provides `Xvfb` (via `xorg-server`) and the `xvfb-run` wrapper for headless `runClienttest`; enter it with `nix develop` before invoking Gradle.
+The two scripts also pin different JDKs (1.21.x = JDK 21, 26.1+ = JDK 25); they are provisioned automatically by Gradle's `foojay-resolver-convention` toolchain plugin. The Nix dev shell (`flake.nix`) provides `Xvfb` (via `xorg-server`) for headless `runClienttest`, plus `gcc` for the 26.1 PulseAudio stub used to keep flite from aborting in headless environments. Both buildscripts disable Loom's built-in `xvfb-run` wrapping and start `Xvfb` themselves only for `runClienttest`. Enter the shell with `nix develop` before invoking Gradle.
 
 ## Key Development Commands
 
@@ -33,7 +33,7 @@ Build outputs land in `versions/<mc>/build/libs/`.
 
 ### Adding a new Minecraft version
 1. Add the version string to `versions(...)` in `settings.gradle.kts`. Pick the appropriate buildscript (`build.fabric.gradle.kts` for 1.21.x, `build.fabric.unobfuscated.gradle.kts` for 26.1+) via `versions("<mc>").buildscript("...")`.
-2. Create `versions/<new-mc>/gradle.properties` mirroring an existing one with `minecraft_version` / `loader_version` / `fabric_version` / `flk_version` adjusted.
+2. Create `versions/<new-mc>/gradle.properties` mirroring an existing one with `minecraft_version` / `loader_version` / `fabric_version` / `flk_version` / `java_version` adjusted. `java_version` is expanded into `fabric.mod.json` and must match the buildscript's JDK (21 for 1.21.x, 25 for 26.1+).
 3. Add the version to `matrix.include` in `.github/workflows/build.yml`, pinning the right JDK (21 for 1.21.x, 25 for 26.1+). Update the `case` in `publish.yml` (`Determine Java version for MC`) the same way.
 4. (Optional) Update the active version pointer in `stonecutter.gradle.kts` (`stonecutter active "<mc>"`) if you want IDE imports and bare `./gradlew build` to target the new version by default.
 5. Run `./gradlew :<new-mc>:build` to validate locally.

@@ -1,6 +1,16 @@
 import java.util.concurrent.TimeUnit
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
+// NOTE: This buildscript and build.fabric.unobfuscated.gradle.kts share large
+// structural overlap (sourceSets, configurations, processResources, Xvfb
+// handling). Intentional differences vs. unobfuscated: Loom plugin id
+// (`fabric-loom` vs `net.fabricmc.fabric-loom`), Loom version (1.14 vs 1.16),
+// `mappings(officialMojangMappings())`, `modImplementation`/`modLocalRuntime`,
+// Java/Kotlin target (21 vs 25), AccessWidener variant (`fabpose.accesswidener`
+// vs `fabpose.official.accesswidener`), permissions-api version (0.6.1 vs
+// 0.7.0), and PulseAudio stub / extra audio env (26.1 only). Keep behavioural
+// fixes (e.g., headless hardening) in sync across both files.
+
 plugins {
     id("fabric-loom") version "1.14-SNAPSHOT"
     id("maven-publish")

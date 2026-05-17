@@ -35,7 +35,7 @@
             bashInteractive
             xrandr
             xorg-server # Provides Xvfb for headless client tests
-            xvfb-run # `xvfb-run` wrapper used by Loom 1.16's auto-xvfb integration
+            xvfb-run # Fallback wrapper for running Gradle tasks outside the buildscript-managed Xvfb path
             gcc # Required by build.fabric.unobfuscated.gradle.kts to compile the PulseAudio stub
             pinact
             zizmor

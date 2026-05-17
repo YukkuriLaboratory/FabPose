@@ -406,8 +406,8 @@ FabPose/
   - `find . -type f | sort` で一致
   - AW (`fabpose.accesswidener`), mixins (`fabpose.mixins.json`) は完全一致
   - `fabric.mod.json` は `custom.loom:injected_interfaces` ブロックのみ削除 (cast 方式へ移行のため)
-- [ ] CI build job が `matrix.include=[1.21.11+JDK21, 26.1+JDK25]` で両方 green
-- [ ] CI publish job が `v0.0.0-test+26.1` の dry-run タグで validate 通過 (regex 確認)
+- [x] CI build job が `matrix.include=[1.21.11+JDK21, 26.1+JDK25]` で両方 green (PR #24 run 25991062993)
+- [ ] CI publish job が `v0.0.0-test+26.1` の dry-run タグで validate 通過 (regex 確認、本 PR では未実施)
 - [x] CLAUDE.md / AGENTS.md が新コマンド体系を反映
 - [ ] PR がレビュー承認され main にマージ
 
