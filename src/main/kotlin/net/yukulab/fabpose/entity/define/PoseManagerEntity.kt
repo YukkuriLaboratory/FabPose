@@ -66,7 +66,7 @@ class PoseManagerEntity(entityType: EntityType<out PoseManagerEntity>, world: Le
                 //? if <26.1 {
                 passenger.displayClientMessage(Messages.getPoseStopMessage(passenger, pose), true)
                 //?} else {
-                /*passenger.sendSystemMessage(Messages.getPoseStopMessage(passenger, pose))*/
+                /*passenger.sendSystemMessage(Messages.getPoseStopMessage(passenger, pose), true)*/
                 //?}
             }
         }
