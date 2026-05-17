@@ -267,32 +267,29 @@ tasks.named<JavaExec>(clientTestTaskName) {
     finalizedBy(cleanupXvfbTask)
 
     doFirst {
-        if (!needsXvfb()) return@doFirst
+        if (needsXvfb()) {
+            val xvfb = findXvfb() ?: error(
+                "No usable DISPLAY found and Xvfb is not installed. " +
+                    "Install Xvfb or run with a display server (e.g., xvfb-run ./gradlew $clientTestTaskName)",
+            )
 
-        val xvfb = findXvfb() ?: error(
-            "No usable DISPLAY found and Xvfb is not installed. " +
-                "Install Xvfb or run with a display server (e.g., xvfb-run ./gradlew $clientTestTaskName)",
-        )
+            val (process, display) = startXvfb(xvfb)
+            xvfbState.set(process)
+            val shutdownHook = Thread { if (process.isAlive) process.destroyForcibly() }
+            Runtime.getRuntime().addShutdownHook(shutdownHook)
 
-        val (process, display) = startXvfb(xvfb)
-        xvfbState.set(process)
-        val shutdownHook = Thread { if (process.isAlive) process.destroyForcibly() }
-        Runtime.getRuntime().addShutdownHook(shutdownHook)
+            logger.lifecycle("Started Xvfb on display $display (pid: ${process.pid()})")
+            environment("DISPLAY", display)
+        }
 
-        logger.lifecycle("Started Xvfb on display $display (pid: ${process.pid()})")
-        environment("DISPLAY", display)
         environment("ALSOFT_DRIVERS", "null")
         environment("SDL_AUDIODRIVER", "dummy")
         environment("PULSE_SERVER", "/dev/null")
-        // 26.1 Blaze3D requires an OpenGL backend. Xvfb only provides software GLX,
-        // so force Mesa's llvmpipe software rasterizer for headless test runs.
         environment("LIBGL_ALWAYS_SOFTWARE", "1")
-        // flite (TTS) calls pa_simple_write() without null-checking pa_simple_new()'s
-        // return value. When PulseAudio daemon is unavailable, that triggers
-        // `Assertion 'p' failed at simple.c:273` and SIGABRT before tests can run.
-        // Inject a stub libpulse-simple that returns dummy handles to keep flite alive.
         ensurePulseStub()?.let { stub ->
-            environment("LD_PRELOAD", stub.absolutePath)
+            val existing = System.getenv("LD_PRELOAD")
+            val ldPreload = if (existing.isNullOrBlank()) stub.absolutePath else "${stub.absolutePath}:$existing"
+            environment("LD_PRELOAD", ldPreload)
             logger.lifecycle("Using PulseAudio stub: ${stub.absolutePath}")
         }
     }
@@ -338,13 +335,21 @@ fun ensurePulseStub(): File? {
         int pa_simple_flush(void *p, int *e) { return 0; }
         """.trimIndent(),
     )
-    val result = ProcessBuilder("gcc", "-shared", "-fPIC", "-o", stubLib.absolutePath, stubSrc.absolutePath)
+    val tmpLib = File(stubDir, "libpulse-simple-stub.so.tmp")
+    if (tmpLib.exists()) tmpLib.delete()
+    val result = ProcessBuilder("gcc", "-shared", "-fPIC", "-o", tmpLib.absolutePath, stubSrc.absolutePath)
         .redirectErrorStream(true)
         .start()
     val output = result.inputStream.bufferedReader().readText()
     val exit = result.waitFor()
-    if (exit != 0 || !stubLib.exists()) {
+    if (exit != 0 || !tmpLib.exists()) {
         logger.warn("Failed to compile PulseAudio stub (exit $exit): $output")
+        tmpLib.delete()
+        return null
+    }
+    if (!tmpLib.renameTo(stubLib)) {
+        logger.warn("Failed to move compiled PulseAudio stub into place")
+        tmpLib.delete()
         return null
     }
     return stubLib
