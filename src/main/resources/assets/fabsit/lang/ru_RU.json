@@ -9,6 +9,8 @@
   "chat.fabsit.pose_spectator_error": "§4Вы не можете задать позу в режиме спектатора!",
   "chat.fabsit.sit_state_error": "§4Сейчас нельзя сидеть!",
   "chat.fabsit.pose_state_error": "§4Сейчас нельзя задать позу!",
+  "chat.fabsit.sit_permission_error": "§4У вас нет прав, чтобы сидеть!",
+  "chat.fabsit.pose_permission_error": "§4У вас нет прав, чтобы задать позу!",
   "chat.fabsit.sit_block_occupied": "На этом блоке уже кто-то сидит!",
   "chat.fabsit.pose_block_occupied": "На этом блоке уже кто-то задал позу!",
 

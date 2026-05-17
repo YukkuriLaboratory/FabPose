@@ -71,6 +71,14 @@ public class Messages {
         });
     }
 
+    // missing permission to pose
+    public static Component getPermissionError(ServerPlayer player, Pose pose) {
+        return getChatMessageByKey(player, switch (pose) {
+            case SITTING -> "sit_permission_error";
+            default -> "pose_permission_error";
+        });
+    }
+
     // pose disabled
     public static Component poseDisabledError(ServerPlayer player, Pose pose) {
         return getChatMessageByKey(player, switch (pose) {
