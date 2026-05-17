@@ -28,7 +28,7 @@ stonecutter {
         // 26.1+ is shipped un-obfuscated → uses the new fabric-loom (no remap).
         versions("1.21.11").buildscript("build.fabric.gradle.kts")
         version("26.1").buildscript("build.fabric.unobfuscated.gradle.kts")
-        vcsVersion = "26.1"
+        vcsVersion = "1.21.11"
     }
 }
 
