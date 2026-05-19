@@ -45,12 +45,16 @@ Build outputs land in `versions/<mc>/build/libs/`.
 ```
 
 ### Release Tags
-Releases are triggered by pushing tags matching `v<modver>+<mcver>` (e.g. `v1.4.2+1.21.11`).
-The `publish.yml` workflow validates the tag with the regex
-`^v[0-9A-Za-z._-]+\+[0-9]+\.[0-9]+(\.[0-9]+)?$` and uploads
-`versions/<mcver>/build/libs/fabpose-<modver>+<mcver>.jar` (and `-sources.jar`).
-The `<mcver>` segment must match an existing `versions/<mcver>/gradle.properties`.
-The JDK is selected automatically from the MC version (`26.*` → JDK 25, otherwise → JDK 21).
+Releases are triggered by pushing an **annotated** tag matching `v<modver>` (e.g. `git tag -a v1.4.2 -m "Release notes..."`). The `publish.yml` workflow requires the tag to be annotated (`git cat-file -t` must return `tag`) and uses its annotation message as the changelog for Modrinth, CurseForge, and the GitHub Release.
+
+A single tag publishes every Minecraft version registered in `settings.gradle.kts`:
+- `./gradlew chiseledBuild` builds all versions into `versions/<mcver>/build/libs/fabpose-<modver>+<mcver>.jar`.
+- `./gradlew chiseledPublishMods` uploads each artifact to Modrinth and CurseForge via the `me.modmuss50.mod-publish-plugin`. Each version becomes a separate Modrinth/CurseForge release tagged with the matching Minecraft version.
+- The GitHub Release attaches all built jars (`versions/*/build/libs/fabpose-<modver>+*.jar`, sources excluded).
+
+Required repository secrets: `MODRINTH_ID`, `MODRINTH_TOKEN`, `CURSEFORGE_ID`, `CURSEFORGE_TOKEN`. The workflow fails early if any are missing.
+
+Both JDK 21 (for 1.21.x) and JDK 25 (for 26.1+) are installed in the publish job; Gradle's toolchain plugin picks the right one per subproject via `org.gradle.java.installations.fromEnv`.
 
 ## Architecture Overview
 

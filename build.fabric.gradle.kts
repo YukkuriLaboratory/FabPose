@@ -13,9 +13,9 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("fabric-loom") version "1.14-SNAPSHOT"
-    id("maven-publish")
     kotlin("jvm") version "2.3.0"
     id("org.jmailen.kotlinter") version "5.2.0"
+    id("me.modmuss50.mod-publish-plugin") version "0.8.4"
 }
 
 val minecraftVersion = project.property("minecraft_version").toString()
@@ -201,20 +201,26 @@ tasks.jar {
     }
 }
 
-// configure the maven publication
-publishing {
-    publications {
-        create<MavenPublication>("mavenJava") {
-            from(components.getByName("java"))
-        }
-    }
+publishMods {
+    file.set(tasks.jar.flatMap { it.archiveFile })
+    additionalFiles.from(tasks.named("sourcesJar").map { (it as Jar).archiveFile })
+    changelog.set(providers.environmentVariable("CHANGELOG").orElse(""))
+    type.set(me.modmuss50.mpp.ReleaseType.STABLE)
+    modLoaders.add("fabric")
 
-    // See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
-    repositories {
-        // Add repositories to publish to here.
-        // Notice: This block does NOT have the same function as the block in the top level.
-        // The repositories here will be used for publishing your artifact, not for
-        // retrieving dependencies.
+    modrinth {
+        projectId.set(providers.environmentVariable("MODRINTH_ID"))
+        accessToken.set(providers.environmentVariable("MODRINTH_TOKEN"))
+        minecraftVersions.add(minecraftVersion)
+        requires("fabric-api")
+        requires("fabric-language-kotlin")
+    }
+    curseforge {
+        projectId.set(providers.environmentVariable("CURSEFORGE_ID"))
+        accessToken.set(providers.environmentVariable("CURSEFORGE_TOKEN"))
+        minecraftVersions.add(minecraftVersion)
+        requires("fabric-api")
+        requires("fabric-language-kotlin")
     }
 }
 

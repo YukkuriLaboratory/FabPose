@@ -11,9 +11,9 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     // 26.1+ ships un-obfuscated → use the new fabric-loom plugin id (no remap pipeline).
     id("net.fabricmc.fabric-loom") version "1.16-SNAPSHOT"
-    id("maven-publish")
     kotlin("jvm") version "2.3.0"
     id("org.jmailen.kotlinter") version "5.2.0"
+    id("me.modmuss50.mod-publish-plugin") version "0.8.4"
 }
 
 val minecraftVersion = project.property("minecraft_version").toString()
@@ -186,13 +186,26 @@ tasks.jar {
     }
 }
 
-publishing {
-    publications {
-        create<MavenPublication>("mavenJava") {
-            from(components.getByName("java"))
-        }
+publishMods {
+    file.set(tasks.jar.flatMap { it.archiveFile })
+    additionalFiles.from(tasks.named("sourcesJar").map { (it as Jar).archiveFile })
+    changelog.set(providers.environmentVariable("CHANGELOG").orElse(""))
+    type.set(me.modmuss50.mpp.ReleaseType.STABLE)
+    modLoaders.add("fabric")
+
+    modrinth {
+        projectId.set(providers.environmentVariable("MODRINTH_ID"))
+        accessToken.set(providers.environmentVariable("MODRINTH_TOKEN"))
+        minecraftVersions.add(minecraftVersion)
+        requires("fabric-api")
+        requires("fabric-language-kotlin")
     }
-    repositories {
+    curseforge {
+        projectId.set(providers.environmentVariable("CURSEFORGE_ID"))
+        accessToken.set(providers.environmentVariable("CURSEFORGE_TOKEN"))
+        minecraftVersions.add(minecraftVersion)
+        requires("fabric-api")
+        requires("fabric-language-kotlin")
     }
 }
 

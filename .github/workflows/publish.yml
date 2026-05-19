@@ -3,18 +3,19 @@ name: Publish on GitHub, CurseForge & Modrinth
 on:
   push:
     tags:
-      - "v*+*"
+      - "v*"
 
 permissions:
   contents: read
 
 concurrency:
-  group: publish-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
-  check:
-    runs-on: ubuntu-latest
+  publish:
+    runs-on: ubuntu-24.04
+    environment: release
     permissions:
       contents: write
     steps:
@@ -22,97 +23,102 @@ jobs:
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           persist-credentials: false
-      - name: get release tag
-        id: rawtag
-        uses: olegtarasov/get-tag@9a8716825750e73195b02db42777b92ffe960605 # v2.1.4
-        with:
-          tagRegex: "v(.*)"
-      - name: Split tag version
-        uses: winterjung/split@d5c148c702e3aacdf08a98e33407c5af75d71e1e # v2.1.1-rc1
-        id: tag
-        with:
-          msg: ${{ steps.rawtag.outputs.tag }}
-          separator: '+'
-      - name: Validate tag format and version mapping
+          fetch-depth: 0
+      - name: Fetch tag object
         env:
           GITHUB_REF_NAME: ${{ github.ref_name }}
-          MOD_VERSION: ${{ steps.tag.outputs._0 }}
-          MC_VERSION: ${{ steps.tag.outputs._1 }}
-        run: |
-          set -euo pipefail
-          if ! [[ "${GITHUB_REF_NAME}" =~ ^v[0-9A-Za-z._-]+\+[0-9]+\.[0-9]+(\.[0-9]+)?$ ]]; then
-            echo "::error::Tag '${GITHUB_REF_NAME}' is not in the expected 'v<modver>+<mcver>' format (e.g. v0.0.1+1.21.11). The mod version must consist of [0-9A-Za-z._-]."
-            exit 1
-          fi
-          if [ -z "${MOD_VERSION}" ] || [ -z "${MC_VERSION}" ]; then
-            echo "::error::Failed to split tag into mod version ('${MOD_VERSION}') and Minecraft version ('${MC_VERSION}')."
-            exit 1
-          fi
-          if [ ! -f "versions/${MC_VERSION}/gradle.properties" ]; then
-            echo "::error::versions/${MC_VERSION}/gradle.properties not found. Make sure the Minecraft version is registered in settings.gradle.kts."
-            exit 1
-          fi
-          echo "Tag OK: mod=${MOD_VERSION}, mc=${MC_VERSION}"
-      - name: Determine Java version for MC
-        id: jdk
+        run: git fetch origin tag "$GITHUB_REF_NAME" --force
+      - name: Validate annotated tag
         env:
-          MC_VERSION: ${{ steps.tag.outputs._1 }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
         run: |
-          set -euo pipefail
-          case "${MC_VERSION}" in
-            26.*) JAVA=25 ;;
-            *)    JAVA=21 ;;
-          esac
-          echo "java=${JAVA}" >> "$GITHUB_OUTPUT"
-          echo "Selected JDK ${JAVA} for MC ${MC_VERSION}"
-      - name: Setup java
-        uses: actions/setup-java@f2beeb24e141e01a676f977032f5a29d81c9e27e # v5.1.0
-        with:
-          java-version: ${{ steps.jdk.outputs.java }}
-          distribution: 'temurin'
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2 # v5.0.0
-        with:
-          cache-disabled: true
-      - name: Build with Gradle
-        run: ./gradlew :${{ steps.tag.outputs._1 }}:build
+          TAG_TYPE=$(git cat-file -t "refs/tags/${GITHUB_REF_NAME}")
+          if [ "$TAG_TYPE" != "tag" ]; then
+            echo "::error::Expected annotated tag but got ${TAG_TYPE}. Use 'git tag -a' to create an annotated tag with release notes in the message body."
+            exit 1
+          fi
+      - name: Validate secrets
         env:
-          MOD_VERSION: ${{ steps.tag.outputs._0 }}
-
+          MODRINTH_ID: ${{ secrets.MODRINTH_ID }}
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+          CURSEFORGE_ID: ${{ secrets.CURSEFORGE_ID }}
+          CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
+        run: |
+          MISSING=""
+          [ -z "$MODRINTH_ID" ] && MISSING="${MISSING} MODRINTH_ID"
+          [ -z "$MODRINTH_TOKEN" ] && MISSING="${MISSING} MODRINTH_TOKEN"
+          [ -z "$CURSEFORGE_ID" ] && MISSING="${MISSING} CURSEFORGE_ID"
+          [ -z "$CURSEFORGE_TOKEN" ] && MISSING="${MISSING} CURSEFORGE_TOKEN"
+          if [ -n "$MISSING" ]; then
+            echo "::error::Missing required secrets:${MISSING}"
+            exit 1
+          fi
       - name: Get tag annotation message
         id: tag_message
         env:
           GITHUB_REF_NAME: ${{ github.ref_name }}
         run: |
-          # Get subject and body separately to exclude GPG signature
           TAG_SUBJECT=$(git tag -l --format='%(contents:subject)' "${GITHUB_REF_NAME}")
           TAG_BODY=$(git tag -l --format='%(contents:body)' "${GITHUB_REF_NAME}")
-          # Handle multi-line output using EOF delimiter
+          DELIMITER=$(openssl rand -hex 16)
           {
-            echo "message<<EOF"
-            echo "$TAG_SUBJECT"
+            printf "message<<%s\n" "$DELIMITER"
+            printf "%s\n" "$TAG_SUBJECT"
             if [ -n "$TAG_BODY" ]; then
-              echo ""
-              echo "$TAG_BODY"
+              printf "\n%s\n" "$TAG_BODY"
             fi
-            echo "EOF"
+            printf "%s\n" "$DELIMITER"
           } >> "$GITHUB_OUTPUT"
-
-      - name: Publish to CurseForge/Modrinth
-        uses: Kir-Antipov/mc-publish@995edadc13559a8b28d0b7e6571229f067ec7659 # v3.3.0
+      - name: Extract version from tag
+        id: version
+        env:
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+        run: echo "mod_version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+      - name: Setup Java
+        uses: actions/setup-java@f2beeb24e141e01a676f977032f5a29d81c9e27e # v5.1.0
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          curseforge-id: ${{ secrets.CURSEFORGE_ID }}
-          curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
-          modrinth-id: ${{ secrets.MODRINTH_ID }}
-          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
-          name: ${{ steps.rawtag.outputs.tag }}
-          version: ${{ steps.tag.outputs._0 }}+${{ steps.tag.outputs._1 }}
-          version-type: release
-          changelog: ${{ steps.tag_message.outputs.message }}
-          java: ${{ steps.jdk.outputs.java }}
-          loaders: fabric
-          game-versions: ${{ steps.tag.outputs._1 }}
-          files: |
-            versions/${{ steps.tag.outputs._1 }}/build/libs/fabpose-${{ steps.tag.outputs._0 }}+${{ steps.tag.outputs._1 }}.jar
-            versions/${{ steps.tag.outputs._1 }}/build/libs/fabpose-${{ steps.tag.outputs._0 }}+${{ steps.tag.outputs._1 }}-sources.jar
+          distribution: 'temurin'
+          java-version: |
+            21
+            25
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2 # v5.0.0
+        with:
+          cache-disabled: true
+      - name: Build all versions
+        run: ./gradlew chiseledBuild
+        env:
+          MOD_VERSION: ${{ steps.version.outputs.mod_version }}
+          ORG_GRADLE_PROJECT_org.gradle.java.installations.fromEnv: JAVA_HOME_21_X64,JAVA_HOME_25_X64
+      - name: Publish to Modrinth and CurseForge
+        run: ./gradlew chiseledPublishMods
+        env:
+          MOD_VERSION: ${{ steps.version.outputs.mod_version }}
+          CHANGELOG: ${{ steps.tag_message.outputs.message }}
+          MODRINTH_ID: ${{ secrets.MODRINTH_ID }}
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+          CURSEFORGE_ID: ${{ secrets.CURSEFORGE_ID }}
+          CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
+          ORG_GRADLE_PROJECT_org.gradle.java.installations.fromEnv: JAVA_HOME_21_X64,JAVA_HOME_25_X64
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG_NAME: ${{ github.ref_name }}
+          RELEASE_NOTES: ${{ steps.tag_message.outputs.message }}
+          MOD_VERSION: ${{ steps.version.outputs.mod_version }}
+        run: |
+          shopt -s nullglob
+          assets=()
+          for jar in versions/*/build/libs/fabpose-"${MOD_VERSION}"+*.jar; do
+            [[ "$jar" == *-sources.jar ]] && continue
+            assets+=("$jar")
+          done
+          if [ ${#assets[@]} -eq 0 ]; then
+            echo "::error::No release assets found matching versions/*/build/libs/fabpose-${MOD_VERSION}+*.jar"
+            exit 1
+          fi
+          echo "Found ${#assets[@]} release asset(s): ${assets[*]}"
+          gh release create "$TAG_NAME" \
+            --title "$TAG_NAME" \
+            --notes "$RELEASE_NOTES" \
+            "${assets[@]}"
