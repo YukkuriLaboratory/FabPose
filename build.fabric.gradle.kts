@@ -202,8 +202,8 @@ tasks.jar {
 }
 
 publishMods {
-    file.set(tasks.jar.flatMap { it.archiveFile })
-    additionalFiles.from(tasks.named("sourcesJar").map { (it as Jar).archiveFile })
+    file.set(tasks.named("remapJar", org.gradle.api.tasks.bundling.AbstractArchiveTask::class).flatMap { it.archiveFile })
+    additionalFiles.from(tasks.named("remapSourcesJar", org.gradle.api.tasks.bundling.AbstractArchiveTask::class).flatMap { it.archiveFile })
     changelog.set(providers.environmentVariable("CHANGELOG").orElse(""))
     type.set(me.modmuss50.mpp.ReleaseType.STABLE)
     modLoaders.add("fabric")

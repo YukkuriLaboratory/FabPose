@@ -188,7 +188,7 @@ tasks.jar {
 
 publishMods {
     file.set(tasks.jar.flatMap { it.archiveFile })
-    additionalFiles.from(tasks.named("sourcesJar").map { (it as Jar).archiveFile })
+    additionalFiles.from(tasks.named<Jar>("sourcesJar").flatMap { it.archiveFile })
     changelog.set(providers.environmentVariable("CHANGELOG").orElse(""))
     type.set(me.modmuss50.mpp.ReleaseType.STABLE)
     modLoaders.add("fabric")
