@@ -11,6 +11,10 @@ ij_formatter_tags_enabled = true
 
 [{*.kt,*.kts}]
 ktlint_code_style = intellij_idea
+ktlint_standard_comment-spacing = disabled
+ktlint_standard_import-ordering = disabled
+ktlint_standard_block-comment-initial-star-alignment = disabled
+ktlint_standard_comment-wrapping = disabled
 indent_size = 4
 ij_continuation_indent_size = 4
 ij_kotlin_align_in_columns_case_branch = false

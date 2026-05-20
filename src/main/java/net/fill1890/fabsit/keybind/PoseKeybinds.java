@@ -1,7 +1,11 @@
 package net.fill1890.fabsit.keybind;
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+//? if <26.1 {
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+//?} else {
+/*import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
+*///?}
 import net.fill1890.fabsit.FabSit;
 import net.fill1890.fabsit.entity.Pose;
 import net.minecraft.client.KeyMapping;
@@ -26,9 +30,15 @@ public abstract class PoseKeybinds {
     public static final KeyMapping swimKey = emptyKey("swim");
 
     private static KeyMapping emptyKey(String base) {
+        //? if <26.1 {
         return KeyBindingHelper.registerKeyBinding(
                 new KeyMapping(KEY + base, InputConstants.Type.KEYSYM, InputConstants.UNKNOWN.getValue(), CATEGORY)
         );
+        //?} else {
+        /*return KeyMappingHelper.registerKeyMapping(
+                new KeyMapping(KEY + base, InputConstants.Type.KEYSYM, InputConstants.UNKNOWN.getValue(), CATEGORY)
+        );
+        *///?}
     }
 
     public static void register() {

@@ -1,6 +1,7 @@
 package net.fill1890.fabsit.mixin.injector;
 
 import net.fill1890.fabsit.entity.Pose;
+import net.fill1890.fabsit.extension.PosingFlag;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import org.spongepowered.asm.mixin.Mixin;
@@ -19,7 +20,7 @@ public abstract class LivingEntityMixin {
             )
     )
     private void preventVisibilityUpdateWhenPosing(LivingEntity instance, boolean b) {
-        if (instance instanceof Player player && EnumSet.of(Pose.LAYING, Pose.SPINNING).contains(player.fabSit$currentPose())) {
+        if (instance instanceof Player player && EnumSet.of(Pose.LAYING, Pose.SPINNING).contains(((PosingFlag) player).fabSit$currentPose())) {
             instance.setInvisible(true);
         } else {
             instance.setInvisible(b);

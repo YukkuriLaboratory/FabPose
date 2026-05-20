@@ -1,6 +1,7 @@
 package net.fill1890.fabsit.mixin.injector;
 
 import net.fill1890.fabsit.entity.Pose;
+import net.fill1890.fabsit.extension.PosingFlag;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.layers.PlayerItemInHandLayer;
 import net.minecraft.client.renderer.entity.state.AvatarRenderState;
@@ -23,7 +24,7 @@ abstract public class PlayerItemInHandLayerMixin<S extends AvatarRenderState> {
             cancellable = true
     )
     private void preventInvisiblePlayerItems(S playerEntityRenderState, ItemStackRenderState itemRenderState, ItemStack itemStack, HumanoidArm arm, PoseStack matrixStack, SubmitNodeCollector orderedRenderCommandQueue, int i, CallbackInfo ci) {
-        if (EnumSet.of(Pose.LAYING, Pose.SPINNING).contains(playerEntityRenderState.fabSit$currentPose())) {
+        if (EnumSet.of(Pose.LAYING, Pose.SPINNING).contains(((PosingFlag) playerEntityRenderState).fabSit$currentPose())) {
             ci.cancel();
         }
     }

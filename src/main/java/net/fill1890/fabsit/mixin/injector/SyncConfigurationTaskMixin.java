@@ -2,6 +2,7 @@ package net.fill1890.fabsit.mixin.injector;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import net.fabricmc.fabric.impl.registry.sync.RegistrySyncManager;
+import net.fill1890.fabsit.extension.ModFlag;
 import net.fill1890.fabsit.mixin.accessor.ServerCommonPacketListenerImplAccessor;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -45,7 +46,7 @@ public abstract class SyncConfigurationTaskMixin {
     private void removeFromSync(Consumer<Packet<?>> sender, CallbackInfo ci) {
         // if client does not have fabsit
         var connection = ((ServerCommonPacketListenerImplAccessor) handler()).getConnection();
-        if (!connection.fabSit$isModEnabled()) {
+        if (!((ModFlag) connection).fabSit$isModEnabled()) {
 
             var id = Registries.ENTITY_TYPE.identifier();
             // scrub entities from the syncing registry

@@ -48,13 +48,29 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Use these Java versions
-        java: [
-          21,    # Current Java LTS & minimum supported by Minecraft
-        ]
-        # Stonecutter-managed Minecraft versions. Add new versions here.
-        version: [ '1.21.11' ]
-        task: [ build, runServertest, runClienttest ]
+        # Full include cross product: mixing a base `task` axis with
+        # `include` entries that add new keys does NOT cross-multiply on
+        # GitHub Actions. Each MC version (1.21.x=JDK21, 26.1+=JDK25) is
+        # listed explicitly per task.
+        include:
+          - version: '1.21.11'
+            java: 21
+            task: build
+          - version: '1.21.11'
+            java: 21
+            task: runServertest
+          - version: '1.21.11'
+            java: 21
+            task: runClienttest
+          - version: '26.1'
+            java: 25
+            task: build
+          - version: '26.1'
+            java: 25
+            task: runServertest
+          - version: '26.1'
+            java: 25
+            task: runClienttest
     runs-on: ubuntu-latest
     steps:
       - name: checkout repository
@@ -82,6 +98,9 @@ jobs:
           # Prevent OpenAL / SDL audio init crashes in headless CI clients.
           ALSOFT_DRIVERS: "null"
           SDL_AUDIODRIVER: "dummy"
+          # 26.1 Blaze3D requires a real OpenGL backend; Xvfb only provides
+          # software GLX, so force Mesa's llvmpipe software rasterizer.
+          LIBGL_ALWAYS_SOFTWARE: "1"
         with:
           run: ./gradlew :${{ matrix.version }}:${{ matrix.task }} --stacktrace
       - name: capture build artifacts
@@ -90,3 +109,15 @@ jobs:
         with:
           name: Artifacts-${{ matrix.version }}
           path: versions/${{ matrix.version }}/build/libs/
+      - name: capture test reports
+        # Upload server / client test outputs (logs, eula.txt, config) for
+        # post-mortem when CI fails. FabricGameTestRunner does not emit
+        # JUnit XML, so we ship the whole runtime dir.
+        if: ${{ always() && (matrix.task == 'runServertest' || matrix.task == 'runClienttest') }}
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: TestReports-${{ matrix.version }}-${{ matrix.task }}
+          path: |
+            versions/${{ matrix.version }}/build/servertest/
+            versions/${{ matrix.version }}/build/clienttest/
+          if-no-files-found: ignore

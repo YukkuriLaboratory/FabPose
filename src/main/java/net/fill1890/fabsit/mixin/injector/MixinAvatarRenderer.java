@@ -1,5 +1,6 @@
 package net.fill1890.fabsit.mixin.injector;
 
+import net.fill1890.fabsit.extension.PosingFlag;
 import net.minecraft.client.renderer.entity.player.AvatarRenderer;
 import net.minecraft.client.renderer.entity.state.AvatarRenderState;
 import net.minecraft.world.entity.Avatar;
@@ -18,7 +19,7 @@ public abstract class MixinAvatarRenderer<AvatarlikeEntity extends Avatar> {
     private void updatePoseState(AvatarlikeEntity playerLikeEntity, AvatarRenderState playerEntityRenderState, float f, CallbackInfo ci) {
         // Only apply pose state for actual PlayerEntity instances (not MannequinEntity)
         if (playerLikeEntity instanceof Player player) {
-            playerEntityRenderState.fabSit$setPosing(player.fabSit$currentPose());
+            ((PosingFlag) playerEntityRenderState).fabSit$setPosing(((PosingFlag) player).fabSit$currentPose());
         }
     }
 }

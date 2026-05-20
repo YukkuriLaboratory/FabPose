@@ -63,7 +63,11 @@ class PoseManagerEntity(entityType: EntityType<out PoseManagerEntity>, world: Le
             }
 
             if (passenger is ServerPlayer && pose != null && ConfigManager.getConfig().enable_messages.action_bar) {
+                //? if <26.1 {
                 passenger.displayClientMessage(Messages.getPoseStopMessage(passenger, pose), true)
+                //?} else {
+                /*passenger.sendSystemMessage(Messages.getPoseStopMessage(passenger, pose), true)*/
+                //?}
             }
         }
     }

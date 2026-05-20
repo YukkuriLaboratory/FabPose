@@ -9,6 +9,8 @@
   "chat.fabsit.pose_spectator_error": "§4You can't pose while spectating!",
   "chat.fabsit.sit_state_error": "§4You can't sit right now!",
   "chat.fabsit.pose_state_error": "§4You can't pose right now!",
+  "chat.fabsit.sit_permission_error": "§4You don't have permission to sit!",
+  "chat.fabsit.pose_permission_error": "§4You don't have permission to pose!",
   "chat.fabsit.sit_block_occupied": "Someone is already sitting here!",
   "chat.fabsit.pose_block_occupied": "Someone is already posing here!",
 

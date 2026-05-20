@@ -1,11 +1,21 @@
 import java.util.concurrent.TimeUnit
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
+// NOTE: This buildscript and build.fabric.unobfuscated.gradle.kts share large
+// structural overlap (sourceSets, configurations, processResources, Xvfb
+// handling). Intentional differences vs. unobfuscated: Loom plugin id
+// (`fabric-loom` vs `net.fabricmc.fabric-loom`), Loom version (1.14 vs 1.16),
+// `mappings(officialMojangMappings())`, `modImplementation`/`modLocalRuntime`,
+// Java/Kotlin target (21 vs 25), AccessWidener variant (`fabpose.accesswidener`
+// vs `fabpose.official.accesswidener`), permissions-api version (0.6.1 vs
+// 0.7.0), and PulseAudio stub / extra audio env (26.1 only). Keep behavioural
+// fixes (e.g., headless hardening) in sync across both files.
+
 plugins {
     id("fabric-loom") version "1.14-SNAPSHOT"
-    id("maven-publish")
     kotlin("jvm") version "2.3.0"
     id("org.jmailen.kotlinter") version "5.2.0"
+    id("me.modmuss50.mod-publish-plugin") version "0.8.4"
 }
 
 val minecraftVersion = project.property("minecraft_version").toString()
@@ -20,8 +30,6 @@ val serverTest = "servertest"
 val clientTest = "clienttest"
 sourceSets {
     val main by main
-    main.java.srcDirs(rootProject.file("src/main/java"))
-    main.resources.srcDirs(rootProject.file("src/main/resources"))
     val classPathConfig =
         closureOf<SourceSet> {
             compileClasspath += main.compileClasspath
@@ -29,14 +37,8 @@ sourceSets {
             runtimeClasspath += main.runtimeClasspath
             runtimeClasspath += main.output
         }
-    create(serverTest, classPathConfig).apply {
-        java.srcDirs(rootProject.file("src/$serverTest/java"))
-        resources.srcDirs(rootProject.file("src/$serverTest/resources"))
-    }
-    create(clientTest, classPathConfig).apply {
-        java.srcDirs(rootProject.file("src/$clientTest/java"))
-        resources.srcDirs(rootProject.file("src/$clientTest/resources"))
-    }
+    create(serverTest, classPathConfig)
+    create(clientTest, classPathConfig)
 }
 val serverTestSourceSet = sourceSets.getByName(serverTest)
 val clientTestSourceSet = sourceSets.getByName(clientTest)
@@ -62,6 +64,7 @@ repositories {
 val loaderVersion = project.property("loader_version").toString()
 val fabricVersion = project.property("fabric_version").toString()
 val flkVersion = project.property("flk_version").toString()
+val javaVersion = project.property("java_version").toString()
 dependencies {
     // To change the versions see versions/<mc>/gradle.properties
     minecraft("com.mojang:minecraft:$minecraftVersion")
@@ -152,6 +155,7 @@ tasks.processResources {
         "fabric_version" to fabricVersion,
         "minecraft_version" to minecraftVersion,
         "flk_version" to flkVersion,
+        "java_version" to javaVersion,
     )
 
     filesMatching("fabric.mod.json") {
@@ -161,8 +165,13 @@ tasks.processResources {
             "fabric_version" to fabricVersion,
             "minecraft_version" to minecraftVersion,
             "flk_version" to flkVersion,
+            "java_version" to javaVersion,
         )
     }
+
+    // 26.1+ ships an additional AccessWidener with namespace `official`. It is unused
+    // (and rejected) by Loom on intermediary-mapped versions, so drop it from the jar.
+    exclude("fabpose.official.accesswidener")
 }
 
 tasks.withType<JavaCompile>().configureEach {
@@ -184,17 +193,6 @@ kotlin {
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_21)
     }
-    sourceSets {
-        named("main") {
-            kotlin.srcDirs(rootProject.file("src/main/kotlin"))
-        }
-        named(serverTest) {
-            kotlin.srcDirs(rootProject.file("src/$serverTest/kotlin"))
-        }
-        named(clientTest) {
-            kotlin.srcDirs(rootProject.file("src/$clientTest/kotlin"))
-        }
-    }
 }
 
 tasks.jar {
@@ -203,20 +201,26 @@ tasks.jar {
     }
 }
 
-// configure the maven publication
-publishing {
-    publications {
-        create<MavenPublication>("mavenJava") {
-            from(components.getByName("java"))
-        }
-    }
+publishMods {
+    file.set(tasks.named("remapJar", org.gradle.api.tasks.bundling.AbstractArchiveTask::class).flatMap { it.archiveFile })
+    additionalFiles.from(tasks.named("remapSourcesJar", org.gradle.api.tasks.bundling.AbstractArchiveTask::class).flatMap { it.archiveFile })
+    changelog.set(providers.environmentVariable("CHANGELOG").orElse(""))
+    type.set(me.modmuss50.mpp.ReleaseType.STABLE)
+    modLoaders.add("fabric")
 
-    // See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
-    repositories {
-        // Add repositories to publish to here.
-        // Notice: This block does NOT have the same function as the block in the top level.
-        // The repositories here will be used for publishing your artifact, not for
-        // retrieving dependencies.
+    modrinth {
+        projectId.set(providers.environmentVariable("MODRINTH_ID"))
+        accessToken.set(providers.environmentVariable("MODRINTH_TOKEN"))
+        minecraftVersions.add(minecraftVersion)
+        requires("fabric-api")
+        requires("fabric-language-kotlin")
+    }
+    curseforge {
+        projectId.set(providers.environmentVariable("CURSEFORGE_ID"))
+        accessToken.set(providers.environmentVariable("CURSEFORGE_TOKEN"))
+        minecraftVersions.add(minecraftVersion)
+        requires("fabric-api")
+        requires("fabric-language-kotlin")
     }
 }
 
@@ -287,6 +291,19 @@ val cleanupXvfbTask = tasks.register("cleanupXvfb") {
     }
 }
 
+// Disable Loom's built-in `xvfb-run` wrapping for every run task. We manage Xvfb
+// ourselves (only for runClienttest, see below). Without this, Loom auto-wraps
+// even runServertest with `xvfb-run` on Linux + CI environments, which crashes
+// when xvfb-run is not on PATH. `useXvfb` is protected in Loom 1.14, so go
+// through reflection (it became `public` in Loom 1.16+ via PR #1508 but we
+// keep one form that works on both).
+tasks.withType<net.fabricmc.loom.task.AbstractRunTask>().configureEach {
+    @Suppress("UNCHECKED_CAST")
+    val getter = javaClass.methods.firstOrNull { it.name == "getUseXvfb" }
+        ?: error("AbstractRunTask#getUseXvfb not found on ${javaClass.name}")
+    (getter.invoke(this) as org.gradle.api.provider.Property<Boolean>).set(false)
+}
+
 val clientTestTaskName = "run${clientTest.replaceFirstChar(Char::uppercaseChar)}"
 tasks.named<JavaExec>(clientTestTaskName) {
     finalizedBy(cleanupXvfbTask)
@@ -307,5 +324,7 @@ tasks.named<JavaExec>(clientTestTaskName) {
 
         logger.lifecycle("Started Xvfb on display $display (pid: ${process.pid()})")
         environment("DISPLAY", display)
+        environment("ALSOFT_DRIVERS", "null")
+        environment("SDL_AUDIODRIVER", "dummy")
     }
 }

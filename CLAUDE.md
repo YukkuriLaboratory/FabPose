@@ -7,6 +7,13 @@ FabPose is a Minecraft mod for Fabric servers that allows players to take variou
 
 The `main` branch manages modern Minecraft versions (1.21.11+) via [Stonecutter](https://stonecutter.kikugie.dev/). Legacy versions (1.21.10 and earlier) remain on their dedicated branches and are not Stonecutter-managed.
 
+Each Stonecutter-managed version uses one of two buildscripts, picked per version in `settings.gradle.kts`:
+
+- `build.fabric.gradle.kts` — obfuscated Fabric Loom pipeline (mappings + remap). Used for 1.21.x.
+- `build.fabric.unobfuscated.gradle.kts` — un-obfuscated Loom pipeline (no `mappings()`, plugin id `net.fabricmc.fabric-loom`). Used for 26.1+.
+
+The two scripts also pin different JDKs (1.21.x = JDK 21, 26.1+ = JDK 25); they are provisioned automatically by Gradle's `foojay-resolver-convention` toolchain plugin. The Nix dev shell (`flake.nix`) provides `Xvfb` (via `xorg-server`) for headless `runClienttest`, plus `gcc` for the 26.1 PulseAudio stub used to keep flite from aborting in headless environments. Both buildscripts disable Loom's built-in `xvfb-run` wrapping and start `Xvfb` themselves only for `runClienttest`. Enter the shell with `nix develop` before invoking Gradle.
+
 ## Key Development Commands
 
 ### Build and Run
@@ -15,6 +22,7 @@ Stonecutter exposes a subproject per Minecraft version under `versions/<mc>`. Pr
 ```bash
 ./gradlew chiseledBuild              # Build every active version
 ./gradlew :1.21.11:build             # Build a specific version
+./gradlew :26.1:build                # Build the 26.1 (un-obfuscated) version
 ./gradlew :1.21.11:runServer         # Start development server
 ./gradlew :1.21.11:runClient         # Start development client
 ./gradlew :1.21.11:runServertest     # Run server-side tests
@@ -24,9 +32,9 @@ Stonecutter exposes a subproject per Minecraft version under `versions/<mc>`. Pr
 Build outputs land in `versions/<mc>/build/libs/`.
 
 ### Adding a new Minecraft version
-1. Add the version string to `versions(...)` in `settings.gradle.kts`.
-2. Create `versions/<new-mc>/gradle.properties` mirroring an existing one with `minecraft_version` / `loader_version` / `fabric_version` / `flk_version` adjusted.
-3. Add the version to `matrix.version` in `.github/workflows/build.yml`.
+1. Add the version string to `versions(...)` in `settings.gradle.kts`. Pick the appropriate buildscript (`build.fabric.gradle.kts` for 1.21.x, `build.fabric.unobfuscated.gradle.kts` for 26.1+) via `versions("<mc>").buildscript("...")`.
+2. Create `versions/<new-mc>/gradle.properties` mirroring an existing one with `minecraft_version` / `loader_version` / `fabric_version` / `flk_version` / `java_version` adjusted. `java_version` is expanded into `fabric.mod.json` and must match the buildscript's JDK (21 for 1.21.x, 25 for 26.1+).
+3. Add the version to `matrix.include` in `.github/workflows/build.yml`, pinning the right JDK (21 for 1.21.x, 25 for 26.1+). If the new version requires a JDK that isn't already installed in `publish.yml` (currently 21 + 25), add it to the `setup-java` `java-version` list and to `ORG_GRADLE_PROJECT_org.gradle.java.installations.fromEnv` so the Gradle toolchain can resolve it.
 4. (Optional) Update the active version pointer in `stonecutter.gradle.kts` (`stonecutter active "<mc>"`) if you want IDE imports and bare `./gradlew build` to target the new version by default.
 5. Run `./gradlew :<new-mc>:build` to validate locally.
 
@@ -37,11 +45,16 @@ Build outputs land in `versions/<mc>/build/libs/`.
 ```
 
 ### Release Tags
-Releases are triggered by pushing tags matching `v<modver>+<mcver>` (e.g. `v1.4.2+1.21.11`).
-The `publish.yml` workflow validates the tag with the regex
-`^v[0-9A-Za-z._-]+\+[0-9]+\.[0-9]+(\.[0-9]+)?$` and uploads
-`versions/<mcver>/build/libs/fabpose-<modver>+<mcver>.jar` (and `-sources.jar`).
-The `<mcver>` segment must match an existing `versions/<mcver>/gradle.properties`.
+Releases are triggered by pushing an **annotated** tag matching `v<modver>` (e.g. `git tag -a v1.4.2 -m "Release notes..."`). The `publish.yml` workflow requires the tag to be annotated (`git cat-file -t` must return `tag`) and uses its annotation message as the changelog for Modrinth, CurseForge, and the GitHub Release.
+
+A single tag publishes every Minecraft version registered in `settings.gradle.kts`:
+- `./gradlew chiseledBuild` builds all versions into `versions/<mcver>/build/libs/fabpose-<modver>+<mcver>.jar`.
+- `./gradlew chiseledPublishMods` uploads each artifact to Modrinth and CurseForge via the `me.modmuss50.mod-publish-plugin`. Each version becomes a separate Modrinth/CurseForge release tagged with the matching Minecraft version.
+- The GitHub Release attaches all built jars (`versions/*/build/libs/fabpose-<modver>+*.jar`, sources excluded).
+
+Required repository secrets: `MODRINTH_ID`, `MODRINTH_TOKEN`, `CURSEFORGE_ID`, `CURSEFORGE_TOKEN`. The workflow fails early if any are missing.
+
+Both JDK 21 (for 1.21.x) and JDK 25 (for 26.1+) are installed in the publish job; Gradle's toolchain plugin picks the right one per subproject via `org.gradle.java.installations.fromEnv`.
 
 ## Architecture Overview
 

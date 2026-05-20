@@ -28,6 +28,7 @@
   "client": [
     "accessor.CreateWorldScreenAccessor",
     "accessor.CycleButtonAccessor",
+    "accessor.GuiAccessor",
     "accessor.ScreenAccessor",
     "accessor.TabButtonWidgetAccessor",
     "accessor.TabNavigationWidgetAccessor",

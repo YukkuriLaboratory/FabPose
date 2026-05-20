@@ -1,6 +1,7 @@
 package net.fill1890.fabsit.mixin.injector.swim;
 
 import net.fill1890.fabsit.entity.Pose;
+import net.fill1890.fabsit.extension.PosingFlag;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.server.level.ServerPlayer;
 import org.spongepowered.asm.mixin.Mixin;
@@ -36,7 +37,7 @@ abstract public class EntityMixin {
     private void shouldForceSwimmingInLand(CallbackInfo ci) {
         var entity = (Entity) (Object) this;
         if (entity instanceof ServerPlayer player) {
-            var pose = player.fabSit$currentPose();
+            var pose = ((PosingFlag) player).fabSit$currentPose();
             var generallyCanSwim = isSprinting() && isInWater();
             setSwimming((pose == Pose.SWIMMING || generallyCanSwim) && !isPassenger());
             ci.cancel();
