@@ -40,7 +40,5 @@ data class PoseRequestC2SPacket(val pose: Pose) : CustomPayload {
         }
     }
 
-    override fun getId(): Id<PoseRequestC2SPacket> {
-        return ID
-    }
+    override fun getId(): Id<PoseRequestC2SPacket> = ID
 }

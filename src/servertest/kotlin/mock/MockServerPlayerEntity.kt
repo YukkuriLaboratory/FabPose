@@ -14,20 +14,19 @@ import net.minecraft.world.GameMode
 
 private val playerId = atomic(0)
 
-fun TestContext.createMockServerPlayer(relativePos: BlockPos = BlockPos(0, 1, 0)) =
-    ServerPlayerEntity(
+fun TestContext.createMockServerPlayer(relativePos: BlockPos = BlockPos(0, 1, 0)) = ServerPlayerEntity(
+    world.server,
+    world,
+    GameProfile(UUID.randomUUID(), "test-mock-server-player-${playerId.getAndIncrement()}"),
+    SyncedClientOptions.createDefault(),
+).also {
+    it.networkHandler = ServerPlayNetworkHandler(
         world.server,
-        world,
-        GameProfile(UUID.randomUUID(), "test-mock-server-player-${playerId.getAndIncrement()}"),
-        SyncedClientOptions.createDefault(),
-    ).also {
-        it.networkHandler = ServerPlayNetworkHandler(
-            world.server,
-            MockClientConnection(NetworkSide.SERVERBOUND),
-            it,
-            ConnectedClientData.createDefault(it.gameProfile, true),
-        )
-        it.refreshPositionAndAngles(getAbsolutePos(relativePos), 0f, 0f)
-        it.changeGameMode(GameMode.CREATIVE)
-        world.onPlayerConnected(it)
-    }
+        MockClientConnection(NetworkSide.SERVERBOUND),
+        it,
+        ConnectedClientData.createDefault(it.gameProfile, true),
+    )
+    it.refreshPositionAndAngles(getAbsolutePos(relativePos), 0f, 0f)
+    it.changeGameMode(GameMode.CREATIVE)
+    world.onPlayerConnected(it)
+}

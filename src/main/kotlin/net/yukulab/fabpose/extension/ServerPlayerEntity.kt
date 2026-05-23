@@ -18,53 +18,52 @@ import net.yukulab.fabpose.entity.define.PoseManagerEntity
 import net.yukulab.fabpose.serverScope
 
 @JvmOverloads
-fun ServerPlayerEntity.pose(pose: Pose, targetSitPos: Vec3d? = null, chairPosition: ChairPosition = ChairPosition.ON_BLOCK, checkSpam: Boolean = true): Result<Unit> =
-    runCatching {
-        pose.confirmEnabled()
+fun ServerPlayerEntity.pose(pose: Pose, targetSitPos: Vec3d? = null, chairPosition: ChairPosition = ChairPosition.ON_BLOCK, checkSpam: Boolean = true): Result<Unit> = runCatching {
+    pose.confirmEnabled()
 
-        if (!Permissions.check(this, pose.getPermissionName(), true)) {
-            throw PoseException.PermissionException()
-        }
+    if (!Permissions.check(this, pose.getPermissionName(), true)) {
+        throw PoseException.PermissionException()
+    }
 
-        val now = Clock.System.now()
-        val lastUse = lastPoseTime?.toKotlinInstant()
-        if (checkSpam && lastUse != null && (now - lastUse) < 500.milliseconds) {
-            throw PoseException.TooQuickly()
-        }
+    val now = Clock.System.now()
+    val lastUse = lastPoseTime?.toKotlinInstant()
+    if (checkSpam && lastUse != null && (now - lastUse) < 500.milliseconds) {
+        throw PoseException.TooQuickly()
+    }
 
-        if (currentPose != null) {
-            currentPose = null
-            return@runCatching
-        }
+    if (currentPose != null) {
+        currentPose = null
+        return@runCatching
+    }
 
-        val sitPos = targetSitPos ?: run {
-            if (ConfigManager.getConfig().centre_on_blocks) {
-                Vec3d.add(blockPos, 0.5, 0.0, 0.5)
-            } else {
-                pos
-            }
-        }
-
-        canPose().getOrThrow()
-
-        currentPose = pose
-        if (pose == Pose.SWIMMING) {
-            isSwimming = true
+    val sitPos = targetSitPos ?: run {
+        if (ConfigManager.getConfig().centre_on_blocks) {
+            Vec3d.add(blockPos, 0.5, 0.0, 0.5)
         } else {
-            val chair = FabSitEntities.POSE_MANAGER.spawn(
-                world as ServerWorld,
-                PoseManagerEntity.getInitializer(sitPos, this, chairPosition),
-                blockPos,
-                SpawnReason.COMMAND,
-                false,
-                false,
-            )
-            // Adding delay to sync entity with client
-            serverScope.launch {
-                startRiding(chair, true)
-            }
+            pos
         }
     }
+
+    canPose().getOrThrow()
+
+    currentPose = pose
+    if (pose == Pose.SWIMMING) {
+        isSwimming = true
+    } else {
+        val chair = FabSitEntities.POSE_MANAGER.spawn(
+            world as ServerWorld,
+            PoseManagerEntity.getInitializer(sitPos, this, chairPosition),
+            blockPos,
+            SpawnReason.COMMAND,
+            false,
+            false,
+        )
+        // Adding delay to sync entity with client
+        serverScope.launch {
+            startRiding(chair, true)
+        }
+    }
+}
 
 /**
  * Check if a player can currently perform a given pose
