@@ -31,3 +31,7 @@ bin/
 # fabric
 
 run/
+
+# legacy plan working area
+
+temp/
