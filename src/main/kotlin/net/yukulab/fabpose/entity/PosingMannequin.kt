@@ -9,7 +9,11 @@ import net.minecraft.network.protocol.game.ClientboundBlockUpdatePacket
 import net.minecraft.network.protocol.game.ClientboundMoveEntityPacket
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
+//? if <26.2 {
 import net.minecraft.world.entity.EntityType
+//?} else {
+/*import net.minecraft.world.entity.EntityTypes as EntityType
+*///?}
 import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.Pose
 import net.minecraft.world.entity.decoration.Mannequin
@@ -173,9 +177,15 @@ class PosingMannequin private constructor(
 
                 // Create bed state facing player's direction
                 val direction = getCardinal(player.yHeadRot)
+                //? if <26.2 {
                 bedState = Blocks.WHITE_BED.defaultBlockState()
                     .setValue(BedBlock.PART, BedPart.HEAD)
                     .setValue(BedBlock.FACING, direction.opposite)
+                //?} else {
+                /*bedState = Blocks.BED.white().defaultBlockState()
+                    .setValue(BedBlock.PART, BedPart.HEAD)
+                    .setValue(BedBlock.FACING, direction.opposite)
+                *///?}
             }
 
             // Spawn the mannequin

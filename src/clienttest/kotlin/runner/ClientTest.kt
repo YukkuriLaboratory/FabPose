@@ -21,6 +21,7 @@ import net.minecraft.client.gui.layouts.GridLayout
 import net.minecraft.client.gui.layouts.LayoutElement
 import net.minecraft.client.gui.screens.AccessibilityOnboardingScreen
 import net.minecraft.client.gui.screens.LevelLoadingScreen
+import net.minecraft.client.gui.screens.Overlay
 import net.minecraft.client.gui.screens.PauseScreen
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.gui.screens.TitleScreen
@@ -35,6 +36,16 @@ import net.yukulab.fabpose.extension.accessor
 import net.yukulab.fabpose.extension.loop
 import org.spongepowered.asm.mixin.MixinEnvironment
 import test.keybind.TestPoseKeybindings
+
+//? if <26.2 {
+private val Minecraft.activeScreen: Screen? get() = screen
+private val Minecraft.activeOverlay: Overlay? get() = overlay
+private fun Minecraft.showScreen(target: Screen?) = setScreen(target)
+//?} else {
+/*private val Minecraft.activeScreen: Screen? get() = gui.screen()
+private val Minecraft.activeOverlay: Overlay? get() = gui.overlay()
+private fun Minecraft.showScreen(target: Screen?) = gui.setScreen(target)
+*///?}
 
 class ClientTest : ClientModInitializer {
     override fun onInitializeClient() {
@@ -72,7 +83,7 @@ class ClientTest : ClientModInitializer {
             clickScreenButton("options.difficulty")
 
             waitFor("Click World Tab") {
-                val createWorldScreen = it.screen as CreateWorldScreen
+                val createWorldScreen = it.activeScreen as CreateWorldScreen
                 val tabNavigation = createWorldScreen.accessor.tabNavigationBar
                 tabNavigation.selectTab(1, false)
                 val targetTabText = Component.translatable("createWorld.tab.world.title")
@@ -139,18 +150,18 @@ class ClientTest : ClientModInitializer {
 
         private suspend fun setScreen(screen: (Minecraft) -> Screen?) = withContext(clientDispatcher) {
             val client = Minecraft.getInstance()
-            client.setScreen(screen(client))
+            client.showScreen(screen(client))
         }
 
         private suspend fun waitForLoadingComplete() {
             waitFor("Loading to complete", 5.minutes) {
-                it.overlay == null
+                it.activeOverlay == null
             }
         }
 
         private suspend fun waitForScreen(screen: Class<out Screen>) {
             waitFor("Screen ${screen.name}") {
-                it.screen?.javaClass == screen
+                it.activeScreen?.javaClass == screen
             }
         }
 
@@ -162,7 +173,7 @@ class ClientTest : ClientModInitializer {
             val buttonText = translationKey.string
 
             waitFor("Click button $buttonText") { client ->
-                val screen = client.screen ?: return@waitFor false
+                val screen = client.activeScreen ?: return@waitFor false
 
                 screen.accessor.renderables.forEach { drawable ->
                     if (drawable is AbstractButton && pressMatchingButton(drawable, buttonText)) {
@@ -208,7 +219,7 @@ class ClientTest : ClientModInitializer {
 
         private suspend fun waitForWorldTicks(ticks: Long) {
             waitFor("World load", 30.minutes) {
-                it.level != null && it.screen !is LevelLoadingScreen
+                it.level != null && it.activeScreen !is LevelLoadingScreen
             }
             val startTicks = withContext(clientDispatcher) {
                 Minecraft.getInstance().level?.gameTime.shouldNotBeNull()

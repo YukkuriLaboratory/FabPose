@@ -5,6 +5,9 @@ import net.fill1890.fabsit.extension.ModFlag;
 import net.fill1890.fabsit.mixin.accessor.EntitySpawnPacketAccessor;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+//? if >=26.2 {
+/*import net.minecraft.world.entity.EntityTypes;
+*///?}
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.Packet;
@@ -113,7 +116,11 @@ public abstract class ServerGamePacketListenerImplMixin extends ServerCommonPack
 
             // if fabsit not loaded, replace PoseManager entity to vanilla ArmorStand
             if (!((ModFlag) connection).fabSit$isModEnabled()) {
+                //? if <26.2 {
                 ((EntitySpawnPacketAccessor) sp).setEntityTypeId(EntityType.ARMOR_STAND);
+                //?} else {
+                /*((EntitySpawnPacketAccessor) sp).setEntityTypeId(EntityTypes.ARMOR_STAND);
+                *///?}
             }
         }
     }

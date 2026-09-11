@@ -15,7 +15,11 @@ import net.fill1890.fabsit.mixin.accessor.MannequinAccessor
 import net.fill1890.fabsit.util.Messages
 import net.minecraft.commands.CommandSourceStack
 import net.minecraft.network.chat.Component
+//? if <26.2 {
 import net.minecraft.world.entity.EntityType
+//?} else {
+/*import net.minecraft.world.entity.EntityTypes as EntityType
+*///?}
 import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.Pose as EntityPose
 import net.minecraft.world.entity.decoration.Mannequin

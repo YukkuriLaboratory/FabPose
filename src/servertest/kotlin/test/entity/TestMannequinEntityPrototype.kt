@@ -13,7 +13,11 @@ import net.fabricmc.fabric.api.gametest.v1.GameTest
 import net.fill1890.fabsit.mixin.accessor.MannequinAccessor
 import net.minecraft.core.BlockPos
 import net.minecraft.gametest.framework.GameTestHelper
+//? if <26.2 {
 import net.minecraft.world.entity.EntityType
+//?} else {
+/*import net.minecraft.world.entity.EntityTypes as EntityType
+*///?}
 import net.minecraft.world.entity.Pose
 import net.minecraft.world.entity.decoration.Mannequin
 import net.minecraft.world.item.component.ResolvableProfile

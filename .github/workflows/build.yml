@@ -71,6 +71,15 @@ jobs:
           - version: '26.1'
             java: 25
             task: runClienttest
+          - version: '26.2'
+            java: 25
+            task: build
+          - version: '26.2'
+            java: 25
+            task: runServertest
+          - version: '26.2'
+            java: 25
+            task: runClienttest
     runs-on: ubuntu-latest
     steps:
       - name: checkout repository

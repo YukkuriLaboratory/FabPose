@@ -4,6 +4,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.AABB;
+//? if >=26.2 {
+/*import net.minecraft.world.phys.Vec3;
+*///?}
 import net.yukulab.fabpose.entity.define.PoseManagerEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -19,7 +22,11 @@ public abstract class ServerLevelMixin {
     private void checkPoseManagerEntity(BlockPos pos, BlockState oldBlock, BlockState newBlock, CallbackInfo ci) {
         if (!newBlock.isAir()) return;
         var world = (ServerLevel) (Object) this;
+        //? if <26.2 {
         var center = pos.getCenter();
+        //?} else {
+        /*var center = Vec3.atCenterOf(pos);
+        *///?}
         world.getEntitiesOfClass(PoseManagerEntity.class, AABB.ofSize(center, 0.5, 0.5, 0.5), (e) -> true)
                 .forEach(e -> e.kill(world));
     }
