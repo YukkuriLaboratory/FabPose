@@ -204,6 +204,9 @@ publishMods {
         projectId.set(providers.environmentVariable("CURSEFORGE_ID"))
         accessToken.set(providers.environmentVariable("CURSEFORGE_TOKEN"))
         minecraftVersions.add(minecraftVersion)
+        // CurseForge API now requires declaring at least one supported environment.
+        clientRequired.set(true)
+        serverRequired.set(true)
         requires("fabric-api")
         requires("fabric-language-kotlin")
     }
