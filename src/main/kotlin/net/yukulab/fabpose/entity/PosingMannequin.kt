@@ -7,6 +7,9 @@ import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.network.protocol.game.ClientboundBlockUpdatePacket
 import net.minecraft.network.protocol.game.ClientboundMoveEntityPacket
+//? if >=26.3 {
+/*import net.minecraft.network.protocol.game.VecDelta
+*///?}
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
 //? if <26.2 {
@@ -89,9 +92,13 @@ class PosingMannequin private constructor(
         if (pose == Pose.SPIN_ATTACK) {
             val pivotPacket = ClientboundMoveEntityPacket.PosRot(
                 mannequin.id,
+                //? if <26.3 {
                 0.toShort(),
                 0.toShort(),
                 0.toShort(),
+                //?} else {
+                /*VecDelta.ZERO,
+                *///?}
                 0.toByte(),
                 (-90.0f * 256.0f / 360.0f).toInt().toByte(),
                 true,

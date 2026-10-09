@@ -18,6 +18,11 @@ public abstract class PoseKeybinds {
     // translation keys for controls screen
     private static final String KEY = "key." + FabSit.MOD_ID + ".";
     private static final KeyMapping.Category CATEGORY = KeyMapping.Category.register(Identifier.fromNamespaceAndPath(FabSit.MOD_ID, "category"));
+    //? if <26.3 {
+    private static final InputConstants.Type KEY_TYPE = InputConstants.Type.KEYSYM;
+    //?} else {
+    /*private static final InputConstants.Type KEY_TYPE = InputConstants.Type.KEYBOARD;
+    *///?}
 
     // sit, lay, and spin hotkeys
     @VisibleForTesting
@@ -32,11 +37,11 @@ public abstract class PoseKeybinds {
     private static KeyMapping emptyKey(String base) {
         //? if <26.1 {
         return KeyBindingHelper.registerKeyBinding(
-                new KeyMapping(KEY + base, InputConstants.Type.KEYSYM, InputConstants.UNKNOWN.getValue(), CATEGORY)
+                new KeyMapping(KEY + base, KEY_TYPE, InputConstants.UNKNOWN.getValue(), CATEGORY)
         );
         //?} else {
         /*return KeyMappingHelper.registerKeyMapping(
-                new KeyMapping(KEY + base, InputConstants.Type.KEYSYM, InputConstants.UNKNOWN.getValue(), CATEGORY)
+                new KeyMapping(KEY + base, KEY_TYPE, InputConstants.UNKNOWN.getValue(), CATEGORY)
         );
         *///?}
     }

@@ -46,7 +46,11 @@ class PoseManagerEntity(entityType: EntityType<out PoseManagerEntity>, world: Le
 
     init {
         isInvisible = true
+        //? if <26.3 {
         isInvulnerable = true
+        //?} else {
+        /*isPermanentlyInvulnerable = true
+        *///?}
         customName = Component.nullToEmpty("FABSEAT")
         setNoGravity(true)
     }
@@ -75,7 +79,9 @@ class PoseManagerEntity(entityType: EntityType<out PoseManagerEntity>, world: Le
     override fun removePassenger(passenger: Entity) {
         super.removePassenger(passenger)
 
-        if (passenger is Player) {
+        // Client passenger updates temporarily detach and reattach riders. Only the
+        // server can end the pose; clients receive the resulting pose sync packet.
+        if (passenger is ServerPlayer) {
             val pose = selectedPose
             val mannequin = posingMannequin
             if (mannequin != null && pose in setOf(Pose.LAYING, Pose.SPINNING)) {

@@ -29,6 +29,7 @@ stonecutter {
         versions("1.21.11").buildscript("build.fabric.gradle.kts")
         version("26.1").buildscript("build.fabric.unobfuscated.gradle.kts")
         version("26.2").buildscript("build.fabric.unobfuscated.gradle.kts")
+        version("26.3").buildscript("build.fabric.unobfuscated.gradle.kts")
         vcsVersion = "1.21.11"
     }
 }

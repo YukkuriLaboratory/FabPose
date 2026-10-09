@@ -4,7 +4,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 // NOTE: This buildscript and build.fabric.unobfuscated.gradle.kts share large
 // structural overlap (sourceSets, configurations, processResources, Xvfb
 // handling). Intentional differences vs. unobfuscated: Loom plugin id
-// (`fabric-loom` vs `net.fabricmc.fabric-loom`), Loom version (1.14 vs 1.16),
+// (`fabric-loom` vs `net.fabricmc.fabric-loom`), Loom version (1.14 vs 1.17),
 // `mappings(officialMojangMappings())`, `modImplementation`/`modLocalRuntime`,
 // Java/Kotlin target (21 vs 25), AccessWidener variant (`fabpose.accesswidener`
 // vs `fabpose.official.accesswidener`), permissions-api version (0.6.1 vs

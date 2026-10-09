@@ -10,7 +10,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     // 26.1+ ships un-obfuscated → use the new fabric-loom plugin id (no remap pipeline).
-    id("net.fabricmc.fabric-loom") version "1.16-SNAPSHOT"
+    id("net.fabricmc.fabric-loom") version "1.17.21"
     kotlin("jvm") version "2.3.0"
     id("org.jmailen.kotlinter") version "5.2.0"
     id("me.modmuss50.mod-publish-plugin") version "0.8.4"
