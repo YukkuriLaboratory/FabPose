@@ -104,6 +104,21 @@ jobs:
         uses: gradle/actions/setup-gradle@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2 # v5.0.0
       - name: make gradle wrapper executable
         run: chmod +x ./gradlew
+      - name: prepare software Vulkan for 26.3 client tests
+        if: ${{ matrix.version == '26.3' && matrix.task == 'runClienttest' }}
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y mesa-vulkan-drivers vulkan-tools
+          lvp_icd=$(dpkg -L mesa-vulkan-drivers | awk '/\/lvp_icd[^/]*\.json$/ && !found { print; found = 1 }')
+          test -n "$lvp_icd"
+          test -f "$lvp_icd"
+          export VK_DRIVER_FILES="$lvp_icd"
+          printf 'VK_DRIVER_FILES=%s\n' "$VK_DRIVER_FILES" >> "$GITHUB_ENV"
+          export XDG_RUNTIME_DIR="$RUNNER_TEMP/vulkan-runtime"
+          install -d -m 700 "$XDG_RUNTIME_DIR"
+          # Xvfb starts in the test step; device discovery works without DISPLAY.
+          vulkaninfo --summary
       - name: build
         if: ${{ matrix.task != 'runClienttest' }}
         uses: coactions/setup-xvfb@b6b4fcfb9f5a895edadc3bc76318fae0ac17c8b3 # v1.0.1
